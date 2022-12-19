@@ -5,8 +5,8 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 
 @Composable
-fun MainScreen2() {
+fun ProfileScreen() {
     Scaffold {
-        Text(text = "Hello from screen 2")
+        Text("ProfileScreen")
     }
 }
