@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Nusic</string>
+    <string name="home_screen">Home Screen</string>
+    <string name="chat_screen">Chat Screen</string>
+</resources>
