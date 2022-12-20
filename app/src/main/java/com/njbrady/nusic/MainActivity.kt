@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                         BottomNavigation {
                             val navBackStackEntry by navController.currentBackStackEntryAsState()
                             val currentDestination = navBackStackEntry?.destination
-                            items.forEach { screen ->
+                            screens.forEach { screen ->
                                 BottomNavigationItem(icon = {
                                     Icon(
                                         Icons.Filled.Favorite, contentDescription = null
@@ -83,6 +83,6 @@ sealed class Screen(val route: String, @StringRes val resourceId: Int) {
     object Profile : Screen("profile", R.string.profile_screen)
 }
 
-val items = listOf(
+val screens = listOf(
     Screen.Profile, Screen.Home, Screen.Conversation
 )

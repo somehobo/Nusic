@@ -16,14 +16,17 @@ class MainViewModel: ViewModel() {
 
     fun getInitialSongs(count: Int) {
         //temporary
+        print("get initial")
         for (i in 0 until count) {
-            homeState.songList.add(MockData.songList.random())
+            val random = (0 until MockData.songList.size-1).random()
+            homeState.songList.add(MockData.songList[random])
         }
     }
 
     fun likeSong(song: Song, liked: Boolean) {
         //do nothing with liked for now
-        homeState.songList.removeAt(0)
+        homeState.songList.removeLast()
+        print("liked song, ${homeState.songList.size} left")
         homeState.songList.add(MockData.songList.random())
     }
 }
