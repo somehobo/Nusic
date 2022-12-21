@@ -3,6 +3,7 @@ package com.njbrady.nusic
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
@@ -11,13 +12,17 @@ import com.njbrady.nusic.home.data.HomeState
 import com.njbrady.nusic.home.data.Song
 import java.util.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.layout.LazyLayout
+import androidx.compose.foundation.lazy.layout.LazyLayoutItemProvider
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import com.njbrady.nusic.home.utils.Direction
 import com.njbrady.nusic.home.utils.rememberSwipeableCardState
 import com.njbrady.nusic.home.utils.swipableCard
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
@@ -47,7 +52,7 @@ private fun HomeScreenContent(
         backgroundColor = MaterialTheme.colors.background
     ) { paddingValues ->
         SongStack(
-            songList = homeState.songList,
+            homeState = homeState,
             onLikeAction = onLikeAction,
             modifier = Modifier,
             paddingValues = paddingValues
@@ -58,21 +63,18 @@ private fun HomeScreenContent(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
 @Composable
 private fun SongStack(
-    songList: SnapshotStateList<Song>,
+    homeState: HomeState,
     onLikeAction: (Song, Boolean) -> Unit,
     modifier: Modifier,
     paddingValues: PaddingValues = PaddingValues()
 ) {
-    remember {
-        songList
-    }
-    val states = songList.reversed()
-        .map { it to rememberSwipeableCardState() }
+
+    LazyColumn(content = )
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
-
-        states.forEach { (song, state) ->
+        for(song in homeState.songList) {
+            val state = rememberSwipeableCardState()
             if (state.swipedDirection == null) {
                 SongCard(
                     song = song,
