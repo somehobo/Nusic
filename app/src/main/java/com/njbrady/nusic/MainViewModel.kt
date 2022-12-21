@@ -27,6 +27,6 @@ class MainViewModel: ViewModel() {
         //do nothing with liked for now
         homeState.songList.removeLast()
         print("liked song, ${homeState.songList.size} left")
-        homeState.songList.add(MockData.songList.random())
+        homeState.songList.add(0,MockData.songList.random())
     }
 }

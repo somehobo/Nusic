@@ -15,6 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
+import com.njbrady.nusic.home.utils.Direction
+import com.njbrady.nusic.home.utils.rememberSwipeableCardState
+import com.njbrady.nusic.home.utils.swipableCard
 import kotlin.math.roundToInt
 
 
@@ -37,7 +40,6 @@ private fun HomeScreenContent(
     homeState: HomeState,
     onLikeAction: (Song, Boolean) -> Unit
 ) {
-    val songListState = homeState.songList
     Scaffold(
         modifier = Modifier.windowInsetsPadding(
             WindowInsets.navigationBars.only(WindowInsetsSides.End)
@@ -45,7 +47,7 @@ private fun HomeScreenContent(
         backgroundColor = MaterialTheme.colors.background
     ) { paddingValues ->
         SongStack(
-            songListState = songListState,
+            songList = homeState.songList,
             onLikeAction = onLikeAction,
             modifier = Modifier,
             paddingValues = paddingValues
@@ -56,17 +58,36 @@ private fun HomeScreenContent(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
 @Composable
 private fun SongStack(
-    songListState: SnapshotStateList<Song>,
+    songList: SnapshotStateList<Song>,
     onLikeAction: (Song, Boolean) -> Unit,
     modifier: Modifier,
     paddingValues: PaddingValues = PaddingValues()
 ) {
+    remember {
+        songList
+    }
+    val states = songList.reversed()
+        .map { it to rememberSwipeableCardState() }
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
 
-        songListState.forEach { song ->
-            SongCard(song = song, onLikeAction = onLikeAction)
+        states.forEach { (song, state) ->
+            if (state.swipedDirection == null) {
+                SongCard(
+                    song = song,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .swipableCard(
+                            state = state,
+                            blockedDirections = listOf(Direction.Down),
+                            onSwiped = { dir ->
+                                val liked = dir == Direction.Right
+                                onLikeAction(song, liked)
+                            },
+                        ),
+                )
+            }
         }
     }
 }
@@ -75,18 +96,12 @@ private fun SongStack(
 @Composable
 private fun SongCard(
     song: Song,
-    onLikeAction: (Song, Boolean) -> Unit
+    modifier: Modifier = Modifier,
 ) {
-    val swipeableState = rememberSwipeableState(0)
-    val anchors = mapOf(0f to 0, sizePx to 1)
     Card(
-        modifier = Modifier
+        modifier = modifier
             .padding(horizontal = 8.dp, vertical = 8.dp)
-            .fillMaxSize()
-            .swipeable(
-                state = swipeableState,
 
-            )
     ) {
         Row {
             Column {
@@ -95,6 +110,8 @@ private fun SongCard(
             }
         }
     }
+
 }
-}
+
+
 
