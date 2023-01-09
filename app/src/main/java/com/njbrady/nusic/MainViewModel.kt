@@ -1,10 +1,7 @@
 package com.njbrady.nusic
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.njbrady.nusic.home.data.HomeState
-import com.njbrady.nusic.home.data.Song
-import kotlinx.coroutines.launch
 
 
 class MainViewModel: ViewModel() {
@@ -23,7 +20,7 @@ class MainViewModel: ViewModel() {
         }
     }
 
-    fun likeSong(song: Song, liked: Boolean) {
+    fun likeSong(liked: Boolean) {
         //do nothing with liked for now
         homeState.songList.removeLast()
         print("liked song, ${homeState.songList.size} left")
