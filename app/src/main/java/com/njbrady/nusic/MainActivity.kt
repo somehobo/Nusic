@@ -9,70 +9,84 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.njbrady.nusic.login.LoginScreen
+import com.njbrady.nusic.login.data.LoginScreenViewModel
 import com.njbrady.nusic.ui.theme.NusicTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        val mainViewModel = MainViewModel()
         super.onCreate(savedInstanceState)
         setContent {
+            val mainViewModel = hiltViewModel<MainViewModel>()
+            val loginState = mainViewModel.tokenStorage.containsToken.collectAsState()
+            val loginScreenViewModel = hiltViewModel<LoginScreenViewModel>()
             NusicTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background
                 ) {
-                    val navController = rememberNavController()
-                    Scaffold(bottomBar = {
-                        BottomNavigation {
-                            val navBackStackEntry by navController.currentBackStackEntryAsState()
-                            val currentDestination = navBackStackEntry?.destination
-                            screens.forEach { screen ->
-                                BottomNavigationItem(icon = {
-                                    Icon(
-                                        Icons.Filled.Favorite, contentDescription = null
-                                    )
-                                },
-                                    label = { Text(stringResource(screen.resourceId)) },
-                                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                                    onClick = {
-                                        navController.navigate(screen.route) {
-                                            // Pop up to the start destination of the graph to
-                                            // avoid building up a large stack of destinations
-                                            // on the back stack as users select items
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            // Avoid multiple copies of the same destination when
-                                            // reselecting the same item
-                                            launchSingleTop = true
-                                            // Restore state when reselecting a previously selected item
-                                            restoreState = true
-                                        }
-                                    })
-                            }
-                        }
-                    }) { innerPadding ->
-                        NavHost(
-                            navController,
-                            startDestination = Screen.Home.route,
-                            Modifier.padding(innerPadding)
-                        ) {
-                            composable(Screen.Profile.route) { ProfileScreen()}
-                            composable(Screen.Home.route) { HomeScreen(mainViewModel) }
-                            composable(Screen.Conversation.route) { ConversationScreen() }
-                        }
+
+                    if (loginState.value) {
+                        MainContent(mainViewModel)
+                    } else {
+                        LoginScreen(loginScreenViewModel = loginScreenViewModel)
                     }
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+private fun MainContent(mainViewModel: MainViewModel) {
+    val navController = rememberNavController()
+    Scaffold(bottomBar = {
+        BottomNavigation {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentDestination = navBackStackEntry?.destination
+            screens.forEach { screen ->
+                BottomNavigationItem(icon = {
+                    Icon(
+                        Icons.Filled.Favorite, contentDescription = null
+                    )
+                },
+                    label = { Text(stringResource(screen.resourceId)) },
+                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    })
+            }
+        }
+    }) { innerPadding ->
+        NavHost(
+            navController,
+            startDestination = Screen.Home.route,
+            Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Profile.route) { ProfileScreen(mainViewModel) }
+            composable(Screen.Home.route) { HomeScreen(mainViewModel) }
+            composable(Screen.Conversation.route) { ConversationScreen() }
         }
     }
 }

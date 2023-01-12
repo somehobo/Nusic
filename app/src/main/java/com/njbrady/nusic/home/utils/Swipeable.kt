@@ -1,12 +1,12 @@
 package com.njbrady.nusic.home.utils
 
-import androidx.compose.ui.input.pointer.pointerInput
-import kotlinx.coroutines.coroutineScope
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
