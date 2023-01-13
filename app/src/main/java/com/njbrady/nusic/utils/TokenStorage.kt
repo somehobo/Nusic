@@ -1,4 +1,4 @@
-package com.njbrady.nusic.login.data
+package com.njbrady.nusic.utils
 
 import android.content.Context
 import android.content.SharedPreferences

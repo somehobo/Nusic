@@ -1,6 +1,6 @@
-package com.njbrady.nusic
+package com.njbrady.nusic.utils
 
-import com.njbrady.nusic.home.data.Song
+import com.njbrady.nusic.home.model.Song
 
 class MockData {
     companion object {

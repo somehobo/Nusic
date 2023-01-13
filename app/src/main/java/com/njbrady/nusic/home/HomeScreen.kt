@@ -9,8 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.njbrady.nusic.home.data.HomeState
-import com.njbrady.nusic.home.data.Song
+import com.njbrady.nusic.home.MainViewModel
+import com.njbrady.nusic.home.model.HomeState
+import com.njbrady.nusic.home.model.Song
 import com.njbrady.nusic.ui.theme.NusicTheme
 
 

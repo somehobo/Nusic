@@ -1,6 +1,7 @@
-package com.njbrady.nusic.login.data
+package com.njbrady.nusic.di
 
 import android.content.Context
+import com.njbrady.nusic.utils.TokenStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

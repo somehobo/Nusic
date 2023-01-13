@@ -1,4 +1,4 @@
-package com.njbrady.nusic.home.data
+package com.njbrady.nusic.home.model
 import androidx.compose.runtime.mutableStateListOf
 
 class HomeState {

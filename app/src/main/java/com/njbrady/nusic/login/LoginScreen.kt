@@ -125,7 +125,7 @@ private fun LoginContent(
                     "Successfully logged in",
                     Toast.LENGTH_LONG
                 ).show()
-                loginScreenViewModel.resetLoginScreenState()
+                loginScreenViewModel.resetLoginState()
             }
         }
     }

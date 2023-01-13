@@ -1,4 +1,4 @@
-package com.njbrady.nusic.home.data
+package com.njbrady.nusic.home.model
 
 data class Song (
     val songName: String,

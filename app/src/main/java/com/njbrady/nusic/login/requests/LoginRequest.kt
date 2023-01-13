@@ -1,6 +1,6 @@
 package com.njbrady.nusic.login.requests
 
-import com.njbrady.nusic.login.data.TokenStorage
+import com.njbrady.nusic.utils.TokenStorage
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.json.JSONObject

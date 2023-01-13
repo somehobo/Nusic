@@ -1,4 +1,4 @@
-package com.njbrady.nusic
+package com.njbrady.nusic.home
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,6 +21,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.njbrady.nusic.ConversationScreen
+import com.njbrady.nusic.HomeScreen
+import com.njbrady.nusic.ProfileScreen
+import com.njbrady.nusic.R
 import com.njbrady.nusic.login.LoginScreen
 import com.njbrady.nusic.login.data.LoginScreenViewModel
 import com.njbrady.nusic.ui.theme.NusicTheme
