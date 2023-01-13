@@ -1,36 +1,66 @@
 package com.njbrady.nusic.login
 
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.njbrady.nusic.R
+import com.njbrady.nusic.login.composables.CenteredProgressIndicator
+import com.njbrady.nusic.login.composables.LoginField
 import com.njbrady.nusic.login.data.LoginScreenViewModel
 import com.njbrady.nusic.login.data.LoginStates
+import com.njbrady.nusic.login.data.RegisterScreen
 
 @Composable
 fun LoginScreen(loginScreenViewModel: LoginScreenViewModel) {
-    LoginContent(loginScreenViewModel = loginScreenViewModel)
+    LoginNavigation(loginScreenViewModel = loginScreenViewModel)
+}
+
+@Composable
+private fun LoginNavigation(loginScreenViewModel: LoginScreenViewModel) {
+    val navController = rememberNavController()
+    Scaffold { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = LoginScreens.Login.route,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable(LoginScreens.Login.route) {
+                LoginContent(
+                    loginScreenViewModel,
+                    navController
+                )
+            }
+            composable(LoginScreens.Register.route) {
+                RegisterScreen(
+                    loginScreenViewModel,
+                    navController
+                )
+            }
+        }
+    }
 }
 
 @Composable
 private fun LoginContent(
-    loginScreenViewModel: LoginScreenViewModel
+    loginScreenViewModel: LoginScreenViewModel,
+    navController: NavController
 ) {
     val username by loginScreenViewModel.userNameInput.collectAsState()
     val password by loginScreenViewModel.passwordInput.collectAsState()
     val loginState by loginScreenViewModel.loginState.collectAsState()
     Scaffold { paddingValues ->
         if (loginState == LoginStates.Loading) {
-            CircularProgressIndicator()
+            CenteredProgressIndicator(paddingValues = paddingValues)
         } else {
             Column(
                 modifier = Modifier
@@ -43,6 +73,11 @@ private fun LoginContent(
                 val loginFieldModifier = Modifier
                     .fillMaxWidth(0.6f)
                     .padding(8.dp)
+                Text(
+                    text = "Nusic",
+                    style = MaterialTheme.typography.h2,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
                 LoginField(
                     hint = "Username",
                     value = username,
@@ -57,8 +92,24 @@ private fun LoginContent(
                     onValueChange = { input -> loginScreenViewModel.setPassword(input) },
                     modifier = loginFieldModifier
                 )
-                Button(onClick = { loginScreenViewModel.attemptLogin() }) {
-                    Text(text = "Login")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(onClick = { loginScreenViewModel.attemptLogin() }) {
+                        Text(text = "Login")
+                    }
+                    Text(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        text = "Or",
+                        style = MaterialTheme.typography.body1
+                    )
+                    Button(onClick = {
+                        navController.navigate(LoginScreens.Register.route)
+                    }) {
+                        Text(text = "Create Account")
+                    }
                 }
             }
             if (loginState == LoginStates.Error) {
@@ -67,47 +118,20 @@ private fun LoginContent(
                     loginScreenViewModel.errorMessage,
                     Toast.LENGTH_LONG
                 ).show()
-                loginScreenViewModel.resetLoginState()
+                loginScreenViewModel.resetLoginScreenState()
             } else if (loginState == LoginStates.Success) {
                 Toast.makeText(
                     LocalContext.current,
-                    "LOGGED IN WOOOOO",
+                    "Successfully logged in",
                     Toast.LENGTH_LONG
                 ).show()
-                loginScreenViewModel.resetState()
+                loginScreenViewModel.resetLoginScreenState()
             }
         }
     }
-
 }
 
-@Composable
-fun LoginField(
-    hint: String,
-    value: String,
-    isPassword: Boolean,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val showPassword = remember { mutableStateOf(isPassword.not()) }
-
-    TextField(
-        modifier = modifier,
-        value = value,
-        placeholder = { Text(text = hint) },
-        visualTransformation = if (showPassword.value) VisualTransformation.None else PasswordVisualTransformation(),
-        onValueChange = { onValueChange(it) },
-        trailingIcon = {
-            if (isPassword) {
-                val icon = if (showPassword.value) {
-                    Icons.Filled.Visibility
-                } else {
-                    Icons.Filled.VisibilityOff
-                }
-                IconButton(onClick = { showPassword.value = !showPassword.value }) {
-                    Icon(imageVector = icon, contentDescription = "Visibility")
-                }
-            }
-        }
-    )
+sealed class LoginScreens(val route: String, @StringRes val resourceId: Int) {
+    object Login : LoginScreens("login", R.string.login_screen)
+    object Register : LoginScreens("Register", R.string.register_screen)
 }

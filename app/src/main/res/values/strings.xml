@@ -3,4 +3,6 @@
     <string name="home_screen">Home</string>
     <string name="conversation_screen">Chat</string>
     <string name="profile_screen">Profile</string>
+    <string name="login_screen">Login</string>
+    <string name="register_screen">Register</string>
 </resources>
