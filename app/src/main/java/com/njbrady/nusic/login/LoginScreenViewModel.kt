@@ -35,27 +35,27 @@ class LoginScreenViewModel @Inject constructor(
     var errorMessage: String? = null
 
     fun setUserName(input: String) {
-        _userNameInput.value = input
+        _userNameInput.value = input.trim()
     }
 
     fun setPassword(input: String) {
-        _passwordInput.value = input
+        _passwordInput.value = input.trim()
     }
 
     fun setRegisterUserName(input: String) {
-        _registerUserNameInput.value = input
+        _registerUserNameInput.value = input.trim()
     }
 
     fun setRegisterPassword(input: String) {
-        _registerPasswordInput.value = input
+        _registerPasswordInput.value = input.trim()
     }
 
     fun setRegisterSecondaryPassword(input: String) {
-        _registerSecondaryPasswordInput.value = input
+        _registerSecondaryPasswordInput.value = input.trim()
     }
 
     fun setRegisterEmailInput(input: String) {
-        _registerEmailInput.value = input
+        _registerEmailInput.value = input.trim()
     }
 
     fun resetLoginState() {
