@@ -33,9 +33,10 @@ class LoginScreenViewModel @Inject constructor(
     val registerSecondaryPasswordInput: StateFlow<String> = _registerSecondaryPasswordInput
     val registerEmailInput: StateFlow<String> = _registerEmailInput
     var errorMessage: String? = null
-
+    private val whiteSpaceRegex = Regex("\\s+")
     fun setUserName(input: String) {
-        _userNameInput.value = input.trim()
+        if (!input.contains(whiteSpaceRegex))
+            _userNameInput.value = input
     }
 
     fun setPassword(input: String) {
@@ -43,7 +44,8 @@ class LoginScreenViewModel @Inject constructor(
     }
 
     fun setRegisterUserName(input: String) {
-        _registerUserNameInput.value = input.trim()
+        if (!input.contains(whiteSpaceRegex))
+            _registerUserNameInput.value = input.trim()
     }
 
     fun setRegisterPassword(input: String) {
