@@ -40,9 +40,9 @@ fun LoginField(
         trailingIcon = {
             if (isPassword) {
                 val icon = if (showPassword.value) {
-                    Icons.Filled.Visibility
-                } else {
                     Icons.Filled.VisibilityOff
+                } else {
+                    Icons.Filled.Visibility
                 }
                 IconButton(onClick = { showPassword.value = !showPassword.value }) {
                     Icon(imageVector = icon, contentDescription = "Visibility")

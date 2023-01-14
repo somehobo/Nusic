@@ -26,7 +26,7 @@ import com.njbrady.nusic.HomeScreen
 import com.njbrady.nusic.ProfileScreen
 import com.njbrady.nusic.R
 import com.njbrady.nusic.login.LoginScreen
-import com.njbrady.nusic.login.data.LoginScreenViewModel
+import com.njbrady.nusic.login.model.LoginScreenViewModel
 import com.njbrady.nusic.ui.theme.NusicTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     if (loginState.value) {
-                        MainContent(mainViewModel)
+                        MainContent(mainViewModel = mainViewModel)
                     } else {
                         LoginScreen(loginScreenViewModel = loginScreenViewModel)
                     }

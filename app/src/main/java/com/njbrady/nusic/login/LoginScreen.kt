@@ -15,10 +15,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
+import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.login.composables.LoginField
-import com.njbrady.nusic.login.data.LoginScreenViewModel
-import com.njbrady.nusic.login.data.LoginStates
-import com.njbrady.nusic.login.data.RegisterScreen
+import com.njbrady.nusic.login.model.LoginScreenViewModel
+import com.njbrady.nusic.login.model.LoginStates
+import com.njbrady.nusic.login.model.RegisterScreen
 
 @Composable
 fun LoginScreen(loginScreenViewModel: LoginScreenViewModel) {
@@ -58,6 +59,9 @@ private fun LoginContent(
     val username by loginScreenViewModel.userNameInput.collectAsState()
     val password by loginScreenViewModel.passwordInput.collectAsState()
     val loginState by loginScreenViewModel.loginState.collectAsState()
+    val usernameErrorMessage by loginScreenViewModel.userNameErrorMessages.collectAsState()
+    val passwordErrorMessage by loginScreenViewModel.passwordErrorMessages.collectAsState()
+    val errorMessage by loginScreenViewModel.errorMessage.collectAsState()
     Scaffold { paddingValues ->
         if (loginState == LoginStates.Loading) {
             CenteredProgressIndicator(paddingValues = paddingValues)
@@ -85,6 +89,9 @@ private fun LoginContent(
                     onValueChange = { input -> loginScreenViewModel.setUserName(input) },
                     modifier = loginFieldModifier
                 )
+                usernameErrorMessage.forEach {
+                    ErrorWithField(message = it, modifier = loginFieldModifier)
+                }
                 LoginField(
                     hint = "Password",
                     value = password,
@@ -92,6 +99,9 @@ private fun LoginContent(
                     onValueChange = { input -> loginScreenViewModel.setPassword(input) },
                     modifier = loginFieldModifier
                 )
+                passwordErrorMessage.forEach {
+                    ErrorWithField(message = it, modifier = loginFieldModifier)
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -112,20 +122,23 @@ private fun LoginContent(
                     }
                 }
             }
-            if (loginState == LoginStates.Error) {
-                Toast.makeText(
-                    LocalContext.current,
-                    loginScreenViewModel.errorMessage,
-                    Toast.LENGTH_LONG
-                ).show()
-                loginScreenViewModel.resetLoginScreenState()
+            if (errorMessage.isNotEmpty()) {
+                errorMessage.forEach {
+                    Toast.makeText(
+                        LocalContext.current,
+                        it,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                loginScreenViewModel.resetLoginState()
+                loginScreenViewModel.resetGeneralErrorState()
             } else if (loginState == LoginStates.Success) {
                 Toast.makeText(
                     LocalContext.current,
                     "Successfully logged in",
                     Toast.LENGTH_LONG
                 ).show()
-                loginScreenViewModel.resetLoginState()
+                loginScreenViewModel.resetLoginScreenState()
             }
         }
     }

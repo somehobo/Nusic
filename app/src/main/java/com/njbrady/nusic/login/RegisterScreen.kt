@@ -1,4 +1,4 @@
-package com.njbrady.nusic.login.data
+package com.njbrady.nusic.login.model
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -7,12 +7,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
+import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.login.composables.LoginField
 
 @Composable
@@ -25,16 +27,19 @@ private fun RegisterContent(
     loginScreenViewModel: LoginScreenViewModel,
     navController: NavController
 ) {
-    val registerUserName = loginScreenViewModel.registerUserNameInput.collectAsState()
-    val registerPassword = loginScreenViewModel.registerPasswordInput.collectAsState()
-    val registerSecondaryPassword =
-        loginScreenViewModel.registerSecondaryPasswordInput.collectAsState()
-    val registerEmail = loginScreenViewModel.registerEmailInput.collectAsState()
-    val registerState = loginScreenViewModel.loginState.collectAsState()
+    val registerUserName by loginScreenViewModel.registerUserNameInput.collectAsState()
+    val registerPassword by loginScreenViewModel.registerPasswordInput.collectAsState()
+    val registerSecondaryPassword by
+    loginScreenViewModel.registerSecondaryPasswordInput.collectAsState()
+    val registerEmail by loginScreenViewModel.registerEmailInput.collectAsState()
+    val registerState by loginScreenViewModel.loginState.collectAsState()
     val loginFieldModifier = Modifier
         .fillMaxWidth(0.6f)
         .padding(8.dp)
-
+    val registerUserNameErrors by loginScreenViewModel.registerUserNameErrorMessages.collectAsState()
+    val registerEmailErrors by loginScreenViewModel.registerEmailErrorMessages.collectAsState()
+    val registerPasswordErrors by loginScreenViewModel.registerPasswordErrorMessages.collectAsState()
+    val errorMessage by loginScreenViewModel.errorMessage.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -57,7 +62,7 @@ private fun RegisterContent(
             )
         }
     ) { paddingValues ->
-        if (registerState.value == LoginStates.Loading) {
+        if (registerState == LoginStates.Loading) {
             CenteredProgressIndicator(paddingValues = paddingValues)
         } else {
             Column(
@@ -70,29 +75,37 @@ private fun RegisterContent(
             ) {
                 LoginField(
                     hint = "Username",
-                    value = registerUserName.value,
+                    value = registerUserName,
                     isPassword = false,
                     onValueChange = { input -> loginScreenViewModel.setRegisterUserName(input) },
                     modifier = loginFieldModifier
                 )
+                registerUserNameErrors.forEach {
+                    ErrorWithField(message = it, modifier = loginFieldModifier)
+                }
                 LoginField(
                     hint = "Email",
-                    value = registerEmail.value,
+                    value = registerEmail,
                     isPassword = false,
                     onValueChange = { input -> loginScreenViewModel.setRegisterEmailInput(input) },
                     modifier = loginFieldModifier
                 )
+                registerEmailErrors.forEach {
+                    ErrorWithField(message = it, modifier = loginFieldModifier)
+                }
                 LoginField(
                     hint = "Password",
-                    value = registerPassword.value,
+                    value = registerPassword,
                     isPassword = true,
                     onValueChange = { input -> loginScreenViewModel.setRegisterPassword(input) },
                     modifier = loginFieldModifier
-
                 )
+                registerPasswordErrors.forEach {
+                    ErrorWithField(message = it, modifier = loginFieldModifier)
+                }
                 LoginField(
                     hint = "Confirm Password",
-                    value = registerSecondaryPassword.value,
+                    value = registerSecondaryPassword,
                     isPassword = true,
                     onValueChange = { input ->
                         loginScreenViewModel.setRegisterSecondaryPassword(
@@ -105,14 +118,17 @@ private fun RegisterContent(
                     Text(text = "Register")
                 }
 
-                if (registerState.value == LoginStates.Error) {
-                    Toast.makeText(
-                        LocalContext.current,
-                        loginScreenViewModel.errorMessage,
-                        Toast.LENGTH_LONG
-                    ).show()
+                if (errorMessage.isNotEmpty()) {
+                    errorMessage.forEach {
+                        Toast.makeText(
+                            LocalContext.current,
+                            it,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                     loginScreenViewModel.resetLoginState()
-                } else if (registerState.value == LoginStates.Success) {
+                    loginScreenViewModel.resetGeneralErrorState()
+                } else if (registerState == LoginStates.Success) {
                     Toast.makeText(
                         LocalContext.current,
                         "Successfully registered",
