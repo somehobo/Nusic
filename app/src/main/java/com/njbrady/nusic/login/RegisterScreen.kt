@@ -10,12 +10,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.njbrady.nusic.login.composables.CenteredProgressIndicator
-import com.njbrady.nusic.login.composables.ErrorWithField
-import com.njbrady.nusic.login.composables.LoginField
+import com.njbrady.nusic.login.composables.*
 
 @Composable
 fun RegisterScreen(loginScreenViewModel: LoginScreenViewModel, navController: NavController) {
@@ -27,6 +28,7 @@ private fun RegisterContent(
     loginScreenViewModel: LoginScreenViewModel,
     navController: NavController
 ) {
+    val focusManager = LocalFocusManager.current
     val registerUserName by loginScreenViewModel.registerUserNameInput.collectAsState()
     val registerPassword by loginScreenViewModel.registerPasswordInput.collectAsState()
     val registerSecondaryPassword by
@@ -73,46 +75,50 @@ private fun RegisterContent(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                LoginField(
+                UsernameField(
+                    modifier = loginFieldModifier,
                     hint = "Username",
                     value = registerUserName,
-                    isPassword = false,
                     onValueChange = { input -> loginScreenViewModel.setRegisterUserName(input) },
-                    modifier = loginFieldModifier
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                    imeAction = ImeAction.Next,
                 )
                 registerUserNameErrors.forEach {
                     ErrorWithField(message = it, modifier = loginFieldModifier)
                 }
-                LoginField(
+                EmailField(
+                    modifier = loginFieldModifier,
                     hint = "Email",
                     value = registerEmail,
-                    isPassword = false,
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) },
                     onValueChange = { input -> loginScreenViewModel.setRegisterEmailInput(input) },
-                    modifier = loginFieldModifier
+                    imeAction = ImeAction.Next
                 )
                 registerEmailErrors.forEach {
                     ErrorWithField(message = it, modifier = loginFieldModifier)
                 }
-                LoginField(
+                PasswordField(
+                    modifier = loginFieldModifier,
                     hint = "Password",
                     value = registerPassword,
-                    isPassword = true,
                     onValueChange = { input -> loginScreenViewModel.setRegisterPassword(input) },
-                    modifier = loginFieldModifier
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                    imeAction = ImeAction.Next,
                 )
                 registerPasswordErrors.forEach {
                     ErrorWithField(message = it, modifier = loginFieldModifier)
                 }
-                LoginField(
-                    hint = "Confirm Password",
+                PasswordField(
+                    modifier = loginFieldModifier,
+                    hint = "Confirm password",
                     value = registerSecondaryPassword,
-                    isPassword = true,
                     onValueChange = { input ->
                         loginScreenViewModel.setRegisterSecondaryPassword(
                             input
                         )
                     },
-                    modifier = loginFieldModifier
+                    onGo = { loginScreenViewModel.attemptRegisterUser() },
+                    imeAction = ImeAction.Go,
                 )
                 Button(onClick = { loginScreenViewModel.attemptRegisterUser() }) {
                     Text(text = "Register")

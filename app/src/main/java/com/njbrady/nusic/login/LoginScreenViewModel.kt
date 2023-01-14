@@ -45,31 +45,28 @@ class LoginScreenViewModel @Inject constructor(
     val registerEmailErrorMessages: StateFlow<List<String>> = _registerEmailErrorMessages
     var errorMessage: StateFlow<List<String>> = _errorMessages
 
-    private val whiteSpaceRegex = Regex("\\s+")
     fun setUserName(input: String) {
-        if (!input.contains(whiteSpaceRegex))
-            _userNameInput.value = input
+        _userNameInput.value = input
     }
 
     fun setPassword(input: String) {
-        _passwordInput.value = input.trim()
+        _passwordInput.value = input
     }
 
     fun setRegisterUserName(input: String) {
-        if (!input.contains(whiteSpaceRegex))
-            _registerUserNameInput.value = input.trim()
+        _registerUserNameInput.value = input
     }
 
     fun setRegisterPassword(input: String) {
-        _registerPasswordInput.value = input.trim()
+        _registerPasswordInput.value = input
     }
 
     fun setRegisterSecondaryPassword(input: String) {
-        _registerSecondaryPasswordInput.value = input.trim()
+        _registerSecondaryPasswordInput.value = input
     }
 
     fun setRegisterEmailInput(input: String) {
-        _registerEmailInput.value = input.trim()
+        _registerEmailInput.value = input
     }
 
     fun resetLoginState() {
@@ -142,7 +139,11 @@ class LoginScreenViewModel @Inject constructor(
             }
 
             val loginRepository =
-                loginRequest(_registerUserNameInput.value, _registerPasswordInput.value, tokenStorage)
+                loginRequest(
+                    _registerUserNameInput.value,
+                    _registerPasswordInput.value,
+                    tokenStorage
+                )
             if (loginRepository.containsError) {
                 _errorMessages.value = loginRepository.errorMessages
                 _registerUsernameErrorMessages.value = loginRepository.usernameError

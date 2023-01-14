@@ -59,6 +59,10 @@ suspend fun loginRequest(
             )
         }
     } catch (e: Exception) {
-        return@async LoginRepository(errorMessages = listOf(e.toString()), containsError = true)
+        var error = e.message
+        if (error == null) {
+            error = e.toString()
+        }
+        return@async LoginRepository(errorMessages = listOf(error), containsError = true)
     }
 }.await()

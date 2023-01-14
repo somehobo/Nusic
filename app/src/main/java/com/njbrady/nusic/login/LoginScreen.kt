@@ -7,16 +7,17 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.njbrady.nusic.R
-import com.njbrady.nusic.login.composables.CenteredProgressIndicator
-import com.njbrady.nusic.login.composables.ErrorWithField
-import com.njbrady.nusic.login.composables.LoginField
+import com.njbrady.nusic.login.composables.*
 import com.njbrady.nusic.login.model.LoginScreenViewModel
 import com.njbrady.nusic.login.model.LoginStates
 import com.njbrady.nusic.login.model.RegisterScreen
@@ -56,6 +57,7 @@ private fun LoginContent(
     loginScreenViewModel: LoginScreenViewModel,
     navController: NavController
 ) {
+    val focusManager = LocalFocusManager.current
     val username by loginScreenViewModel.userNameInput.collectAsState()
     val password by loginScreenViewModel.passwordInput.collectAsState()
     val loginState by loginScreenViewModel.loginState.collectAsState()
@@ -82,22 +84,24 @@ private fun LoginContent(
                     style = MaterialTheme.typography.h2,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                LoginField(
+                UsernameField(
+                    modifier = loginFieldModifier,
                     hint = "Username",
                     value = username,
-                    isPassword = false,
                     onValueChange = { input -> loginScreenViewModel.setUserName(input) },
-                    modifier = loginFieldModifier
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                    imeAction = ImeAction.Next,
                 )
                 usernameErrorMessage.forEach {
                     ErrorWithField(message = it, modifier = loginFieldModifier)
                 }
-                LoginField(
+                PasswordField(
+                    modifier = loginFieldModifier,
                     hint = "Password",
                     value = password,
-                    isPassword = true,
                     onValueChange = { input -> loginScreenViewModel.setPassword(input) },
-                    modifier = loginFieldModifier
+                    onGo = { loginScreenViewModel.attemptLogin() },
+                    imeAction = ImeAction.Go,
                 )
                 passwordErrorMessage.forEach {
                     ErrorWithField(message = it, modifier = loginFieldModifier)
@@ -112,7 +116,7 @@ private fun LoginContent(
                     }
                     Text(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        text = "Or",
+                        text = "or",
                         style = MaterialTheme.typography.body1
                     )
                     Button(onClick = {
