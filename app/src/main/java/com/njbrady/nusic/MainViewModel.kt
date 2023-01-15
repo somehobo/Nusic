@@ -1,4 +1,4 @@
-package com.njbrady.nusic.home
+package com.njbrady.nusic
 
 import androidx.lifecycle.ViewModel
 import com.njbrady.nusic.utils.MockData

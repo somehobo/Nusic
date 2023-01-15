@@ -14,6 +14,7 @@ import com.njbrady.nusic.home.model.Song
 import com.njbrady.nusic.home.utils.rememberSwipeableCardState
 import com.njbrady.nusic.home.utils.swipableCard
 import com.njbrady.nusic.home.utils.Direction
+import com.njbrady.nusic.MainViewModel
 import com.njbrady.nusic.ui.theme.NusicTheme
 
 

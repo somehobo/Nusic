@@ -8,7 +8,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.njbrady.nusic.home.MainViewModel
 
 @Composable
 fun ProfileScreen(mainViewModel: MainViewModel) {

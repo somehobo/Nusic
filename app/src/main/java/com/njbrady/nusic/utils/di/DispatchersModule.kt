@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.njbrady.nusic.di
+package com.njbrady.nusic.utils.di
 
 import dagger.Module
 import dagger.Provides

@@ -1,4 +1,4 @@
-package com.njbrady.nusic.di
+package com.njbrady.nusic.utils.di
 
 import android.content.Context
 import com.njbrady.nusic.utils.TokenStorage
