@@ -20,15 +20,23 @@ enum class Direction {
 
 @Composable
 fun rememberSwipeableCardState(): SwipeableCardState {
+    val swipeableCardState = getSwipeableCardState()
+
+    return remember {
+        swipeableCardState
+    }
+}
+
+
+@Composable
+fun getSwipeableCardState(): SwipeableCardState {
     val screenWidth = with(LocalDensity.current) {
         LocalConfiguration.current.screenWidthDp.dp.toPx()
     }
     val screenHeight = with(LocalDensity.current) {
         LocalConfiguration.current.screenHeightDp.dp.toPx()
     }
-    return remember {
-        SwipeableCardState(screenWidth, screenHeight)
-    }
+    return SwipeableCardState(screenWidth, screenHeight)
 }
 
 
@@ -36,7 +44,7 @@ class SwipeableCardState(
     internal val maxWidth: Float,
     internal val maxHeight: Float,
 ) {
-    val offset = Animatable(offset(0f, 0f), Offset.VectorConverter)
+    var offset = Animatable(offset(0f, 0f), Offset.VectorConverter)
 
     /**
      * The [Direction] the card was swiped at.
@@ -50,11 +58,20 @@ class SwipeableCardState(
         offset.animateTo(offset(0f, 0f), tween(400))
     }
 
+    fun resetInstant() {
+        offset = Animatable(offset(0f, 0f), Offset.VectorConverter)
+        swipedDirection = null
+    }
+
     /*
     animates the finished swipe with 400 ms duration
      */
-    suspend fun finishSwipe(direction: Direction, animationSpec: AnimationSpec<Offset> = tween(400)) {
-        val endX = maxWidth * 1.5f //I believe multiplier is due to cards rotation, this is used when auto completing the swipe
+    suspend fun finishSwipe(
+        direction: Direction,
+        animationSpec: AnimationSpec<Offset> = tween(400)
+    ) {
+        val endX =
+            maxWidth * 1.5f //I believe multiplier is due to cards rotation, this is used when auto completing the swipe
         val endY = maxHeight
         when (direction) {
             Direction.Left -> offset.animateTo(offset(x = -endX), animationSpec)

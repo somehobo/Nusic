@@ -46,7 +46,7 @@ class MockData {
         )
 
         val song4 = Song(
-            songName = "Plastic Beach",
+            songName = "Plastic Beach anthony is crazy",
             artistName = "Gorillaz",
             artistId = 1,
             start = 30,
@@ -55,6 +55,8 @@ class MockData {
             imageUrl = testImageUrl,
             songId = 4
         )
+
+
 
         val songList = listOf(
             song1,

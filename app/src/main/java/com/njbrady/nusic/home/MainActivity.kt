@@ -22,7 +22,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.njbrady.nusic.ConversationScreen
-import com.njbrady.nusic.HomeScreen
 import com.njbrady.nusic.ProfileScreen
 import com.njbrady.nusic.R
 import com.njbrady.nusic.login.LoginScreen

@@ -1,4 +1,4 @@
-package com.njbrady.nusic
+package com.njbrady.nusic.home
 
 
 import androidx.compose.foundation.layout.*
@@ -9,9 +9,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.njbrady.nusic.home.MainViewModel
 import com.njbrady.nusic.home.model.HomeState
 import com.njbrady.nusic.home.model.Song
+import com.njbrady.nusic.home.utils.rememberSwipeableCardState
+import com.njbrady.nusic.home.utils.swipableCard
+import com.njbrady.nusic.home.utils.Direction
 import com.njbrady.nusic.ui.theme.NusicTheme
 
 
@@ -40,7 +42,13 @@ private fun HomeScreenContent(
         ),
         backgroundColor = MaterialTheme.colors.background
     ) { paddingValues ->
-        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize().padding(paddingValues.calculateBottomPadding())) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues.calculateBottomPadding())
+        ) {
             SongStack(
                 homeState = homeState,
                 onLikeAction = onLikeAction,
@@ -88,28 +96,35 @@ private fun SongStack(
 
 
     Box(
-        modifier = modifier,
+        modifier = modifier.padding(paddingValues),
     ) {
         for (song in homeState.songList) {
-            SongCard(song = song)
-//            val state = rememberSwipeableCardState()
-//            if (state.swipedDirection == null) {
-//                SongCard(
-//                    song = song,
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .swipableCard(
-//                            state = state,
-//                            blockedDirections = listOf(Direction.Down),
-//                            onSwiped = { dir ->
-//                                val liked = dir == Direction.Right
-//                                onLikeAction(song, liked)
-//                            },
-//                        ),
-//                )
-//            }
+            SwipeableCard(onLikeAction = onLikeAction, song = song)
+
         }
     }
+}
+
+@Composable
+fun SwipeableCard(
+    onLikeAction: (Boolean) -> Unit,
+    song: Song
+) {
+    val state = rememberSwipeableCardState()
+    SongCard(
+        song = song,
+        modifier = Modifier
+            .fillMaxSize()
+            .swipableCard(
+                state = state,
+                blockedDirections = listOf(Direction.Down),
+                onSwiped = { dir ->
+                    val liked = dir == Direction.Right
+                    onLikeAction(liked)
+                    state.resetInstant()
+                },
+            ),
+    )
 }
 
 @Composable
