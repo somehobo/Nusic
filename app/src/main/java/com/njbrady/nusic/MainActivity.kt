@@ -22,19 +22,26 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.njbrady.nusic.home.HomeScreen
+import com.njbrady.nusic.home.HomeScreenViewModel
 import com.njbrady.nusic.login.LoginScreen
 import com.njbrady.nusic.login.model.LoginScreenViewModel
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.utils.TokenStorage
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var tokenStorage: TokenStorage
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val mainViewModel = hiltViewModel<MainViewModel>()
-            val loginState = mainViewModel.tokenStorage.containsToken.collectAsState()
             val loginScreenViewModel = hiltViewModel<LoginScreenViewModel>()
+            val loginState = tokenStorage.containsToken.collectAsState()
             NusicTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -86,7 +93,10 @@ private fun MainContent(mainViewModel: MainViewModel) {
             Modifier.padding(innerPadding)
         ) {
             composable(Screen.Profile.route) { ProfileScreen(mainViewModel) }
-            composable(Screen.Home.route) { HomeScreen(mainViewModel) }
+            composable(Screen.Home.route) {
+                val homeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
+                HomeScreen(homeScreenViewModel)
+            }
             composable(Screen.Conversation.route) { ConversationScreen() }
         }
     }

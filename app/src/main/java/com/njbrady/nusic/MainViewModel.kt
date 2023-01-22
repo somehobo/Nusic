@@ -1,36 +1,28 @@
 package com.njbrady.nusic
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.njbrady.nusic.utils.MockData
 import com.njbrady.nusic.home.model.HomeState
+import com.njbrady.nusic.home.requests.getSong
 import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val tokenStorage: TokenStorage): ViewModel() {
+class MainViewModel @Inject constructor(
+    val tokenStorage: TokenStorage,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
+) : ViewModel() {
     val homeState = HomeState()
-    init {
-        getInitialSongs(2)
-    }
-
-    fun getInitialSongs(count: Int) {
-        //temporary
-        print("get initial")
-        for (i in 0 until count) {
-            val random = (0 until MockData.songList.size-1).random()
-            homeState.songList.add(MockData.songList[random])
-        }
-    }
-
-    fun likeSong(liked: Boolean) {
-        //do nothing with liked for now
-        homeState.songList.removeLast()
-        print("liked song, ${homeState.songList.size} left")
-        homeState.songList.add(0, MockData.songList.random())
-    }
 
     fun logout() {
+        homeState.clearState()
         tokenStorage.deleteToken()
     }
+
 }

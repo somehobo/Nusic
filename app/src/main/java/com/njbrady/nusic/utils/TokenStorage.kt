@@ -50,9 +50,6 @@ class TokenStorage(private val context: Context) {
     }
 
     fun retrieveToken(): String {
-        // Retrieve the encrypted token and initialization vector
-        // You can use SharedPreferences, SQLite, or any other storage method
-        // ...
         val encryptedTokenString = prefs.getString(PREF_TOKEN, null)
         val ivString = prefs.getString(PREF_IV, null)
         if (encryptedTokenString == null || ivString == null) {
@@ -67,7 +64,7 @@ class TokenStorage(private val context: Context) {
         val secretKey = keystore.getKey(KEY_ALIAS, null) as SecretKey
         cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
         val decryptedToken = cipher.doFinal(encryptedToken)
-        return String(decryptedToken)
+        return "TOKEN " + String(decryptedToken)
     }
 
     fun deleteToken() {

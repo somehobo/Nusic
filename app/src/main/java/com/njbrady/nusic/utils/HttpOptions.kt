@@ -2,9 +2,10 @@ package com.njbrady.nusic.utils
 
 class HttpOptions {
     companion object {
-        val POST = "POST"
-        val GET = "GET"
-        val ContentType = "Content-Type"
-        val JsonContentType = "application/json"
+        const val POST = "POST"
+        const val GET = "GET"
+        const val ContentType = "Content-Type"
+        const val JsonContentType = "application/json"
+        const val Authorization = "Authorization"
     }
 }

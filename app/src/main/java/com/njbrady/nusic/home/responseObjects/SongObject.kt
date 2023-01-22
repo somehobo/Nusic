@@ -3,14 +3,14 @@ package com.njbrady.nusic.home.responseObjects
 import org.json.JSONObject
 
 class SongObject(
-    val name: String,
-    val artist: String,
-    val start: Int,
-    val end: Int,
-    val songUrl: String,
-    val imageUrl: String,
-    val songId: Int,
-    val artistId: Int
+    val name: String? = null,
+    val artist: String? = null,
+    val start: Int? = null,
+    val end: Int? = null,
+    val songUrl: String? = null,
+    val imageUrl: String? = null,
+    val songId: Int? = null,
+    val artistId: Int? = null,
 ) {
     companion object Factory {
         private const val keyName = "songName"
@@ -19,23 +19,39 @@ class SongObject(
         private const val keyEnd = "end"
         private const val keySongUrl = "song"
         private const val keyImageUrl = "image"
-        private const val keySongId = "songId"
+        private const val keySongId = "id"
         private const val keyArtistId = "artistId"
 
         fun fromJson(json: JSONObject): SongObject {
             try {
                 return SongObject(
-                    name = json.getString(keyName),
-                    artist = json.getString(keyArtist),
-                    start = json.getInt(keyStart),
-                    end = json.getInt(keyEnd),
-                    songUrl = json.getString(keySongUrl),
-                    imageUrl = json.getString(keyImageUrl),
-                    songId = json.getInt(keySongId),
-                    artistId = json.getInt(keyArtistId)
+                    name = nonEmptyOrNull(json.optString(keyName)),
+                    artist = nonEmptyOrNull(json.optString(keyArtist)),
+                    start = nonNegOrNull(json.optInt(keyStart, -1)),
+                    end = nonNegOrNull(json.optInt(keyEnd, -1)),
+                    songUrl = nonEmptyOrNull(json.optString(keySongUrl)),
+                    imageUrl = nonEmptyOrNull(json.optString(keyImageUrl)),
+                    songId = nonNegOrNull(json.optInt(keySongId, -1)),
+                    artistId = nonNegOrNull(json.optInt(keyArtistId, -1)),
                 )
             } catch (e: Exception) {
                 throw Exception("Key missmatch")
+            }
+        }
+
+        private fun nonEmptyOrNull(s: String): String? {
+            return if (s == "") {
+                null
+            } else {
+                s
+            }
+        }
+
+        private fun nonNegOrNull(i: Int): Int? {
+            return if (i < 0) {
+                null
+            } else {
+                i
             }
         }
     }
