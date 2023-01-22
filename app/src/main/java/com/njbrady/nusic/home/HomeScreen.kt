@@ -243,24 +243,23 @@ private fun ErrorScreen(
         blockingError?.let {
             ErrorWithField(
                 message = it, modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
         }
         nonBlockingError?.let {
             ErrorWithField(
                 message = it, modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
         }
         Button(modifier = Modifier, onClick = { onRetry() }) {
-            Text(text = "Retry")
-//            Icon(
-//                imageVector = Icons.Filled.Refresh,
-//                contentDescription = "Retry loading",
-//                tint = MaterialTheme.colors.error
-//            )
+//            Text(text = "Retry")
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = "Retry loading",
+            )
         }
     }
 }
@@ -269,7 +268,15 @@ private fun ErrorScreen(
 @Composable
 fun DefaultPreview() {
     NusicTheme {
-        SongCard(song = SongObject("Name", "artist"), modifier = Modifier.fillMaxSize())
+//        SongCard(song = SongObject("Name", "artist"), modifier = Modifier.fillMaxSize())
+        Button(onClick = { /*TODO*/ }) {
+            Icon(
+                modifier = Modifier.fillMaxSize(),
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = "Retry loading",
+                tint = MaterialTheme.colors.error
+            )
+        }
     }
 }
 

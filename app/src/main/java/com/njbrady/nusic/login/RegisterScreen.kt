@@ -36,7 +36,7 @@ private fun RegisterContent(
     val registerEmail by loginScreenViewModel.registerEmailInput.collectAsState()
     val registerState by loginScreenViewModel.loginState.collectAsState()
     val loginFieldModifier = Modifier
-        .fillMaxWidth(0.6f)
+        .fillMaxWidth(0.8f)
         .padding(8.dp)
     val registerUserNameErrors by loginScreenViewModel.registerUserNameErrorMessages.collectAsState()
     val registerEmailErrors by loginScreenViewModel.registerEmailErrorMessages.collectAsState()

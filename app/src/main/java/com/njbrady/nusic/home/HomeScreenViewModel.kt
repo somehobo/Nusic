@@ -19,6 +19,12 @@ import java.util.LinkedList
 import java.util.Queue
 import javax.inject.Inject
 
+/*
+known bugs:
+- Sometimes a duplicate music card appears
+- reload button is not visible
+ */
+
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val tokenStorage: TokenStorage,

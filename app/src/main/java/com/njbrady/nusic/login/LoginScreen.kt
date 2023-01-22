@@ -77,7 +77,7 @@ private fun LoginContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val loginFieldModifier = Modifier
-                    .fillMaxWidth(0.6f)
+                    .fillMaxWidth(0.8f)
                     .padding(8.dp)
                 Text(
                     text = "Nusic",
