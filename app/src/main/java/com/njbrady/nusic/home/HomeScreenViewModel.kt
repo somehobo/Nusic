@@ -1,5 +1,6 @@
 package com.njbrady.nusic.home
 
+import android.media.MediaPlayer
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,6 +32,7 @@ class HomeScreenViewModel @Inject constructor(
     @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
+    private val _audioPlayer = MediaPlayer()
     private val _upNow = MutableStateFlow<SongObject?>(null)
     private val _upNext = MutableStateFlow<SongObject?>(null)
     private val _upLast = MutableStateFlow<SongObject?>(null)
@@ -48,7 +50,6 @@ class HomeScreenViewModel @Inject constructor(
     val nonBlockingError: StateFlow<String?> = _nonBlockingError
     val blockingError: StateFlow<String?> = _blockingError
     val blockingErrorToast: StateFlow<String?> = _blockingErrorToast
-
 
 
     private fun jobRunner() {
@@ -119,6 +120,11 @@ class HomeScreenViewModel @Inject constructor(
         _musicCardQueue.clear()
         _nonBlockingError.value = null
         _blockingError.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        _audioPlayer.release()
     }
 
     companion object {
