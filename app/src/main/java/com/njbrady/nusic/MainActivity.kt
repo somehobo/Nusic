@@ -39,7 +39,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val mainViewModel = hiltViewModel<MainViewModel>()
             val loginScreenViewModel = hiltViewModel<LoginScreenViewModel>()
             val loginState = tokenStorage.containsToken.collectAsState()
             NusicTheme {
@@ -49,7 +48,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     if (loginState.value) {
-                        MainContent(mainViewModel = mainViewModel)
+                        MainContent()
                     } else {
                         LoginScreen(loginScreenViewModel = loginScreenViewModel)
                     }
@@ -61,7 +60,10 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-private fun MainContent(mainViewModel: MainViewModel) {
+private fun MainContent() {
+    val mainViewModel = hiltViewModel<MainViewModel>()
+    val homeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
+    mainViewModel.setOnLogoutHit { homeScreenViewModel.resetState() }
     val navController = rememberNavController()
     Scaffold(bottomBar = {
         BottomNavigation {
@@ -94,8 +96,8 @@ private fun MainContent(mainViewModel: MainViewModel) {
         ) {
             composable(Screen.Profile.route) { ProfileScreen(mainViewModel) }
             composable(Screen.Home.route) {
-                val homeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
-                HomeScreen(homeScreenViewModel)
+                homeScreenViewModel.retry()
+                HomeScreen(homeScreenViewModel, navController)
             }
             composable(Screen.Conversation.route) { ConversationScreen() }
         }

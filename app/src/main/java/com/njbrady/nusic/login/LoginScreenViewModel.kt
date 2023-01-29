@@ -96,6 +96,7 @@ class LoginScreenViewModel @Inject constructor(
         _errorMessages.value = emptyList()
         _userNameErrorMessages.value = emptyList()
         _passwordErrorMessages.value = emptyList()
+        _loginState.value = LoginStates.FillingOut
     }
 
     fun attemptLogin() {

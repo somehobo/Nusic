@@ -1,13 +1,10 @@
 package com.njbrady.nusic.home
 
-import android.media.MediaPlayer
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.njbrady.nusic.home.responseObjects.SongObject
-import com.njbrady.nusic.home.utils.GetSongJob
-import com.njbrady.nusic.home.utils.LikeSongJob
-import com.njbrady.nusic.home.utils.MusicJob
+import com.njbrady.nusic.home.utils.*
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,20 +29,19 @@ class HomeScreenViewModel @Inject constructor(
     @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
-    private val _audioPlayer = MediaPlayer()
-    private val _upNow = MutableStateFlow<SongObject?>(null)
-    private val _upNext = MutableStateFlow<SongObject?>(null)
-    private val _upLast = MutableStateFlow<SongObject?>(null)
-    private val _musicCardQueue = MusicCardQueue(_upNow, _upNext, _upLast)
+    private val _upNow = MutableStateFlow(SongCardState())
+    private val _upNext = MutableStateFlow(SongCardState())
+    private val _upLast = MutableStateFlow(SongCardState())
+    private val _musicCardQueue = MusicCardQueueAndPlay(_upNow, _upNext, _upLast)
     private val _isLoading = MutableStateFlow(false)
     private val _nonBlockingError = MutableStateFlow<String?>(null)
     private val _blockingError = MutableStateFlow<String?>(null)
     private val _blockingErrorToast = MutableStateFlow<String?>(null)
     private val _jobQueue: Queue<MusicJob> = LinkedList()
 
-    val upNow: StateFlow<SongObject?> = _upNow
-    val upNext: StateFlow<SongObject?> = _upNext
-    val upLast: StateFlow<SongObject?> = _upLast
+    val upNow: StateFlow<SongCardState> = _upNow
+    val upNext: StateFlow<SongCardState> = _upNext
+    val upLast: StateFlow<SongCardState> = _upLast
     val isLoading: StateFlow<Boolean> = _isLoading
     val nonBlockingError: StateFlow<String?> = _nonBlockingError
     val blockingError: StateFlow<String?> = _blockingError
@@ -85,16 +81,17 @@ class HomeScreenViewModel @Inject constructor(
         jobRunner()
     }
 
-
-    fun likeSong(song: SongObject, like: Boolean) {
-        _musicCardQueue.pop()
-        enqueueJob(LikeSongJob(song, like, tokenStorage))
+    //add logic for empty state case
+    fun likeSong(song: SongObject?, like: Boolean) {
+        song?.let {
+            _musicCardQueue.pop()
+            enqueueJob(LikeSongJob(it, like, tokenStorage))
+        }
     }
 
     fun likeTop(like: Boolean) {
-        upNow.value?.let {
-            likeSong(it, like)
-        }
+        if (upNow.value.songObjectPlayerState.value != SongObjectPlayerStates.Empty)
+            upNow.value.songObject?.let { songObject -> likeSong(songObject, like) }
     }
 
     private fun setIsLoading(isLoading: Boolean) {
@@ -122,9 +119,17 @@ class HomeScreenViewModel @Inject constructor(
         _blockingError.value = null
     }
 
+    fun pauseCurrent() {
+        upNow.value.pause()
+    }
+
+    fun resumeCurrent() {
+        upNow.value.resume()
+    }
+
     override fun onCleared() {
         super.onCleared()
-        _audioPlayer.release()
+        _musicCardQueue.release()
     }
 
     companion object {

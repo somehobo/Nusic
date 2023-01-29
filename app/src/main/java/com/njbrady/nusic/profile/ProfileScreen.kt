@@ -16,7 +16,9 @@ fun ProfileScreen(mainViewModel: MainViewModel) {
             modifier = Modifier.padding(paddingValues.calculateBottomPadding())
         ) {
             Row {
-                Button(onClick = { mainViewModel.logout() }) {
+                Button(onClick = { mainViewModel.logout()
+                    mainViewModel.getOnLogoutHit()()
+                }) {
                     Text(text = "Logout")
                 }
             }

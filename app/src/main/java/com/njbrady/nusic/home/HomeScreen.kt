@@ -15,24 +15,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.njbrady.nusic.home.utils.rememberSwipeableCardState
-import com.njbrady.nusic.home.utils.swipableCard
-import com.njbrady.nusic.home.utils.Direction
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphNavigator
+import com.njbrady.nusic.R
+import com.njbrady.nusic.Screen
 import com.njbrady.nusic.home.responseObjects.SongObject
-import com.njbrady.nusic.home.utils.SwipeableCardState
+import com.njbrady.nusic.home.utils.*
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.home.utils.SwipeableCardState
+import com.njbrady.nusic.home.utils.Direction
 import kotlinx.coroutines.launch
 
 
 @Composable
 fun HomeScreen(
-    homeScreenViewModel: HomeScreenViewModel
+    homeScreenViewModel: HomeScreenViewModel,
+    navController: NavController
 ) {
+    navController.addOnDestinationChangedListener { _, destination, _ ->
+        when (destination.route) {
+            Screen.Home.route -> {
+                homeScreenViewModel.resumeCurrent()
+            }
+            else -> {
+                homeScreenViewModel.pauseCurrent()
+            }
+        }
+    }
     HomeScreenContent(
         homeScreenViewModel = homeScreenViewModel,
     )
@@ -144,40 +157,34 @@ private fun SongStack(
             homeScreenViewModel.resetToastErrors()
         }
 
-        upLast?.let {
-            SongCard(song = it, modifier = Modifier.fillMaxSize())
-        }
+        SongCard(songCardState = upLast, modifier = Modifier.fillMaxSize())
 
-        upNext?.let {
-            SongCard(song = it, Modifier.fillMaxSize())
-        }
+        SongCard(songCardState = upNext, Modifier.fillMaxSize())
 
-        upNow?.let {
-            SwipeableCard(onLikeAction = { songObject, liked ->
-                homeScreenViewModel.likeSong(
-                    songObject, liked
-                )
-            }, song = it, swipeableCardState = swipeableCardState)
-        }
+        SwipeableCard(onLikeAction = { songObject, liked ->
+            homeScreenViewModel.likeSong(
+                songObject, liked
+            )
+        }, songCardState = upNow, swipeableCardState = swipeableCardState)
     }
 }
 
 @Composable
 fun SwipeableCard(
-    onLikeAction: (SongObject, Boolean) -> Unit,
-    song: SongObject,
+    onLikeAction: (SongObject?, Boolean) -> Unit,
+    songCardState: SongCardState,
     swipeableCardState: SwipeableCardState
 ) {
 
     SongCard(
-        song = song, modifier = Modifier
+        songCardState = songCardState, modifier = Modifier
             .swipableCard(
                 state = swipeableCardState,
                 blockedDirections = listOf(Direction.Down),
                 onSwiped = { dir ->
                     val liked = dir == Direction.Right
                     swipeableCardState.resetInstant()
-                    onLikeAction(song, liked)
+                    onLikeAction(songCardState.songObject, liked)
                 },
             )
             .fillMaxSize()
@@ -186,44 +193,53 @@ fun SwipeableCard(
 
 @Composable
 private fun SongCard(
-    song: SongObject,
+    songCardState: SongCardState,
     modifier: Modifier = Modifier,
 ) {
-
-    Card(
-        modifier = modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colors.onBackground),
-        backgroundColor = MaterialTheme.colors.secondary
-    ) {
-        Row(modifier = Modifier, verticalAlignment = Alignment.Bottom) {
-            Box(
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(alpha = 0x10, red = 0x00, green = 0x00, blue = 0x00),
-                                Color.Black
+    val currentState by songCardState.songObjectPlayerState.collectAsState()
+    if (currentState != SongObjectPlayerStates.Empty) {
+        Card(
+            modifier = modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colors.onBackground),
+            backgroundColor = MaterialTheme.colors.secondary
+        ) {
+            Row(modifier = Modifier, verticalAlignment = Alignment.Bottom) {
+                Box(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(alpha = 0x10, red = 0x00, green = 0x00, blue = 0x00),
+                                    Color.Black
+                                )
                             )
-                        )
-                    ),
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 32.dp)) {
+                        ),
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 32.dp)) {
 
-                    song.name?.let {
-                        Text(text = it, style = MaterialTheme.typography.h4, color = Color.White)
-                    }
-                    song.artist?.let {
-                        Text(
-                            text = "by $it",
-                            style = MaterialTheme.typography.h5,
-                            color = Color.White
-                        )
+                        songCardState.songObject?.name?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.h4,
+                                color = Color.White
+                            )
+                        }
+                        songCardState.songObject?.artist?.let {
+                            Text(
+                                text = "by $it",
+                                style = MaterialTheme.typography.h5,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
             }
+        }
+        if (currentState == SongObjectPlayerStates.Loading) {
+            CircularProgressIndicator(modifier.padding(horizontal = 8.dp, vertical = 8.dp))
         }
     }
 }

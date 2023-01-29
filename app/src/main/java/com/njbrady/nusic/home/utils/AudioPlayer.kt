@@ -23,5 +23,6 @@ class AudioPlayer {
         _mediaPlayer.setOnPreparedListener {
             _mediaPlayer.start()
         }
+//        _mediaPlayer.setNextMediaPlayer()
     }
 }
