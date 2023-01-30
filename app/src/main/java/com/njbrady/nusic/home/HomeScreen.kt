@@ -10,7 +10,10 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -28,8 +31,6 @@ import com.njbrady.nusic.home.utils.*
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.ui.theme.NusicTheme
-import com.njbrady.nusic.home.utils.SwipeableCardState
-import com.njbrady.nusic.home.utils.Direction
 import kotlinx.coroutines.launch
 
 

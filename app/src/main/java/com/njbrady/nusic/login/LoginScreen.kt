@@ -3,8 +3,13 @@ package com.njbrady.nusic.login
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -18,7 +23,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.njbrady.nusic.R
-import com.njbrady.nusic.login.composables.*
+import com.njbrady.nusic.login.composables.CenteredProgressIndicator
+import com.njbrady.nusic.login.composables.ErrorWithField
+import com.njbrady.nusic.login.composables.PasswordField
+import com.njbrady.nusic.login.composables.UsernameField
 import com.njbrady.nusic.login.model.LoginScreenViewModel
 import com.njbrady.nusic.login.model.LoginStates
 import com.njbrady.nusic.login.model.RegisterScreen
