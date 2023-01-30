@@ -1,0 +1,12 @@
+<?Xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="NusicDimenX1">8dp</dimen>
+    <dimen name="NusicDimenX2">16dp</dimen>
+    <dimen name="NusicDimenX3">24dp</dimen>
+    <dimen name="NusicDimenX4">32dp</dimen>
+    <dimen name="NusicDimenX5">40dp</dimen>
+    <dimen name="NusicDimenX6">48dp</dimen>
+    <dimen name="NusicDimenX7">56dp</dimen>
+    <dimen name="NusicDimenX8">64dp</dimen>
+    <dimen name="BorderStrokeSize">1dp</dimen>
+</resources>

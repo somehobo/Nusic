@@ -16,10 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import com.njbrady.nusic.R
 import com.njbrady.nusic.Screen
 import com.njbrady.nusic.home.responseObjects.SongObject
 import com.njbrady.nusic.home.utils.*
@@ -33,8 +35,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-    homeScreenViewModel: HomeScreenViewModel,
-    navController: NavController
+    homeScreenViewModel: HomeScreenViewModel, navController: NavController
 ) {
     navController.addOnDestinationChangedListener { _, destination, _ ->
         when (destination.route) {
@@ -91,8 +92,7 @@ private fun FeedbackButtons(
     Row(
         modifier = modifier
     ) {
-        //dislike
-        Button(modifier = Modifier.padding(horizontal = 8.dp),
+        Button(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1)),
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error),
             onClick = {
                 coroutineScope.launch {
@@ -101,9 +101,9 @@ private fun FeedbackButtons(
                     onLikeAction(false)
                 }
             }) {
-            Text(text = "Dislike")
+            Text(text = stringResource(id = R.string.dislike_button_text))
         }
-        Button(modifier = Modifier.padding(horizontal = 8.dp),
+        Button(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1)),
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondaryVariant),
             onClick = {
                 coroutineScope.launch {
@@ -112,7 +112,7 @@ private fun FeedbackButtons(
                     onLikeAction(true)
                 }
             }) {
-            Text(text = "Like")
+            Text(text = stringResource(id = R.string.like_button_text))
         }
     }
 }
@@ -159,12 +159,11 @@ private fun SongStack(
 
         SongCard(songCardState = upNext, modifier = Modifier.fillMaxSize())
 
-        SwipeableCard(
-            onLikeAction = { songObject, liked ->
-                homeScreenViewModel.likeSong(
-                    songObject, liked
-                )
-            },
+        SwipeableCard(onLikeAction = { songObject, liked ->
+            homeScreenViewModel.likeSong(
+                songObject, liked
+            )
+        },
             songCardState = upNow,
             swipeableCardState = swipeableCardState,
             onCancel = { homeScreenViewModel.cancelTop() })
@@ -172,7 +171,7 @@ private fun SongStack(
 }
 
 @Composable
-fun SwipeableCard(
+private fun SwipeableCard(
     onLikeAction: (SongObject?, Boolean) -> Unit,
     onCancel: () -> Unit,
     songCardState: SongCardState,
@@ -183,7 +182,7 @@ fun SwipeableCard(
         songCardState = songCardState, onCancel = onCancel, modifier = Modifier
             .swipableCard(
                 state = swipeableCardState,
-                blockedDirections = listOf(Direction.Down),
+                blockedDirections = listOf(Direction.Down, Direction.Up),
                 onSwiped = { dir ->
                     val liked = dir == Direction.Right
                     swipeableCardState.resetInstant()
@@ -204,77 +203,112 @@ private fun SongCard(
     val errorMessage by songCardState.errorMessage.collectAsState()
     if (currentState != SongCardStateStates.Empty) {
         Card(
-            modifier = modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colors.onBackground),
+            modifier = modifier.padding(
+                horizontal = dimensionResource(id = R.dimen.NusicDimenX1),
+                vertical = dimensionResource(
+                    id = R.dimen.NusicDimenX1
+                )
+            ),
+            shape = RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)),
+            border = BorderStroke(
+                dimensionResource(id = R.dimen.BorderStrokeSize), MaterialTheme.colors.onBackground
+            ),
             backgroundColor = MaterialTheme.colors.secondary
         ) {
             if (currentState == SongCardStateStates.Error) {
-                Row(
+                SongCardErrorOverlay(
                     modifier = Modifier
                         .fillMaxSize()
                         .zIndex(1f),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .wrapContentHeight()
-                            .fillMaxWidth()
-                            .background(Color(alpha = 0x10, red = 0x00, green = 0x00, blue = 0x00)),
-                    ) {
-                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 32.dp)) {
-                            ErrorWithField(message = errorMessage)
-                            Row(horizontalArrangement = Arrangement.Center) {
-                                RetryButton {
-                                    songCardState.retry()
-                                }
-                                Button(onClick = { onCancel() }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Cancel,
-                                        contentDescription = "Cancel",
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                    onRetry = { songCardState.retry() },
+                    onCancel = { onCancel() },
+                    errorMessage = errorMessage
+                )
             }
-            Row(modifier = Modifier, verticalAlignment = Alignment.Bottom) {
-                Box(
-                    modifier = Modifier
-                        .wrapContentHeight()
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(alpha = 0x10, red = 0x00, green = 0x00, blue = 0x00),
-                                    Color.Black
-                                )
+            SongCardBottomContent(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(R.color.card_overlay), Color.Black
                             )
-                        ),
-                ) {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 32.dp)) {
-
-                        songCardState.songObject?.name?.let {
-                            Text(
-                                text = it, style = MaterialTheme.typography.h4, color = Color.White
-                            )
-                        }
-                        songCardState.songObject?.artist?.let {
-                            Text(
-                                text = "by $it",
-                                style = MaterialTheme.typography.h5,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
-            }
+                        )
+                    ), songCardState = songCardState
+            )
         }
         if (currentState == SongCardStateStates.Loading) {
-            CircularProgressIndicator(modifier.padding(horizontal = 8.dp, vertical = 8.dp))
+            CircularProgressIndicator(modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX7)))
         }
     }
+}
+
+@Composable
+private fun SongCardBottomContent(modifier: Modifier = Modifier, songCardState: SongCardState) {
+    Row(modifier = Modifier, verticalAlignment = Alignment.Bottom) {
+        Box(
+            modifier = modifier,
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = dimensionResource(R.dimen.NusicDimenX2),
+                    vertical = dimensionResource(R.dimen.NusicDimenX4)
+                )
+            ) {
+
+                songCardState.songObject?.name?.let {
+                    Text(
+                        text = it, style = MaterialTheme.typography.h4, color = Color.White
+                    )
+                }
+                songCardState.songObject?.artist?.let {
+                    Text(
+                        text = stringResource(id = R.string.author_creditor) + " $it",
+                        style = MaterialTheme.typography.h5,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SongCardErrorOverlay(
+    modifier: Modifier = Modifier, onRetry: () -> Unit, onCancel: () -> Unit, errorMessage: String
+) {
+    Row(
+        modifier = modifier, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()
+                .background(Color(R.color.card_overlay)),
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = dimensionResource(R.dimen.NusicDimenX2),
+                    vertical = dimensionResource(R.dimen.NusicDimenX4)
+                )
+            ) {
+                ErrorWithField(message = errorMessage)
+                Row(horizontalArrangement = Arrangement.Center) {
+                    RetryButton {
+                        onRetry()
+                    }
+                    Button(onClick = { onCancel() }) {
+                        Icon(
+                            imageVector = Icons.Filled.Cancel,
+                            contentDescription = stringResource(id = R.string.cancel_button_content_description),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 @Composable
@@ -291,16 +325,18 @@ private fun ErrorScreen(
     ) {
         blockingError?.let {
             ErrorWithField(
-                message = it, modifier = Modifier
+                message = it,
+                modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(dimensionResource(id = R.dimen.NusicDimenX2))
             )
         }
         nonBlockingError?.let {
             ErrorWithField(
-                message = it, modifier = Modifier
+                message = it,
+                modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(dimensionResource(id = R.dimen.NusicDimenX2))
             )
         }
         RetryButton {
@@ -314,7 +350,7 @@ fun RetryButton(modifier: Modifier = Modifier, callback: () -> Unit) {
     Button(modifier = modifier, onClick = { callback() }) {
         Icon(
             imageVector = Icons.Filled.Refresh,
-            contentDescription = "Retry loading",
+            contentDescription = stringResource(id = R.string.refresh_button_content_description),
         )
     }
 }

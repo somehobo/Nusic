@@ -5,4 +5,9 @@
     <string name="profile_screen">Profile</string>
     <string name="login_screen">Login</string>
     <string name="register_screen">Register</string>
+    <string name="refresh_button_content_description">Retry loading</string>
+    <string name="cancel_button_content_description">Cancel</string>
+    <string name="author_creditor">by</string>
+    <string name="dislike_button_text">Dislike</string>
+    <string name="like_button_text">Like</string>
 </resources>
