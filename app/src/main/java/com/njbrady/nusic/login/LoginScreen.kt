@@ -10,8 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,14 +39,12 @@ private fun LoginNavigation(loginScreenViewModel: LoginScreenViewModel) {
         ) {
             composable(LoginScreens.Login.route) {
                 LoginContent(
-                    loginScreenViewModel,
-                    navController
+                    loginScreenViewModel, navController
                 )
             }
             composable(LoginScreens.Register.route) {
                 RegisterScreen(
-                    loginScreenViewModel,
-                    navController
+                    loginScreenViewModel, navController
                 )
             }
         }
@@ -54,8 +53,7 @@ private fun LoginNavigation(loginScreenViewModel: LoginScreenViewModel) {
 
 @Composable
 private fun LoginContent(
-    loginScreenViewModel: LoginScreenViewModel,
-    navController: NavController
+    loginScreenViewModel: LoginScreenViewModel, navController: NavController
 ) {
     val focusManager = LocalFocusManager.current
     val username by loginScreenViewModel.userNameInput.collectAsState()
@@ -78,15 +76,15 @@ private fun LoginContent(
             ) {
                 val loginFieldModifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .padding(8.dp)
+                    .padding(dimensionResource(id = R.dimen.NusicDimenX1))
                 Text(
-                    text = "Nusic",
+                    text = stringResource(id = R.string.app_name),
                     style = MaterialTheme.typography.h2,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX2))
                 )
                 UsernameField(
                     modifier = loginFieldModifier,
-                    hint = "Username",
+                    hint = stringResource(id = R.string.username_field_hint),
                     value = username,
                     onValueChange = { input -> loginScreenViewModel.setUserName(input) },
                     onNext = { focusManager.moveFocus(FocusDirection.Down) },
@@ -97,7 +95,7 @@ private fun LoginContent(
                 }
                 PasswordField(
                     modifier = loginFieldModifier,
-                    hint = "Password",
+                    hint = stringResource(id = R.string.password_field_hint),
                     value = password,
                     onValueChange = { input -> loginScreenViewModel.setPassword(input) },
                     onGo = { loginScreenViewModel.attemptLogin() },
@@ -112,26 +110,24 @@ private fun LoginContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(onClick = { loginScreenViewModel.attemptLogin() }) {
-                        Text(text = "Login")
+                        Text(text = stringResource(id = R.string.login_button))
                     }
                     Text(
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        text = "or",
+                        modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1)),
+                        text = stringResource(id = R.string.or_middle_text),
                         style = MaterialTheme.typography.body1
                     )
                     Button(onClick = {
                         navController.navigate(LoginScreens.Register.route)
                     }) {
-                        Text(text = "Create Account")
+                        Text(text = stringResource(id = R.string.create_account_button))
                     }
                 }
             }
             if (errorMessage.isNotEmpty()) {
                 errorMessage.forEach {
                     Toast.makeText(
-                        LocalContext.current,
-                        it,
-                        Toast.LENGTH_LONG
+                        LocalContext.current, it, Toast.LENGTH_LONG
                     ).show()
                 }
                 loginScreenViewModel.resetLoginState()
@@ -139,7 +135,7 @@ private fun LoginContent(
             } else if (loginState == LoginStates.Success) {
                 Toast.makeText(
                     LocalContext.current,
-                    "Successfully logged in",
+                    stringResource(id = R.string.login_success_toast),
                     Toast.LENGTH_LONG
                 ).show()
                 loginScreenViewModel.resetLoginScreenState()
@@ -149,6 +145,6 @@ private fun LoginContent(
 }
 
 sealed class LoginScreens(val route: String, @StringRes val resourceId: Int) {
-    object Login : LoginScreens("login", R.string.login_screen)
+    object Login : LoginScreens("Login", R.string.login_screen)
     object Register : LoginScreens("Register", R.string.register_screen)
 }

@@ -10,4 +10,14 @@
     <string name="author_creditor">by</string>
     <string name="dislike_button_text">Dislike</string>
     <string name="like_button_text">Like</string>
+    <string name="login_success_toast">Successfully logged in</string>
+    <string name="register_success_toast">Successfully registered</string>
+    <string name="create_account_button">Create Account</string>
+    <string name="or_middle_text">or</string>
+    <string name="login_button">Login</string>
+    <string name="password_field_hint">Password</string>
+    <string name="username_field_hint">Username</string>
+    <string name="email_field_hint">Email</string>
+    <string name="confirm_password_field_hint">Confirm Password</string>
+    <string name="back_button_content_description">Back</string>
 </resources>

@@ -13,9 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.njbrady.nusic.R
 import com.njbrady.nusic.login.composables.*
 
 @Composable
@@ -25,45 +27,42 @@ fun RegisterScreen(loginScreenViewModel: LoginScreenViewModel, navController: Na
 
 @Composable
 private fun RegisterContent(
-    loginScreenViewModel: LoginScreenViewModel,
-    navController: NavController
+    loginScreenViewModel: LoginScreenViewModel, navController: NavController
 ) {
     val focusManager = LocalFocusManager.current
     val registerUserName by loginScreenViewModel.registerUserNameInput.collectAsState()
     val registerPassword by loginScreenViewModel.registerPasswordInput.collectAsState()
-    val registerSecondaryPassword by
-    loginScreenViewModel.registerSecondaryPasswordInput.collectAsState()
+    val registerSecondaryPassword by loginScreenViewModel.registerSecondaryPasswordInput.collectAsState()
     val registerEmail by loginScreenViewModel.registerEmailInput.collectAsState()
     val registerState by loginScreenViewModel.loginState.collectAsState()
     val loginFieldModifier = Modifier
         .fillMaxWidth(0.8f)
-        .padding(8.dp)
+        .padding(dimensionResource(id = R.dimen.NusicDimenX1))
     val registerUserNameErrors by loginScreenViewModel.registerUserNameErrorMessages.collectAsState()
     val registerEmailErrors by loginScreenViewModel.registerEmailErrorMessages.collectAsState()
     val registerPasswordErrors by loginScreenViewModel.registerPasswordErrorMessages.collectAsState()
     val errorMessage by loginScreenViewModel.errorMessage.collectAsState()
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = "Register", style = MaterialTheme.typography.h5)
-                },
-                navigationIcon = if (navController.previousBackStackEntry != null) {
-                    {
-                        IconButton(onClick = { navController.navigateUp() }) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                } else {
-                    null
-                }
-
+    Scaffold(topBar = {
+        TopAppBar(title = {
+            Text(
+                text = stringResource(id = R.string.register_screen),
+                style = MaterialTheme.typography.h5
             )
+        }, navigationIcon = if (navController.previousBackStackEntry != null) {
+            {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = stringResource(id = R.string.back_button_content_description)
+                    )
+                }
+            }
+        } else {
+            null
         }
-    ) { paddingValues ->
+
+        )
+    }) { paddingValues ->
         if (registerState == LoginStates.Loading) {
             CenteredProgressIndicator(paddingValues = paddingValues)
         } else {
@@ -77,7 +76,7 @@ private fun RegisterContent(
             ) {
                 UsernameField(
                     modifier = loginFieldModifier,
-                    hint = "Username",
+                    hint = stringResource(id = R.string.username_field_hint),
                     value = registerUserName,
                     onValueChange = { input -> loginScreenViewModel.setRegisterUserName(input) },
                     onNext = { focusManager.moveFocus(FocusDirection.Down) },
@@ -88,7 +87,7 @@ private fun RegisterContent(
                 }
                 EmailField(
                     modifier = loginFieldModifier,
-                    hint = "Email",
+                    hint = stringResource(id = R.string.email_field_hint),
                     value = registerEmail,
                     onNext = { focusManager.moveFocus(FocusDirection.Down) },
                     onValueChange = { input -> loginScreenViewModel.setRegisterEmailInput(input) },
@@ -99,7 +98,7 @@ private fun RegisterContent(
                 }
                 PasswordField(
                     modifier = loginFieldModifier,
-                    hint = "Password",
+                    hint = stringResource(id = R.string.password_field_hint),
                     value = registerPassword,
                     onValueChange = { input -> loginScreenViewModel.setRegisterPassword(input) },
                     onNext = { focusManager.moveFocus(FocusDirection.Down) },
@@ -110,7 +109,7 @@ private fun RegisterContent(
                 }
                 PasswordField(
                     modifier = loginFieldModifier,
-                    hint = "Confirm password",
+                    hint = stringResource(id = R.string.confirm_password_field_hint),
                     value = registerSecondaryPassword,
                     onValueChange = { input ->
                         loginScreenViewModel.setRegisterSecondaryPassword(
@@ -121,15 +120,13 @@ private fun RegisterContent(
                     imeAction = ImeAction.Go,
                 )
                 Button(onClick = { loginScreenViewModel.attemptRegisterUser() }) {
-                    Text(text = "Register")
+                    Text(text = stringResource(id = R.string.register_screen))
                 }
 
                 if (errorMessage.isNotEmpty()) {
                     errorMessage.forEach {
                         Toast.makeText(
-                            LocalContext.current,
-                            it,
-                            Toast.LENGTH_LONG
+                            LocalContext.current, it, Toast.LENGTH_LONG
                         ).show()
                     }
                     loginScreenViewModel.resetLoginState()
@@ -137,7 +134,7 @@ private fun RegisterContent(
                 } else if (registerState == LoginStates.Success) {
                     Toast.makeText(
                         LocalContext.current,
-                        "Successfully registered",
+                        stringResource(id = R.string.register_success_toast),
                         Toast.LENGTH_LONG
                     ).show()
                     loginScreenViewModel.resetRegisterScreenState()
