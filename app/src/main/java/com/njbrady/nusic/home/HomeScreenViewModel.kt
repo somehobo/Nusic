@@ -1,6 +1,5 @@
 package com.njbrady.nusic.home
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.njbrady.nusic.home.responseObjects.SongObject
@@ -32,7 +31,7 @@ class HomeScreenViewModel @Inject constructor(
     private val _upNow = MutableStateFlow(SongCardState())
     private val _upNext = MutableStateFlow(SongCardState())
     private val _upLast = MutableStateFlow(SongCardState())
-    private val _musicCardQueue = MusicCardQueueAndPlay(_upNow, _upNext, _upLast)
+    private val _musicCardQueue = MusicCardStateQueue(_upNow, _upNext, _upLast)
     private val _isLoading = MutableStateFlow(false)
     private val _nonBlockingError = MutableStateFlow<String?>(null)
     private val _blockingError = MutableStateFlow<String?>(null)
@@ -89,8 +88,12 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
+    fun cancelTop(){
+        _musicCardQueue.pop()
+    }
+
     fun likeTop(like: Boolean) {
-        if (upNow.value.songObjectPlayerState.value != SongObjectPlayerStates.Empty)
+        if (upNow.value.songCardStateState.value != SongCardStateStates.Empty)
             upNow.value.songObject?.let { songObject -> likeSong(songObject, like) }
     }
 
@@ -137,7 +140,4 @@ class HomeScreenViewModel @Inject constructor(
     }
 }
 
-fun <T> MutableLiveData<T>.notifyObserver() {
-    this.value = this.value
-}
 

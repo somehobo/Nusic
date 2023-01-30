@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,9 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import androidx.navigation.NavGraphNavigator
-import com.njbrady.nusic.R
 import com.njbrady.nusic.Screen
 import com.njbrady.nusic.home.responseObjects.SongObject
 import com.njbrady.nusic.home.utils.*
@@ -150,34 +150,37 @@ private fun SongStack(
 
         blockingErrorToast?.let {
             Toast.makeText(
-                LocalContext.current,
-                it,
-                Toast.LENGTH_LONG
+                LocalContext.current, it, Toast.LENGTH_LONG
             ).show()
             homeScreenViewModel.resetToastErrors()
         }
 
         SongCard(songCardState = upLast, modifier = Modifier.fillMaxSize())
 
-        SongCard(songCardState = upNext, Modifier.fillMaxSize())
+        SongCard(songCardState = upNext, modifier = Modifier.fillMaxSize())
 
-        SwipeableCard(onLikeAction = { songObject, liked ->
-            homeScreenViewModel.likeSong(
-                songObject, liked
-            )
-        }, songCardState = upNow, swipeableCardState = swipeableCardState)
+        SwipeableCard(
+            onLikeAction = { songObject, liked ->
+                homeScreenViewModel.likeSong(
+                    songObject, liked
+                )
+            },
+            songCardState = upNow,
+            swipeableCardState = swipeableCardState,
+            onCancel = { homeScreenViewModel.cancelTop() })
     }
 }
 
 @Composable
 fun SwipeableCard(
     onLikeAction: (SongObject?, Boolean) -> Unit,
+    onCancel: () -> Unit,
     songCardState: SongCardState,
     swipeableCardState: SwipeableCardState
 ) {
 
     SongCard(
-        songCardState = songCardState, modifier = Modifier
+        songCardState = songCardState, onCancel = onCancel, modifier = Modifier
             .swipableCard(
                 state = swipeableCardState,
                 blockedDirections = listOf(Direction.Down),
@@ -193,17 +196,49 @@ fun SwipeableCard(
 
 @Composable
 private fun SongCard(
-    songCardState: SongCardState,
     modifier: Modifier = Modifier,
+    songCardState: SongCardState,
+    onCancel: () -> Unit = {},
 ) {
-    val currentState by songCardState.songObjectPlayerState.collectAsState()
-    if (currentState != SongObjectPlayerStates.Empty) {
+    val currentState by songCardState.songCardStateState.collectAsState()
+    val errorMessage by songCardState.errorMessage.collectAsState()
+    if (currentState != SongCardStateStates.Empty) {
         Card(
             modifier = modifier.padding(horizontal = 8.dp, vertical = 8.dp),
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colors.onBackground),
             backgroundColor = MaterialTheme.colors.secondary
         ) {
+            if (currentState == SongCardStateStates.Error) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .zIndex(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .wrapContentHeight()
+                            .fillMaxWidth()
+                            .background(Color(alpha = 0x10, red = 0x00, green = 0x00, blue = 0x00)),
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 32.dp)) {
+                            ErrorWithField(message = errorMessage)
+                            Row(horizontalArrangement = Arrangement.Center) {
+                                RetryButton {
+                                    songCardState.retry()
+                                }
+                                Button(onClick = { onCancel() }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Cancel,
+                                        contentDescription = "Cancel",
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             Row(modifier = Modifier, verticalAlignment = Alignment.Bottom) {
                 Box(
                     modifier = Modifier
@@ -222,9 +257,7 @@ private fun SongCard(
 
                         songCardState.songObject?.name?.let {
                             Text(
-                                text = it,
-                                style = MaterialTheme.typography.h4,
-                                color = Color.White
+                                text = it, style = MaterialTheme.typography.h4, color = Color.White
                             )
                         }
                         songCardState.songObject?.artist?.let {
@@ -238,7 +271,7 @@ private fun SongCard(
                 }
             }
         }
-        if (currentState == SongObjectPlayerStates.Loading) {
+        if (currentState == SongCardStateStates.Loading) {
             CircularProgressIndicator(modifier.padding(horizontal = 8.dp, vertical = 8.dp))
         }
     }
@@ -270,13 +303,19 @@ private fun ErrorScreen(
                     .padding(16.dp)
             )
         }
-        Button(modifier = Modifier, onClick = { onRetry() }) {
-//            Text(text = "Retry")
-            Icon(
-                imageVector = Icons.Filled.Refresh,
-                contentDescription = "Retry loading",
-            )
+        RetryButton {
+            onRetry()
         }
+    }
+}
+
+@Composable
+fun RetryButton(modifier: Modifier = Modifier, callback: () -> Unit) {
+    Button(modifier = modifier, onClick = { callback() }) {
+        Icon(
+            imageVector = Icons.Filled.Refresh,
+            contentDescription = "Retry loading",
+        )
     }
 }
 
@@ -285,14 +324,15 @@ private fun ErrorScreen(
 fun DefaultPreview() {
     NusicTheme {
 //        SongCard(song = SongObject("Name", "artist"), modifier = Modifier.fillMaxSize())
-        Button(onClick = { /*TODO*/ }) {
-            Icon(
-                modifier = Modifier.fillMaxSize(),
-                imageVector = Icons.Filled.Refresh,
-                contentDescription = "Retry loading",
-                tint = MaterialTheme.colors.error
-            )
-        }
+//        Button(onClick = { /*TODO*/ }) {
+//            Icon(
+//                modifier = Modifier.fillMaxSize(),
+//                imageVector = Icons.Filled.Refresh,
+//                contentDescription = "Retry loading",
+//                tint = MaterialTheme.colors.error
+//            )
+//        }
+        SongCard(songCardState = SongCardState(), onCancel = { /*TODO*/ })
     }
 }
 

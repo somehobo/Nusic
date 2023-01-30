@@ -6,42 +6,38 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class SongCardState private constructor(
-    private val initialState: SongObjectPlayerStates,
+    initialState: SongCardStateStates,
     val songObject: SongObject?
 ) {
 
+    constructor() : this(SongCardStateStates.Error, null)
 
-    private val _mediaPlayer = MediaPlayer()
+    constructor(songObject: SongObject) : this(SongCardStateStates.Loading, songObject) {
+        _mediaPlayer = mediaPlayerFactory(songObject)
+    }
+
+    private var _mediaPlayer = MediaPlayer()
     private var _upNow = false
-    private val _songObjectPlayerState = MutableStateFlow(
-        initialState
-    )
+    private val _songCardStateState = MutableStateFlow(initialState)
+    private val _errorMessage = MutableStateFlow("")
 
-    val songObjectPlayerState: StateFlow<SongObjectPlayerStates> = _songObjectPlayerState
+    val songCardStateState: StateFlow<SongCardStateStates> = _songCardStateState
+    val errorMessage: StateFlow<String> = _errorMessage
 
-    constructor() : this(SongObjectPlayerStates.Empty, null)
-
-    constructor(songObject: SongObject) : this(SongObjectPlayerStates.Loading, songObject) {
-        _mediaPlayer.setDataSource(songObject.songUrl)
-        _mediaPlayer.prepareAsync()
-        _mediaPlayer.setOnPreparedListener {
-            _songObjectPlayerState.value = SongObjectPlayerStates.Ready
-            if (_upNow) {
-                playIfFirst()
-            }
-        }
-        _mediaPlayer.setOnCompletionListener {
-            _songObjectPlayerState.value = SongObjectPlayerStates.Completed
+    fun retry() {
+        _errorMessage.value = ""
+        this.release()
+        songObject?.let {
+            _mediaPlayer = mediaPlayerFactory(it)
         }
     }
 
-
     fun playIfFirst() {
-        if (_songObjectPlayerState.value == SongObjectPlayerStates.Ready) {
+        if (_songCardStateState.value == SongCardStateStates.Ready) {
             _upNow = true
             if (!_mediaPlayer.isPlaying) {
                 _mediaPlayer.start()
-                _songObjectPlayerState.value = SongObjectPlayerStates.Playing
+                _songCardStateState.value = SongCardStateStates.Playing
             }
         } else {
             _upNow = true
@@ -49,15 +45,15 @@ class SongCardState private constructor(
     }
 
     fun pause() {
-        if (songObjectPlayerState.value != SongObjectPlayerStates.Empty) {
-            _songObjectPlayerState.value = SongObjectPlayerStates.Paused
+        if (songCardStateState.value != SongCardStateStates.Empty) {
+            _songCardStateState.value = SongCardStateStates.Paused
             _mediaPlayer.pause()
         }
     }
 
     fun resume() {
-        if (songObjectPlayerState.value != SongObjectPlayerStates.Empty) {
-            _songObjectPlayerState.value = SongObjectPlayerStates.Playing
+        if (songCardStateState.value != SongCardStateStates.Empty) {
+            _songCardStateState.value = SongCardStateStates.Playing
             _mediaPlayer.start()
         }
     }
@@ -65,6 +61,42 @@ class SongCardState private constructor(
     fun release() {
         _mediaPlayer.pause()
         _mediaPlayer.release()
+    }
+
+    private fun mediaPlayerFactory(songObject: SongObject): MediaPlayer {
+        _songCardStateState.value = SongCardStateStates.Loading
+        val mediaPlayer = MediaPlayer()
+        mediaPlayer.setDataSource(songObject.songUrl)
+        mediaPlayer.prepareAsync()
+        mediaPlayer.setOnPreparedListener {
+            _songCardStateState.value = SongCardStateStates.Ready
+            if (_upNow) {
+                playIfFirst()
+            }
+        }
+
+        mediaPlayer.setOnCompletionListener {
+            _songCardStateState.value = SongCardStateStates.Completed
+        }
+
+        mediaPlayer.setOnErrorListener { mp, what, extra ->
+            mp.pause()
+            when (what) {
+                MediaPlayer.MEDIA_ERROR_UNKNOWN -> {
+                    // Handle unknown error
+                    _songCardStateState.value = SongCardStateStates.Error
+                    _errorMessage.value = "An unknown error occurred"
+                }
+
+                MediaPlayer.MEDIA_ERROR_SERVER_DIED -> {
+                    // Handle server died error
+                    mp.release()
+                    _mediaPlayer = mediaPlayerFactory(songObject)
+                }
+            }
+            true // Return true to indicate the error has been handled
+        }
+        return mediaPlayer
     }
 
     companion object {
@@ -75,7 +107,7 @@ class SongCardState private constructor(
 
 }
 
-enum class SongObjectPlayerStates {
+enum class SongCardStateStates {
     Loading,
     Error,
     Ready,

@@ -4,7 +4,7 @@ import com.njbrady.nusic.home.responseObjects.SongObject
 import com.njbrady.nusic.home.utils.SongCardState
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class MusicCardQueueAndPlay(
+class MusicCardStateQueue(
     private val _upNow: MutableStateFlow<SongCardState>,
     private val _upNext: MutableStateFlow<SongCardState>,
     private val _upLast: MutableStateFlow<SongCardState>
