@@ -359,15 +359,6 @@ fun RetryButton(modifier: Modifier = Modifier, callback: () -> Unit) {
 @Composable
 fun DefaultPreview() {
     NusicTheme {
-//        SongCard(song = SongObject("Name", "artist"), modifier = Modifier.fillMaxSize())
-//        Button(onClick = { /*TODO*/ }) {
-//            Icon(
-//                modifier = Modifier.fillMaxSize(),
-//                imageVector = Icons.Filled.Refresh,
-//                contentDescription = "Retry loading",
-//                tint = MaterialTheme.colors.error
-//            )
-//        }
         SongCard(songCardState = SongCardState(), onCancel = { /*TODO*/ })
     }
 }
