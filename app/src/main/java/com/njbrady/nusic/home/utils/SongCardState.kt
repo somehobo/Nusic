@@ -71,6 +71,10 @@ class SongCardState private constructor(
         _mediaPlayer.release()
     }
 
+    fun clearVisibleState() {
+        _songCardStateState.value = SongCardStateStates.Empty
+    }
+
     private fun mediaPlayerFactory(songObject: SongObject): MediaPlayer {
         _songCardStateState.value = SongCardStateStates.Loading
         val mediaPlayer = MediaPlayer()

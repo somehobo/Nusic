@@ -4,6 +4,7 @@ package com.njbrady.nusic.home
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -16,11 +17,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.zIndex
@@ -188,11 +192,13 @@ private fun SwipeableCard(
                 blockedDirections = listOf(Direction.Down, Direction.Up),
                 onSwiped = { dir ->
                     val liked = dir == Direction.Right
+                    songCardState.clearVisibleState()
                     swipeableCardState.resetInstant()
                     onLikeAction(songCardState.songObject, liked)
                 },
             )
             .fillMaxSize()
+            .clickable { songCardState.pause() }
     )
 }
 
@@ -206,12 +212,7 @@ private fun SongCard(
     val errorMessage by songCardState.errorMessage.collectAsState()
     if (currentState != SongCardStateStates.Empty) {
         Card(
-            modifier = modifier.padding(
-                horizontal = dimensionResource(id = R.dimen.NusicDimenX1),
-                vertical = dimensionResource(
-                    id = R.dimen.NusicDimenX1
-                )
-            ),
+            modifier = modifier,
             shape = RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)),
             border = BorderStroke(
                 dimensionResource(id = R.dimen.BorderStrokeSize), MaterialTheme.colors.onBackground
@@ -229,10 +230,15 @@ private fun SongCard(
                         onCancel = { onCancel() },
                         errorMessage = errorMessage
                     )
-                    SongCardStateStates.Completed -> SongCardCompletedOverlay(
-                        modifier = Modifier.zIndex(
-                            1f
-                        ), onReplay = { songCardState.restart() })
+
+                    SongCardStateStates.Completed -> SongCardCompletedOverlay(modifier = Modifier.zIndex(
+                        1f
+                    ), onReplay = { songCardState.restart() })
+
+                    SongCardStateStates.Paused -> SongCardPausedOverlay(
+                        modifier = Modifier.zIndex(1f),
+                        onPlay = { songCardState.resume() }
+                    )
                 }
 
                 SongCardBottomContent(
@@ -328,6 +334,32 @@ private fun SongCardErrorOverlay(
     }
 }
 
+@Composable
+private fun SongCardPausedOverlay(
+    modifier: Modifier = Modifier,
+    onPlay: () -> Unit,
+) {
+    SongCardOverlay(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconButton(onClick = { onPlay() }) {
+                Icon(
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX8)),
+                    painter = painterResource(id = R.drawable.nusic_play_button),
+                    contentDescription = "Play button",
+                    tint = colorResource(
+                        id = R.color.pause_play_color
+                    )
+                )
+            }
+
+        }
+    }
+}
+
 
 @Composable
 private fun SongCardCompletedOverlay(
@@ -414,7 +446,8 @@ fun RetryButton(modifier: Modifier = Modifier, callback: () -> Unit) {
 fun DefaultPreview() {
     NusicTheme {
 //        SongCardErrorOverlay(onRetry = {}, onCancel = {}, errorMessage = "HAI")
-        SongCardCompletedOverlay(onReplay = {})
+//        SongCardCompletedOverlay(onReplay = {})
+        SongCardPausedOverlay(onPlay = {})
     }
 }
 
