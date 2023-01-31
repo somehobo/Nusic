@@ -18,7 +18,8 @@ import javax.inject.Inject
 /*
 known bugs:
 - Sometimes a duplicate music card appears
-- reload button is not visible
+- On empty screen flash of old card
+- need loading state in the middle
  */
 
 @HiltViewModel
@@ -51,19 +52,22 @@ class HomeScreenViewModel @Inject constructor(
             withContext(defaultDispatcher) {
                 setIsLoading(true)
                 var currentJob = _jobQueue.peek()
-                while (currentJob != null && blockingError.value == null) {
-                    val songObjectErrorWrapper = currentJob.runJob()
-                    if (songObjectErrorWrapper.blockingError != null) {
-                        _blockingError.value = songObjectErrorWrapper.blockingError
-                        _blockingErrorToast.value = _blockingError.value
-                    } else {
-                        _jobQueue.poll()
-                        _musicCardQueue.push(songObjectErrorWrapper.songObject)
-                        songObjectErrorWrapper.nonBlockingError?.let {
-                            _nonBlockingError.value = it
+                currentJob?.let {
+                    do {
+                        val songObjectErrorWrapper = it.runJob()
+                        if (songObjectErrorWrapper.blockingError != null) {
+                            _blockingError.value = songObjectErrorWrapper.blockingError
+                            _blockingErrorToast.value = _blockingError.value
+                        } else {
+                            _jobQueue.poll()
+                            _musicCardQueue.push(songObjectErrorWrapper.songObject)
+                            songObjectErrorWrapper.nonBlockingError?.let {
+                                _nonBlockingError.value = it
+                            }
+                            _blockingError.value = null
+                            currentJob = _jobQueue.peek()
                         }
-                        currentJob = _jobQueue.peek()
-                    }
+                    } while (currentJob != null && blockingError.value == null)
                 }
                 setIsLoading(false)
             }
@@ -89,6 +93,7 @@ class HomeScreenViewModel @Inject constructor(
 
     fun cancelTop(){
         _musicCardQueue.pop()
+        enqueueJob(GetSongJob(tokenStorage))
     }
 
     fun likeTop(like: Boolean) {
@@ -96,12 +101,17 @@ class HomeScreenViewModel @Inject constructor(
             upNow.value.songObject?.let { songObject -> likeSong(songObject, like) }
     }
 
+    fun restartTop() {
+        if(upNow.value.songCardStateState.value != SongCardStateStates.Empty)
+            upNow.value.restart()
+    }
+
     private fun setIsLoading(isLoading: Boolean) {
         _isLoading.value = isLoading
     }
 
     fun retry() {
-        val requestFurther = MaxQueueSize - _jobQueue.size + _musicCardQueue.size()
+        val requestFurther = MaxQueueSize - (_jobQueue.size + _musicCardQueue.size())
         for (i in 0 until requestFurther) {
             _jobQueue.add(GetSongJob(tokenStorage))
         }

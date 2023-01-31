@@ -3,6 +3,7 @@ package com.njbrady.nusic
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,7 +15,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -36,10 +36,13 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var tokenStorage: TokenStorage
 
+    private val loginScreenViewModel: LoginScreenViewModel by viewModels()
+    private val homeScreenViewModel: HomeScreenViewModel by viewModels()
+    private val mainViewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val loginScreenViewModel = hiltViewModel<LoginScreenViewModel>()
             val loginState = tokenStorage.containsToken.collectAsState()
             NusicTheme {
                 // A surface container using the 'background' color from the theme
@@ -48,7 +51,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     if (loginState.value) {
-                        MainContent()
+                        MainContent(homeScreenViewModel, mainViewModel)
                     } else {
                         LoginScreen(loginScreenViewModel = loginScreenViewModel)
                     }
@@ -56,13 +59,21 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+        homeScreenViewModel.pauseCurrent()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        homeScreenViewModel.resumeCurrent()
+    }
 }
 
 
 @Composable
-private fun MainContent() {
-    val mainViewModel = hiltViewModel<MainViewModel>()
-    val homeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
+private fun MainContent(homeScreenViewModel: HomeScreenViewModel, mainViewModel: MainViewModel) {
     mainViewModel.setOnLogoutHit { homeScreenViewModel.resetState() }
     val navController = rememberNavController()
     Scaffold(bottomBar = {

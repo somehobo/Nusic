@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +32,7 @@ import com.njbrady.nusic.home.utils.*
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.home.utils.Direction
 import kotlinx.coroutines.launch
 
 
@@ -216,40 +218,55 @@ private fun SongCard(
             ),
             backgroundColor = MaterialTheme.colors.secondary
         ) {
-            if (currentState == SongCardStateStates.Error) {
-                SongCardErrorOverlay(
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                when (currentState) {
+                    SongCardStateStates.Error -> SongCardErrorOverlay(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(1f),
+                        onRetry = { songCardState.retry() },
+                        onCancel = { onCancel() },
+                        errorMessage = errorMessage
+                    )
+                    SongCardStateStates.Completed -> SongCardCompletedOverlay(
+                        modifier = Modifier.zIndex(
+                            1f
+                        ), onReplay = { songCardState.restart() })
+                }
+
+                SongCardBottomContent(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .zIndex(1f),
-                    onRetry = { songCardState.retry() },
-                    onCancel = { onCancel() },
-                    errorMessage = errorMessage
-                )
-            }
-            SongCardBottomContent(
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(R.color.card_overlay), Color.Black
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .zIndex(0f)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    colorResource(id = R.color.card_overlay), Color.Black
+                                )
                             )
+
                         )
-                    ), songCardState = songCardState
-            )
-        }
-        if (currentState == SongCardStateStates.Loading) {
-            CircularProgressIndicator(modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX7)))
+                        .align(Alignment.BottomCenter), songCardState = songCardState
+                )
+                if (currentState == SongCardStateStates.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(dimensionResource(id = R.dimen.NusicDimenX7))
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun SongCardBottomContent(modifier: Modifier = Modifier, songCardState: SongCardState) {
-    Row(modifier = Modifier, verticalAlignment = Alignment.Bottom) {
+    Row(modifier = modifier, verticalAlignment = Alignment.Bottom) {
         Box(
-            modifier = modifier,
+            modifier = Modifier,
         ) {
             Column(
                 modifier = Modifier.padding(
@@ -279,37 +296,73 @@ private fun SongCardBottomContent(modifier: Modifier = Modifier, songCardState: 
 private fun SongCardErrorOverlay(
     modifier: Modifier = Modifier, onRetry: () -> Unit, onCancel: () -> Unit, errorMessage: String
 ) {
+    SongCardOverlay(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .padding(
+                    horizontal = dimensionResource(R.dimen.NusicDimenX2),
+                    vertical = dimensionResource(R.dimen.NusicDimenX4)
+                )
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ErrorWithField(
+                modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.NusicDimenX1)),
+                message = errorMessage,
+                textColor = colorResource(id = R.color.white)
+            )
+            Row(horizontalArrangement = Arrangement.Center) {
+                RetryButton(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1))) {
+                    onRetry()
+                }
+                Button(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1)),
+                    onClick = { onCancel() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Cancel,
+                        contentDescription = stringResource(id = R.string.cancel_button_content_description),
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun SongCardCompletedOverlay(
+    modifier: Modifier = Modifier,
+    onReplay: () -> Unit,
+) {
+    SongCardOverlay(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            RetryButton {
+                onReplay()
+            }
+        }
+    }
+}
+
+@Composable
+private fun SongCardOverlay(
+    modifier: Modifier = Modifier, content: @Composable () -> Unit
+) {
     Row(
         modifier = modifier, verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .wrapContentHeight()
-                .fillMaxWidth()
+                .fillMaxSize()
                 .background(Color(R.color.card_overlay)),
         ) {
-            Column(
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(R.dimen.NusicDimenX2),
-                    vertical = dimensionResource(R.dimen.NusicDimenX4)
-                )
-            ) {
-                ErrorWithField(message = errorMessage)
-                Row(horizontalArrangement = Arrangement.Center) {
-                    RetryButton {
-                        onRetry()
-                    }
-                    Button(onClick = { onCancel() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Cancel,
-                            contentDescription = stringResource(id = R.string.cancel_button_content_description),
-                        )
-                    }
-                }
-            }
+            content()
         }
     }
-
 }
 
 @Composable
@@ -360,7 +413,8 @@ fun RetryButton(modifier: Modifier = Modifier, callback: () -> Unit) {
 @Composable
 fun DefaultPreview() {
     NusicTheme {
-        SongCard(songCardState = SongCardState(), onCancel = { /*TODO*/ })
+//        SongCardErrorOverlay(onRetry = {}, onCancel = {}, errorMessage = "HAI")
+        SongCardCompletedOverlay(onReplay = {})
     }
 }
 

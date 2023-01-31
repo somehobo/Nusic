@@ -10,7 +10,7 @@ class SongCardState private constructor(
     val songObject: SongObject?
 ) {
 
-    constructor() : this(SongCardStateStates.Error, null)
+    constructor() : this(SongCardStateStates.Empty, null)
 
     constructor(songObject: SongObject) : this(SongCardStateStates.Loading, songObject) {
         _mediaPlayer = mediaPlayerFactory(songObject)
@@ -58,6 +58,14 @@ class SongCardState private constructor(
         }
     }
 
+    fun restart() {
+        if (songCardStateState.value != SongCardStateStates.Empty) {
+            _songCardStateState.value = SongCardStateStates.Playing
+            _mediaPlayer.seekTo(0)
+            _mediaPlayer.start()
+        }
+    }
+
     fun release() {
         _mediaPlayer.pause()
         _mediaPlayer.release()
@@ -100,8 +108,9 @@ class SongCardState private constructor(
     }
 
     companion object {
+        private val emptySongCardState = SongCardState()
         fun orElse(i: Int): SongCardState {
-            return SongCardState()
+            return emptySongCardState
         }
     }
 
