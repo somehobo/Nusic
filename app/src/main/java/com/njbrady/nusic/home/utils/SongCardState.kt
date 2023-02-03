@@ -20,6 +20,7 @@ class SongCardState private constructor(
     private var _upNow = false
     private val _songCardStateState = MutableStateFlow(initialState)
     private val _errorMessage = MutableStateFlow("")
+    private var forcePause = false
 
     val songCardStateState: StateFlow<SongCardStateStates> = _songCardStateState
     val errorMessage: StateFlow<String> = _errorMessage
@@ -58,6 +59,26 @@ class SongCardState private constructor(
         }
     }
 
+    fun forcePause() {
+        if (songCardStateState.value != SongCardStateStates.Empty) {
+            if (_songCardStateState.value != SongCardStateStates.Paused) {
+                forcePause = true
+            }
+            _songCardStateState.value = SongCardStateStates.Paused
+            _mediaPlayer.pause()
+        }
+    }
+
+    fun resumePreviousPlayState() {
+        if (songCardStateState.value != SongCardStateStates.Empty) {
+            if (forcePause) {
+                _songCardStateState.value = SongCardStateStates.Playing
+                _mediaPlayer.start()
+            }
+            forcePause = false
+        }
+    }
+
     fun restart() {
         if (songCardStateState.value != SongCardStateStates.Empty) {
             _songCardStateState.value = SongCardStateStates.Playing
@@ -67,12 +88,8 @@ class SongCardState private constructor(
     }
 
     fun release() {
-        _mediaPlayer.pause()
         _mediaPlayer.release()
-    }
-
-    fun clearVisibleState() {
-        _songCardStateState.value = SongCardStateStates.Empty
+        _songCardStateState.value = SongCardStateStates.Playing
     }
 
     private fun mediaPlayerFactory(songObject: SongObject): MediaPlayer {

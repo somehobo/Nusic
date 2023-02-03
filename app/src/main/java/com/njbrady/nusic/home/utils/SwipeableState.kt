@@ -68,7 +68,7 @@ class SwipeableCardState(
      */
     suspend fun finishSwipe(
         direction: Direction,
-        animationSpec: AnimationSpec<Offset> = tween(400)
+        animationSpec: AnimationSpec<Offset> = tween(800)
     ) {
         val endX =
             maxWidth * 1.5f //I believe multiplier is due to cards rotation, this is used when auto completing the swipe

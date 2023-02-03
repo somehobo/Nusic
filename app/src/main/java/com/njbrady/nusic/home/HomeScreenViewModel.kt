@@ -131,12 +131,12 @@ class HomeScreenViewModel @Inject constructor(
         _blockingError.value = null
     }
 
-    fun pauseCurrent() {
-        upNow.value.pause()
+    fun forcePauseCurrent() {
+        upNow.value.forcePause()
     }
 
-    fun resumeCurrent() {
-        upNow.value.resume()
+    fun resumeCurrentPreviousPlayState() {
+        upNow.value.resumePreviousPlayState()
     }
 
     override fun onCleared() {

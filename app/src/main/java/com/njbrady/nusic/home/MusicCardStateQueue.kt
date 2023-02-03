@@ -44,9 +44,10 @@ class MusicCardStateQueue(
     }
 
     private fun setValues() {
-        _upNow.value = getAtIndex(0)
-        _upNext.value = getAtIndex(1)
         _upLast.value = getAtIndex(2)
+        _upNext.value = getAtIndex(1)
+        _upNow.value = getAtIndex(0)
+
     }
 
     private fun getAtIndex(index: Int): SongCardState {

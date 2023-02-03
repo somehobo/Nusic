@@ -17,10 +17,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
@@ -47,10 +46,10 @@ fun HomeScreen(
     navController.addOnDestinationChangedListener { _, destination, _ ->
         when (destination.route) {
             Screen.Home.route -> {
-                homeScreenViewModel.resumeCurrent()
+                homeScreenViewModel.resumeCurrentPreviousPlayState()
             }
             else -> {
-                homeScreenViewModel.pauseCurrent()
+                homeScreenViewModel.forcePauseCurrent()
             }
         }
     }
@@ -63,7 +62,10 @@ fun HomeScreen(
 private fun HomeScreenContent(
     homeScreenViewModel: HomeScreenViewModel,
 ) {
-    val swipeableCardState = rememberSwipeableCardState()
+    val upNow by homeScreenViewModel.upNow.collectAsState()
+    val upNext by homeScreenViewModel.upNext.collectAsState()
+    val upLast by homeScreenViewModel.upLast.collectAsState()
+
     Scaffold(
         modifier = Modifier.windowInsetsPadding(
             WindowInsets.navigationBars.only(WindowInsetsSides.End)
@@ -79,11 +81,11 @@ private fun HomeScreenContent(
             SongStack(
                 homeScreenViewModel = homeScreenViewModel,
                 paddingValues = paddingValues,
-                modifier = Modifier.fillMaxSize(0.8f),
-                swipeableCardState = swipeableCardState
+                modifier = Modifier.fillMaxSize(0.9f),
+                upNow = upNow,
+                upNext = upNext,
+                upLast = upLast
             )
-            FeedbackButtons(swipeableCardState = swipeableCardState,
-                onLikeAction = { like -> homeScreenViewModel.likeTop(like) })
         }
     }
 }
@@ -130,11 +132,17 @@ private fun SongStack(
     homeScreenViewModel: HomeScreenViewModel,
     modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(),
-    swipeableCardState: SwipeableCardState
+    upNow: SongCardState,
+    upNext: SongCardState,
+    upLast: SongCardState,
 ) {
-    val upNow by homeScreenViewModel.upNow.collectAsState()
-    val upNext by homeScreenViewModel.upNext.collectAsState()
-    val upLast by homeScreenViewModel.upLast.collectAsState()
+
+    val upNowState by upNow.songCardStateState.collectAsState()
+    val upNowError by upNow.errorMessage.collectAsState()
+    val upNextState by upNext.songCardStateState.collectAsState()
+    val upNextError by upNext.errorMessage.collectAsState()
+    val upLastState by upLast.songCardStateState.collectAsState()
+    val upLastError by upLast.errorMessage.collectAsState()
     val nonBlockingError by homeScreenViewModel.nonBlockingError.collectAsState()
     val loading by homeScreenViewModel.isLoading.collectAsState()
     val blockingError by homeScreenViewModel.blockingError.collectAsState()
@@ -162,55 +170,95 @@ private fun SongStack(
             homeScreenViewModel.resetToastErrors()
         }
 
-        SongCard(songCardState = upLast, modifier = Modifier.fillMaxSize())
 
-        SongCard(songCardState = upNext, modifier = Modifier.fillMaxSize())
 
-        SwipeableCard(onLikeAction = { songObject, liked ->
-            homeScreenViewModel.likeSong(
-                songObject, liked
-            )
-        },
-            songCardState = upNow,
-            swipeableCardState = swipeableCardState,
-            onCancel = { homeScreenViewModel.cancelTop() })
+        SongCard(
+            modifier = Modifier.fillMaxSize(),
+            songCardStateState = upLastState,
+            errorMessage = upLastError,
+            songObject = upLast.songObject
+        )
+
+
+        SongCard(
+            modifier = Modifier.fillMaxSize(),
+            songCardStateState = upNextState,
+            errorMessage = upNextError,
+            songObject = upNext.songObject
+        )
+
+
+        SwipeableCardWrapper(modifier = Modifier.fillMaxSize(),
+            songCardStateState = upNowState,
+            errorMessage = upNowError,
+            songObject = upNow.songObject,
+            onRetry = { upNow.retry() },
+            onCancel = { homeScreenViewModel.cancelTop() },
+            onRestart = { upNow.restart() },
+            onResume = { upNow.resume() },
+            onPause = { upNow.pause() },
+            onLiked = { like -> homeScreenViewModel.likeTop(like) })
     }
 }
 
+
 @Composable
-private fun SwipeableCard(
-    onLikeAction: (SongObject?, Boolean) -> Unit,
+private fun SwipeableCardWrapper(
+    modifier: Modifier = Modifier,
+    songCardStateState: SongCardStateStates,
+    errorMessage: String,
+    songObject: SongObject?,
+    onRetry: () -> Unit,
+    onRestart: () -> Unit,
+    onResume: () -> Unit,
     onCancel: () -> Unit,
-    songCardState: SongCardState,
-    swipeableCardState: SwipeableCardState
+    onPause: () -> Unit,
+    onLiked: (Boolean) -> Unit
 ) {
+    val swipeableCardState = rememberSwipeableCardState()
 
     SongCard(
-        songCardState = songCardState, onCancel = onCancel, modifier = Modifier
+        modifier = modifier
             .swipableCard(
                 state = swipeableCardState,
                 blockedDirections = listOf(Direction.Down, Direction.Up),
                 onSwiped = { dir ->
                     val liked = dir == Direction.Right
-                    songCardState.clearVisibleState()
+                    onLiked(liked)
                     swipeableCardState.resetInstant()
-                    onLikeAction(songCardState.songObject, liked)
                 },
             )
             .fillMaxSize()
-            .clickable { songCardState.pause() }
+            .clip(RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)))
+            .clickable {
+                if (songCardStateState == SongCardStateStates.Playing) {
+                    onPause()
+                }
+            },
+        songCardStateState = songCardStateState,
+        errorMessage = errorMessage,
+        songObject = songObject,
+        onRetry = onRetry,
+        onRestart = onRestart,
+        onResume = onResume,
+        onCancel = onCancel,
     )
 }
+
 
 @Composable
 private fun SongCard(
     modifier: Modifier = Modifier,
-    songCardState: SongCardState,
+    songCardStateState: SongCardStateStates,
+    errorMessage: String,
+    songObject: SongObject?,
+    onRetry: () -> Unit = {},
+    onRestart: () -> Unit = {},
+    onResume: () -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
-    val currentState by songCardState.songCardStateState.collectAsState()
-    val errorMessage by songCardState.errorMessage.collectAsState()
-    if (currentState != SongCardStateStates.Empty) {
+
+    if (songCardStateState != SongCardStateStates.Empty) {
         Card(
             modifier = modifier,
             shape = RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)),
@@ -221,24 +269,22 @@ private fun SongCard(
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
 
-                when (currentState) {
-                    SongCardStateStates.Error -> SongCardErrorOverlay(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .zIndex(1f),
-                        onRetry = { songCardState.retry() },
+                when (songCardStateState) {
+                    SongCardStateStates.Error -> SongCardErrorOverlay(modifier = Modifier
+                        .fillMaxSize()
+                        .zIndex(1f),
+                        onRetry = { onRetry() },
                         onCancel = { onCancel() },
                         errorMessage = errorMessage
                     )
 
                     SongCardStateStates.Completed -> SongCardCompletedOverlay(modifier = Modifier.zIndex(
                         1f
-                    ), onReplay = { songCardState.restart() })
+                    ), onReplay = { onRestart() })
 
-                    SongCardStateStates.Paused -> SongCardPausedOverlay(
-                        modifier = Modifier.zIndex(1f),
-                        onPlay = { songCardState.resume() }
-                    )
+                    SongCardStateStates.Paused -> SongCardPausedOverlay(modifier = Modifier.zIndex(
+                        1f
+                    ), onPlay = { onResume() })
                 }
 
                 SongCardBottomContent(
@@ -254,9 +300,9 @@ private fun SongCard(
                             )
 
                         )
-                        .align(Alignment.BottomCenter), songCardState = songCardState
+                        .align(Alignment.BottomCenter), songObject = songObject
                 )
-                if (currentState == SongCardStateStates.Loading) {
+                if (songCardStateState == SongCardStateStates.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -269,7 +315,7 @@ private fun SongCard(
 }
 
 @Composable
-private fun SongCardBottomContent(modifier: Modifier = Modifier, songCardState: SongCardState) {
+private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: SongObject?) {
     Row(modifier = modifier, verticalAlignment = Alignment.Bottom) {
         Box(
             modifier = Modifier,
@@ -281,12 +327,12 @@ private fun SongCardBottomContent(modifier: Modifier = Modifier, songCardState: 
                 )
             ) {
 
-                songCardState.songObject?.name?.let {
+                songObject?.name?.let {
                     Text(
                         text = it, style = MaterialTheme.typography.h4, color = Color.White
                     )
                 }
-                songCardState.songObject?.artist?.let {
+                songObject?.artist?.let {
                     Text(
                         text = stringResource(id = R.string.author_creditor) + " $it",
                         style = MaterialTheme.typography.h5,
@@ -341,7 +387,9 @@ private fun SongCardPausedOverlay(
 ) {
     SongCardOverlay(modifier = modifier) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable { onPlay() },
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
