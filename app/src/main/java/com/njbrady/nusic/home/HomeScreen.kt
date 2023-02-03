@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -284,7 +283,9 @@ private fun SongCard(
 
                     SongCardStateStates.Paused -> SongCardPausedOverlay(modifier = Modifier.zIndex(
                         1f
-                    ), onPlay = { onResume() })
+                    ), onPlay = { onResume() }, onRestart = { onRestart() })
+
+                    else -> {}
                 }
 
                 SongCardBottomContent(
@@ -365,14 +366,32 @@ private fun SongCardErrorOverlay(
                 textColor = colorResource(id = R.color.white)
             )
             Row(horizontalArrangement = Arrangement.Center) {
-                RetryButton(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1))) {
-                    onRetry()
-                }
-                Button(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1)),
-                    onClick = { onCancel() }) {
+                IconButton(onClick = { onRetry() }) {
                     Icon(
-                        imageVector = Icons.Filled.Cancel,
-                        contentDescription = stringResource(id = R.string.cancel_button_content_description),
+                        modifier = Modifier
+                            .size(dimensionResource(id = R.dimen.NusicDimenX8))
+                            .padding(
+                                dimensionResource(id = R.dimen.NusicDimenX1)
+                            ),
+                        painter = painterResource(id = R.drawable.nusic_replay_icon),
+                        contentDescription = "Play button",
+                        tint = colorResource(
+                            id = R.color.pause_play_color
+                        )
+                    )
+                }
+                IconButton(onClick = { onCancel() }) {
+                    Icon(
+                        modifier = Modifier
+                            .size(dimensionResource(id = R.dimen.NusicDimenX8))
+                            .padding(
+                                dimensionResource(id = R.dimen.NusicDimenX1)
+                            ),
+                        painter = painterResource(id = R.drawable.nusic_cancel_icon),
+                        contentDescription = "Play button",
+                        tint = colorResource(
+                            id = R.color.pause_play_color
+                        )
                     )
                 }
             }
@@ -382,8 +401,7 @@ private fun SongCardErrorOverlay(
 
 @Composable
 private fun SongCardPausedOverlay(
-    modifier: Modifier = Modifier,
-    onPlay: () -> Unit,
+    modifier: Modifier = Modifier, onPlay: () -> Unit, onRestart: () -> Unit
 ) {
     SongCardOverlay(modifier = modifier) {
         Column(
@@ -393,17 +411,37 @@ private fun SongCardPausedOverlay(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = { onPlay() }) {
-                Icon(
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX8)),
-                    painter = painterResource(id = R.drawable.nusic_play_button),
-                    contentDescription = "Play button",
-                    tint = colorResource(
-                        id = R.color.pause_play_color
+            Row {
+                IconButton(onClick = { onPlay() }) {
+                    Icon(
+                        modifier = Modifier
+                            .size(dimensionResource(id = R.dimen.NusicDimenX8))
+                            .padding(
+                                dimensionResource(id = R.dimen.NusicDimenX1)
+                            ),
+                        painter = painterResource(id = R.drawable.nusic_play_button),
+                        contentDescription = "Play button",
+                        tint = colorResource(
+                            id = R.color.pause_play_color
+                        )
                     )
-                )
-            }
+                }
 
+                IconButton(onClick = { onRestart() }) {
+                    Icon(
+                        modifier = Modifier
+                            .size(dimensionResource(id = R.dimen.NusicDimenX8))
+                            .padding(
+                                dimensionResource(id = R.dimen.NusicDimenX1)
+                            ),
+                        painter = painterResource(id = R.drawable.nusic_replay_icon),
+                        contentDescription = "Restart Button",
+                        tint = colorResource(
+                            id = R.color.pause_play_color
+                        )
+                    )
+                }
+            }
         }
     }
 }
@@ -420,8 +458,19 @@ private fun SongCardCompletedOverlay(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            RetryButton {
-                onReplay()
+            IconButton(onClick = { onReplay() }) {
+                Icon(
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.NusicDimenX8))
+                        .padding(
+                            dimensionResource(id = R.dimen.NusicDimenX1)
+                        ),
+                    painter = painterResource(id = R.drawable.nusic_replay_icon),
+                    contentDescription = "Restart Button",
+                    tint = colorResource(
+                        id = R.color.pause_play_color
+                    )
+                )
             }
         }
     }
@@ -495,7 +544,7 @@ fun DefaultPreview() {
     NusicTheme {
 //        SongCardErrorOverlay(onRetry = {}, onCancel = {}, errorMessage = "HAI")
 //        SongCardCompletedOverlay(onReplay = {})
-        SongCardPausedOverlay(onPlay = {})
+//        SongCardPausedOverlay(onPlay = {}, onRestart = {})
     }
 }
 
