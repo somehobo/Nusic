@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginScreenViewModel @Inject constructor(
-    private val tokenStorage: TokenStorage,
+    val tokenStorage: TokenStorage,
 ) : ViewModel() {
     private val _loginState = MutableStateFlow(LoginStates.FillingOut)
     private val _registerState = MutableStateFlow(LoginStates.FillingOut)
@@ -73,12 +73,16 @@ class LoginScreenViewModel @Inject constructor(
         _loginState.value = LoginStates.FillingOut
     }
 
+    fun resetRegisterState() {
+        _registerState.value = LoginStates.FillingOut
+    }
+
     fun resetGeneralErrorState() {
         _errorMessages.value = emptyList()
     }
 
     fun resetRegisterScreenState() {
-        resetLoginState()
+        resetRegisterState()
         setRegisterPassword("")
         setRegisterUserName("")
         setRegisterEmailInput("")
@@ -117,9 +121,9 @@ class LoginScreenViewModel @Inject constructor(
 
     fun attemptRegisterUser() {
         viewModelScope.launch {
-            _loginState.value = LoginStates.Loading
+            _registerState.value = LoginStates.Loading
             if (registerPasswordInput.value != registerSecondaryPasswordInput.value) {
-                _loginState.value = LoginStates.FillingOut
+                _registerState.value = LoginStates.FillingOut
                 _errorMessages.value = listOf("Passwords do not match")
                 return@launch
             }
@@ -135,7 +139,7 @@ class LoginScreenViewModel @Inject constructor(
                 _registerPasswordErrorMessages.value = registerRepository.passwordError
                 _registerEmailErrorMessages.value = registerRepository.emailError
                 _errorMessages.value = registerRepository.errorMessages
-                _loginState.value = LoginStates.FillingOut
+                _registerState.value = LoginStates.FillingOut
                 return@launch
             }
 
@@ -149,10 +153,10 @@ class LoginScreenViewModel @Inject constructor(
                 _errorMessages.value = loginRepository.errorMessages
                 _registerUsernameErrorMessages.value = loginRepository.usernameError
                 _registerPasswordErrorMessages.value = loginRepository.passwordError
-                _loginState.value = LoginStates.FillingOut
+                _registerState.value = LoginStates.FillingOut
                 return@launch
             }
-            _loginState.value = LoginStates.Success
+            _registerState.value = LoginStates.Success
         }
     }
 

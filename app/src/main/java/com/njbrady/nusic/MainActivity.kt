@@ -1,5 +1,6 @@
 package com.njbrady.nusic
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,7 +12,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -23,38 +23,29 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.njbrady.nusic.home.HomeScreen
 import com.njbrady.nusic.home.HomeScreenViewModel
-import com.njbrady.nusic.login.LoginScreen
-import com.njbrady.nusic.login.model.LoginScreenViewModel
+import com.njbrady.nusic.login.LoginActivity
 import com.njbrady.nusic.ui.theme.NusicTheme
-import com.njbrady.nusic.utils.TokenStorage
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var tokenStorage: TokenStorage
-
-    private val loginScreenViewModel: LoginScreenViewModel by viewModels()
     private val homeScreenViewModel: HomeScreenViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        mainViewModel.setOnLogoutHit {
+            val intent = Intent(this, LoginActivity::class.java)
+            finish()
+            startActivity(intent)
+        }
         setContent {
-            val loginState = tokenStorage.containsToken.collectAsState()
             NusicTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background
                 ) {
-
-                    if (loginState.value) {
-                        MainContent(homeScreenViewModel, mainViewModel)
-                    } else {
-                        LoginScreen(loginScreenViewModel = loginScreenViewModel)
-                    }
+                    MainContent(homeScreenViewModel, mainViewModel)
                 }
             }
         }
@@ -69,12 +60,16 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         homeScreenViewModel.resumeCurrentPreviousPlayState()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        homeScreenViewModel.resetState()
+    }
 }
 
 
 @Composable
 private fun MainContent(homeScreenViewModel: HomeScreenViewModel, mainViewModel: MainViewModel) {
-    mainViewModel.setOnLogoutHit { homeScreenViewModel.resetState() }
     val navController = rememberNavController()
     Scaffold(bottomBar = {
         BottomNavigation {
@@ -101,9 +96,7 @@ private fun MainContent(homeScreenViewModel: HomeScreenViewModel, mainViewModel:
         }
     }) { innerPadding ->
         NavHost(
-            navController,
-            startDestination = Screen.Home.route,
-            Modifier.padding(innerPadding)
+            navController, startDestination = Screen.Home.route, Modifier.padding(innerPadding)
         ) {
             composable(Screen.Profile.route) { ProfileScreen(mainViewModel) }
             composable(Screen.Home.route) {

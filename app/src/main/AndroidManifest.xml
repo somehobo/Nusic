@@ -19,6 +19,15 @@
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Nusic">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".login.LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Nusic"
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

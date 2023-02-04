@@ -34,7 +34,7 @@ private fun RegisterContent(
     val registerPassword by loginScreenViewModel.registerPasswordInput.collectAsState()
     val registerSecondaryPassword by loginScreenViewModel.registerSecondaryPasswordInput.collectAsState()
     val registerEmail by loginScreenViewModel.registerEmailInput.collectAsState()
-    val registerState by loginScreenViewModel.loginState.collectAsState()
+    val registerState by loginScreenViewModel.registerState.collectAsState()
     val loginFieldModifier = Modifier
         .fillMaxWidth(0.8f)
         .padding(dimensionResource(id = R.dimen.NusicDimenX1))

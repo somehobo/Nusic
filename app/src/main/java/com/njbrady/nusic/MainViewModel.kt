@@ -16,6 +16,7 @@ class MainViewModel @Inject constructor(
     private var onLogoutHit: () -> Unit = {}
 
     fun logout() {
+        onLogoutHit()
         tokenStorage.deleteToken()
     }
 

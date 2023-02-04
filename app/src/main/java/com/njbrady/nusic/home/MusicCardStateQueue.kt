@@ -33,6 +33,7 @@ class MusicCardStateQueue(
     }
 
     fun clear() {
+        release()
         _realSongQueue.clear()
         setValues()
     }
