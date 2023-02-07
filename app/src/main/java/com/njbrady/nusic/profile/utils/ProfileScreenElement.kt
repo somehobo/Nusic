@@ -16,7 +16,7 @@ class ProfilePhoto() {
     init {
         //get profile photo or first initial
         _profilePhotoState.value = ProfilePhotoState.Loading
-        _photoUrl.value = "https://www.google.com/url?sa=i&url=https%3A%2F%2Funsplash.com%2Fs%2Fphotos%2Ffunny-cat&psig=AOvVaw1gEE-Jjfs3axGIVm6CWQ_f&ust=1675574779343000&source=images&cd=vfe&ved=0CA8QjRxqFwoTCODY6s6Q-_wCFQAAAAAdAAAAABAD"
+        _photoUrl.value = "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=735&q=80"
         _profilePhotoState.value = ProfilePhotoState.Success
     }
 
