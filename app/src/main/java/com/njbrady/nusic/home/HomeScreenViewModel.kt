@@ -10,8 +10,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.*
 import javax.inject.Inject
 
@@ -28,107 +26,68 @@ class HomeScreenViewModel @Inject constructor(
     @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
+    private val _jobRunner = JobRunner(
+        scope = viewModelScope,
+        onRecieved = { songObjectErrorWrapper -> _musicCardQueue.push(songObjectErrorWrapper.songObject) },
+        defaultDispatcher = defaultDispatcher,
+        tokenStorage = tokenStorage
+    )
     private val _upNow = MutableStateFlow(SongCardState())
     private val _upNext = MutableStateFlow(SongCardState())
     private val _upLast = MutableStateFlow(SongCardState())
     private val _musicCardQueue = MusicCardStateQueue(_upNow, _upNext, _upLast)
-    private val _isLoading = MutableStateFlow(false)
-    private val _nonBlockingError = MutableStateFlow<String?>(null)
-    private val _blockingError = MutableStateFlow<String?>(null)
-    private val _blockingErrorToast = MutableStateFlow<String?>(null)
     private val _jobQueue: Queue<MusicJob> = LinkedList()
 
     val upNow: StateFlow<SongCardState> = _upNow
     val upNext: StateFlow<SongCardState> = _upNext
     val upLast: StateFlow<SongCardState> = _upLast
-    val isLoading: StateFlow<Boolean> = _isLoading
-    val nonBlockingError: StateFlow<String?> = _nonBlockingError
-    val blockingError: StateFlow<String?> = _blockingError
-    val blockingErrorToast: StateFlow<String?> = _blockingErrorToast
+    val isLoading: StateFlow<Boolean> = _jobRunner.isLoading
+    val nonBlockingError: StateFlow<String?> = _jobRunner.nonBlockingError
+    val blockingError: StateFlow<String?> = _jobRunner.blockingError
+    val blockingErrorToast: StateFlow<String?> = _jobRunner.blockingErrorToast
 
-
-    private fun jobRunner() {
-        viewModelScope.launch {
-            withContext(defaultDispatcher) {
-                setIsLoading(true)
-                var currentJob = _jobQueue.peek()
-                currentJob?.let {
-                    do {
-                        val songObjectErrorWrapper = it.runJob()
-                        if (songObjectErrorWrapper.blockingError != null) {
-                            _blockingError.value = songObjectErrorWrapper.blockingError
-                            _blockingErrorToast.value = _blockingError.value
-                        } else {
-                            _jobQueue.poll()
-                            _musicCardQueue.push(songObjectErrorWrapper.songObject)
-                            songObjectErrorWrapper.nonBlockingError?.let {
-                                _nonBlockingError.value = it
-                            }
-                            _blockingError.value = null
-                            currentJob = _jobQueue.peek()
-                        }
-                    } while (currentJob != null && blockingError.value == null)
-                }
-                setIsLoading(false)
-            }
-        }
-    }
 
     init {
         retry()
-    }
-
-    private fun enqueueJob(musicJob: MusicJob) {
-        _jobQueue.add(musicJob)
-        jobRunner()
     }
 
     //add logic for empty state case
     fun likeSong(song: SongObject?, like: Boolean) {
         song?.let {
             _musicCardQueue.pop()
-            enqueueJob(LikeSongJob(it, like, tokenStorage))
+            _jobRunner.enqueueJob(LikeSongJob(it, like, tokenStorage))
         }
     }
 
-    fun cancelTop(){
+    fun cancelTop() {
         _musicCardQueue.pop()
-        enqueueJob(GetSongJob(tokenStorage))
+        _jobRunner.enqueueJob(GetSongJob(tokenStorage))
     }
 
     fun likeTop(like: Boolean) {
-        if (upNow.value.songCardStateState.value != SongCardStateStates.Empty)
-            upNow.value.songObject?.let { songObject -> likeSong(songObject, like) }
+        if (upNow.value.songCardStateState.value != SongCardStateStates.Empty) upNow.value.songObject?.let { songObject ->
+            likeSong(
+                songObject, like
+            )
+        }
     }
 
     fun restartTop() {
-        if(upNow.value.songCardStateState.value != SongCardStateStates.Empty)
-            upNow.value.restart()
-    }
-
-    private fun setIsLoading(isLoading: Boolean) {
-        _isLoading.value = isLoading
+        if (upNow.value.songCardStateState.value != SongCardStateStates.Empty) upNow.value.restart()
     }
 
     fun retry() {
-        val requestFurther = MaxQueueSize - (_jobQueue.size + _musicCardQueue.size())
-        for (i in 0 until requestFurther) {
-            _jobQueue.add(GetSongJob(tokenStorage))
-        }
-        _nonBlockingError.value = null
-        _blockingError.value = null
-        jobRunner()
+        _jobRunner.retry(_musicCardQueue.size())
     }
 
     fun resetToastErrors() {
-        _blockingErrorToast.value = null
+        _jobRunner.resetToastErrors()
     }
 
     fun resetState() {
         _jobQueue.clear()
         _musicCardQueue.clear()
-        _nonBlockingError.value = null
-        _blockingError.value = null
+        _jobRunner.resetState()
     }
 
     fun forcePauseCurrent() {
@@ -142,6 +101,7 @@ class HomeScreenViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         _musicCardQueue.release()
+        _jobRunner.release()
     }
 
     companion object {

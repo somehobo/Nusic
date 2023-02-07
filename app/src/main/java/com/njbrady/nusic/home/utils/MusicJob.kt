@@ -6,6 +6,7 @@ import com.njbrady.nusic.home.responseObjects.SongObject
 import com.njbrady.nusic.home.responseObjects.SongObjectErrorWrapper
 import com.njbrady.nusic.utils.TokenStorage
 
+
 abstract class MusicJob(val tokenStorage: TokenStorage) {
 
     // If network error or other this should throw an error

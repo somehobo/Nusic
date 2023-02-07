@@ -9,14 +9,7 @@ class SongCardState private constructor(
     initialState: SongCardStateStates,
     val songObject: SongObject?
 ) {
-
-    constructor() : this(SongCardStateStates.Empty, null)
-
-    constructor(songObject: SongObject) : this(SongCardStateStates.Loading, songObject) {
-        _mediaPlayer = mediaPlayerFactory(songObject)
-    }
-
-    private var _mediaPlayer = MediaPlayer()
+    private lateinit var _mediaPlayer: MediaPlayer
     private var _upNow = false
     private val _songCardStateState = MutableStateFlow(initialState)
     private val _errorMessage = MutableStateFlow("")
@@ -24,6 +17,12 @@ class SongCardState private constructor(
 
     val songCardStateState: StateFlow<SongCardStateStates> = _songCardStateState
     val errorMessage: StateFlow<String> = _errorMessage
+
+    constructor() : this(SongCardStateStates.Empty, null)
+
+    constructor(songObject: SongObject, viewOnly: Boolean = false) : this(SongCardStateStates.Loading, songObject) {
+        _mediaPlayer = mediaPlayerFactory(songObject)
+    }
 
     fun retry() {
         _errorMessage.value = ""
