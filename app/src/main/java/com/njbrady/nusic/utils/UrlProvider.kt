@@ -7,5 +7,6 @@ class UrlProvider {
         const val registerUrl = baseUrl + "user/"
         const val initialSongUrl = baseUrl + "initialrec/"
         const val feedbackUrl = baseUrl + "songfeedback/"
+        const val likedSongsPagedUrl = baseUrl + "pagedLikedSongs/"
     }
 }

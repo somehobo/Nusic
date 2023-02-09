@@ -246,7 +246,7 @@ private fun SwipeableCardWrapper(
 
 
 @Composable
-private fun SongCard(
+fun SongCard(
     modifier: Modifier = Modifier,
     songCardStateState: SongCardStateStates,
     errorMessage: String,

@@ -2,7 +2,7 @@ package com.njbrady.nusic.home.responseObjects
 
 import org.json.JSONObject
 
-class SongObject(
+data class SongObject(
     val name: String? = null,
     val artist: String? = null,
     val start: Int? = null,

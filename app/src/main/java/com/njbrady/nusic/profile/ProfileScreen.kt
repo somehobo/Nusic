@@ -1,6 +1,7 @@
 package com.njbrady.nusic
 
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,7 +19,11 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import coil.compose.SubcomposeAsyncImage
+import com.njbrady.nusic.home.SongCard
+import com.njbrady.nusic.home.utils.SongCardStateStates
 import com.njbrady.nusic.profile.utils.ProfilePhoto
 import com.njbrady.nusic.ui.theme.NusicTheme
 
@@ -27,10 +32,13 @@ fun ProfileScreen(mainViewModel: MainViewModel) {
     ProfileScreenContent(mainViewModel = mainViewModel)
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ProfileScreenContent(
     mainViewModel: MainViewModel
 ) {
+
+    val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
 
     var currentlySelected by remember {
         mutableStateOf(SongFilterTabs.Created)
@@ -54,8 +62,18 @@ private fun ProfileScreenContent(
                 }
             }
 
-            item {
+            stickyHeader {
                 MusicSelectionTab(modifier = Modifier.fillMaxWidth(), currentlySelected = currentlySelected, onFilter = {newFilter -> if (newFilter != currentlySelected) currentlySelected = newFilter})
+            }
+
+            items(likedSongs) { item ->
+                item?.let {
+                    SongCard(modifier = Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.5f),
+                        songCardStateState = SongCardStateStates.Playing,
+                        songObject = item,
+                        errorMessage = ""
+                    )
+                }
             }
         }
     }
