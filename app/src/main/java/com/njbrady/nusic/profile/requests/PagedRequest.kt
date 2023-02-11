@@ -12,10 +12,12 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-suspend fun pagedRequest(tokenStorage: TokenStorage, page: Int): PagedResponse {
+enum class Type {Liked, Created}
+
+suspend fun pagedRequest(tokenStorage: TokenStorage, page: Int, type: Type): PagedResponse {
     return try {
         withContext(Dispatchers.IO) {
-            val url = URL(UrlProvider.likedSongsPagedUrl)
+            val url = if (type == Type.Liked) URL(UrlProvider.likedSongsPagedUrl) else URL(UrlProvider.createdSongsPagedUrl)
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = HttpOptions.POST
             connection.doOutput = true

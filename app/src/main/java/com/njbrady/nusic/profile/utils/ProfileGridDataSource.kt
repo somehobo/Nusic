@@ -1,13 +1,13 @@
 package com.njbrady.nusic.profile.utils
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.njbrady.nusic.home.responseObjects.SongObject
+import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.requests.pagedRequest
 import com.njbrady.nusic.utils.TokenStorage
 
-class ProfileGridDataSource(private val tokenStorage: TokenStorage) : PagingSource<Int, SongObject>() {
+class ProfileGridDataSource(private val tokenStorage: TokenStorage, private val type: Type) : PagingSource<Int, SongObject>() {
     override fun getRefreshKey(state: PagingState<Int, SongObject>): Int? {
         return state.anchorPosition
     }
@@ -15,7 +15,7 @@ class ProfileGridDataSource(private val tokenStorage: TokenStorage) : PagingSour
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, SongObject> {
         return try {
             val pageToGet = params.key ?: 1
-            val pagedResponse = pagedRequest(tokenStorage, pageToGet)
+            val pagedResponse = pagedRequest(tokenStorage, pageToGet, type)
             return LoadResult.Page(
                 data = pagedResponse.songObjects,
                 prevKey = if (pageToGet == 1) null else pageToGet - 1,

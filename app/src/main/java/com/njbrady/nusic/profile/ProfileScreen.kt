@@ -1,6 +1,7 @@
 package com.njbrady.nusic
 
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,17 +35,19 @@ fun ProfileScreen(mainViewModel: MainViewModel) {
     ProfileScreenContent(mainViewModel = mainViewModel)
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 private fun ProfileScreenContent(
     mainViewModel: MainViewModel
 ) {
 
     val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
+    val createdSongs = mainViewModel.createdSongs.collectAsLazyPagingItems()
 
     var currentlySelected by remember {
-        mutableStateOf(SongFilterTabs.Created)
+        mutableStateOf(SongFilterTabs.Liked)
     }
+    val displayedSongs = if (currentlySelected == SongFilterTabs.Liked) likedSongs else createdSongs
 
     Scaffold(topBar = { ProfileScreenHeader(mainViewModel) }) { paddingValues ->
 
@@ -76,7 +79,7 @@ private fun ProfileScreenContent(
                 })
             }
 
-            items(likedSongs) { item ->
+            items(displayedSongs) { item ->
                 item?.let {
                     MusicElement(songObject = item)
                     Divider()
