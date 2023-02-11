@@ -7,7 +7,7 @@ import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.requests.pagedRequest
 import com.njbrady.nusic.utils.TokenStorage
 
-class ProfileGridDataSource(private val tokenStorage: TokenStorage, private val type: Type) : PagingSource<Int, SongObject>() {
+class ProfilePagedDataSource(private val tokenStorage: TokenStorage, private val type: Type) : PagingSource<Int, SongObject>() {
     override fun getRefreshKey(state: PagingState<Int, SongObject>): Int? {
         return state.anchorPosition
     }

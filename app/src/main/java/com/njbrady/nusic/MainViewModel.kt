@@ -8,7 +8,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.njbrady.nusic.home.responseObjects.SongObject
 import com.njbrady.nusic.profile.requests.Type
-import com.njbrady.nusic.profile.utils.ProfileGridDataSource
+import com.njbrady.nusic.profile.utils.ProfilePagedDataSource
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,13 +22,13 @@ class MainViewModel @Inject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
-    val likedSongs: Flow<PagingData<SongObject>> = Pager(config = PagingConfig(pageSize = 20), pagingSourceFactory  =  {
-        ProfileGridDataSource(tokenStorage, Type.Liked)
+    val likedSongs: Flow<PagingData<SongObject>> = Pager(config = PagingConfig(pageSize = 3), pagingSourceFactory  =  {
+        ProfilePagedDataSource(tokenStorage, Type.Liked)
     }).flow.cachedIn(viewModelScope)
 
 
-    val createdSongs: Flow<PagingData<SongObject>> = Pager(config = PagingConfig(pageSize = 20), pagingSourceFactory  =  {
-        ProfileGridDataSource(tokenStorage, Type.Created)
+    val createdSongs: Flow<PagingData<SongObject>> = Pager(config = PagingConfig(pageSize = 3), pagingSourceFactory  =  {
+        ProfilePagedDataSource(tokenStorage, Type.Created)
     }).flow.cachedIn(viewModelScope)
 
     private var onLogoutHit: () -> Unit = {}

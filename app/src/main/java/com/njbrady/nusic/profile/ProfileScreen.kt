@@ -1,13 +1,13 @@
 package com.njbrady.nusic
 
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -22,32 +22,70 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import coil.compose.SubcomposeAsyncImage
 import com.njbrady.nusic.home.responseObjects.SongObject
+import com.njbrady.nusic.profile.composables.ProfileScrollingSongs
+import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.utils.ProfilePhoto
 import com.njbrady.nusic.ui.theme.NusicTheme
 
 
 @Composable
 fun ProfileScreen(mainViewModel: MainViewModel) {
-    ProfileScreenContent(mainViewModel = mainViewModel)
+    ProfileScrenNavigation(mainViewModel = mainViewModel)
+}
+
+@Composable
+private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
+    val navController = rememberNavController()
+    var currentlySelected by remember {
+        mutableStateOf(Type.Liked)
+    }
+    var selectedSong: SongObject? = null
+
+    Scaffold { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = ProfileScreens.Profile.route,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable(ProfileScreens.Profile.route) {
+                ProfileScreenContent(
+                    mainViewModel = mainViewModel,
+                    currentlySelected = currentlySelected,
+                    onFilter = { newFilter -> currentlySelected = newFilter},
+                    onSelected = { songObject ->
+                        selectedSong = songObject
+                        navController.navigate(ProfileScreens.LCSongs.route)
+                    }
+                )
+            }
+            composable(ProfileScreens.LCSongs.route) {
+                ProfileScrollingSongs(
+                    mainViewModel = mainViewModel,
+                    navController = navController,
+                    selectedSong = selectedSong,
+                    type = currentlySelected
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 private fun ProfileScreenContent(
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel, currentlySelected: Type, onFilter: (Type) -> Unit, onSelected: (SongObject) -> Unit
 ) {
 
     val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
     val createdSongs = mainViewModel.createdSongs.collectAsLazyPagingItems()
-
-    var currentlySelected by remember {
-        mutableStateOf(SongFilterTabs.Liked)
-    }
-    val displayedSongs = if (currentlySelected == SongFilterTabs.Liked) likedSongs else createdSongs
+    val displayedSongs = if (currentlySelected == Type.Liked) likedSongs else createdSongs
 
     Scaffold(topBar = { ProfileScreenHeader(mainViewModel) }) { paddingValues ->
 
@@ -75,13 +113,15 @@ private fun ProfileScreenContent(
                             id = R.dimen.NusicDimenX2
                         )
                     ), currentlySelected = currentlySelected, onFilter = { newFilter ->
-                    if (newFilter != currentlySelected) currentlySelected = newFilter
+                    if (newFilter != currentlySelected) {
+                        onFilter(newFilter)
+                    }
                 })
             }
 
             items(displayedSongs) { item ->
                 item?.let {
-                    MusicElement(songObject = item)
+                    MusicElement(songObject = item, onSelected = onSelected)
                     Divider()
                 }
             }
@@ -90,10 +130,11 @@ private fun ProfileScreenContent(
 }
 
 @Composable
-private fun MusicElement(songObject: SongObject) {
+private fun MusicElement(songObject: SongObject, onSelected: (SongObject) -> Unit) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onSelected(songObject) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -131,12 +172,13 @@ private fun MusicElement(songObject: SongObject) {
         Column {
             songObject.name?.let {
                 Text(
-                    modifier = Modifier.padding(start=dimensionResource(id = R.dimen.NusicDimenX1)), text = it
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.NusicDimenX1)),
+                    text = it
                 )
             }
             songObject.artist?.let {
                 Text(
-                    modifier = Modifier.padding(start=dimensionResource(id = R.dimen.NusicDimenX1)),
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.NusicDimenX1)),
                     text = "- $it",
                     style = MaterialTheme.typography.caption
                 )
@@ -149,8 +191,8 @@ private fun MusicElement(songObject: SongObject) {
 @Composable
 private fun MusicSelectionTab(
     modifier: Modifier = Modifier,
-    currentlySelected: SongFilterTabs,
-    onFilter: (SongFilterTabs) -> Unit
+    currentlySelected: Type,
+    onFilter: (Type) -> Unit
 ) {
     TabRow(modifier = modifier,
         selectedTabIndex = currentlySelected.ordinal,
@@ -168,16 +210,16 @@ private fun MusicSelectionTab(
             }
         },
         divider = { }) {
-        SongFilterTabs.values().forEachIndexed() { index, songFilterTab ->
+        Type.values().forEachIndexed() { index, type ->
             val selected = index == currentlySelected.ordinal
 
             val textModifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
 
             Tab(modifier = Modifier, selected = selected, onClick = {
-                onFilter(songFilterTab)
+                onFilter(type)
             }) {
                 Text(
-                    modifier = textModifier, text = songFilterTab.name
+                    modifier = textModifier, text = type.name
                 )
             }
         }
@@ -265,10 +307,11 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel) {
 @Preview(showBackground = true)
 private fun viewer() {
     NusicTheme {
-        MusicElement(songObject = SongObject(name = "test", artist = "ArtistTest"))
+//        MusicElement(songObject = SongObject(name = "test", artist = "ArtistTest"))
     }
 }
 
-enum class SongFilterTabs {
-    Liked, Created
+sealed class ProfileScreens(val route: String, @StringRes val resourceId: Int) {
+    object Profile : ProfileScreens("ProfileScreen", R.string.profile_screen)
+    object LCSongs : ProfileScreens("LCSongs", R.string.scrolling_songs_screen)
 }
