@@ -26,7 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.items
+import androidx.paging.compose.itemsIndexed
 import coil.compose.SubcomposeAsyncImage
 import com.njbrady.nusic.home.responseObjects.SongObject
 import com.njbrady.nusic.profile.composables.ProfileScrollingSongs
@@ -46,7 +46,7 @@ private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
     var currentlySelected by remember {
         mutableStateOf(Type.Liked)
     }
-    var selectedSong: SongObject? = null
+    var selectedSong = 0
 
     Scaffold { paddingValues ->
         NavHost(
@@ -69,7 +69,7 @@ private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
                 ProfileScrollingSongs(
                     mainViewModel = mainViewModel,
                     navController = navController,
-                    selectedSong = selectedSong,
+                    selectedSongIndex = selectedSong,
                     type = currentlySelected
                 )
             }
@@ -80,7 +80,7 @@ private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 private fun ProfileScreenContent(
-    mainViewModel: MainViewModel, currentlySelected: Type, onFilter: (Type) -> Unit, onSelected: (SongObject) -> Unit
+    mainViewModel: MainViewModel, currentlySelected: Type, onFilter: (Type) -> Unit, onSelected: (Int) -> Unit
 ) {
 
     val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
@@ -119,22 +119,23 @@ private fun ProfileScreenContent(
                 })
             }
 
-            items(displayedSongs) { item ->
+            itemsIndexed(items = displayedSongs) { index, item ->
                 item?.let {
-                    MusicElement(songObject = item, onSelected = onSelected)
+                    MusicElement(songObject = item, onSelected = onSelected, index = index)
                     Divider()
                 }
+
             }
         }
     }
 }
 
 @Composable
-private fun MusicElement(songObject: SongObject, onSelected: (SongObject) -> Unit) {
+private fun MusicElement(songObject: SongObject, onSelected: (Int) -> Unit, index: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelected(songObject) },
+            .clickable { onSelected(index) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -172,13 +173,13 @@ private fun MusicElement(songObject: SongObject, onSelected: (SongObject) -> Uni
         Column {
             songObject.name?.let {
                 Text(
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.NusicDimenX1)),
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.NusicDimenX1), top = dimensionResource(id = R.dimen.NusicDimenX1)),
                     text = it
                 )
             }
             songObject.artist?.let {
                 Text(
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.NusicDimenX1)),
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.NusicDimenX1), bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
                     text = "- $it",
                     style = MaterialTheme.typography.caption
                 )

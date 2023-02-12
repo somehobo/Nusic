@@ -20,19 +20,20 @@ data class SongObject(
         private const val keySongUrl = "song"
         private const val keyImageUrl = "image"
         private const val keySongId = "id"
-        private const val keyArtistId = "artistId"
+        private const val keyArtistId = "id"
+        private const val keyUsername = "username"
 
         fun fromJson(json: JSONObject): SongObject {
             try {
                 return SongObject(
                     name = nonEmptyOrNull(json.optString(keyName)),
-                    artist = nonEmptyOrNull(json.optString(keyArtist)),
+                    artist = nonEmptyOrNull(json.getJSONObject(keyArtist).optString(keyUsername)),
                     start = nonNegOrNull(json.optInt(keyStart, -1)),
                     end = nonNegOrNull(json.optInt(keyEnd, -1)),
                     songUrl = nonEmptyOrNull(json.optString(keySongUrl)),
                     imageUrl = nonEmptyOrNull(json.optString(keyImageUrl)),
                     songId = nonNegOrNull(json.optInt(keySongId, -1)),
-                    artistId = nonNegOrNull(json.optInt(keyArtistId, -1)),
+                    artistId = nonNegOrNull(json.getJSONObject(keyArtist).getInt(keyArtistId)),
                 )
             } catch (e: Exception) {
                 throw Exception("Key missmatch")

@@ -1,5 +1,6 @@
 package com.njbrady.nusic.profile.composables
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,6 +9,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.navigation.NavController
@@ -22,11 +25,12 @@ import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 import com.njbrady.nusic.R
 
+
 @Composable
 fun ProfileScrollingSongs(
     mainViewModel: MainViewModel,
     navController: NavController,
-    selectedSong: SongObject?,
+    selectedSongIndex: Int,
     type: Type
 ) {
     val displayedSongs = if (type == Type.Liked) mainViewModel.likedSongs.collectAsLazyPagingItems()
@@ -41,7 +45,7 @@ fun ProfileScrollingSongs(
         ScrollingSongList(
             paddingValues = paddingValues,
             displayedSongs = displayedSongs,
-            selectedSong = selectedSong
+            selectedSongIndex = selectedSongIndex
         )
     }
 }
@@ -51,13 +55,29 @@ fun ProfileScrollingSongs(
 private fun ScrollingSongList(
     paddingValues: PaddingValues,
     displayedSongs: LazyPagingItems<SongObject>,
-    selectedSong: SongObject?
+    selectedSongIndex: Int
 ) {
     val lazyListState = rememberLazyListState()
+
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo }.collect {
+            Log.e("PROFILE", it.toString())
+            for (itemInfo in it) {
+                itemInfo.offset
+                Log.e("PROFILE", itemInfo.offset.toString())
+            }
+        }
+    }
+
+    LaunchedEffect(true) {
+        lazyListState.scrollToItem(selectedSongIndex)
+    }
+
+
     LazyColumn(
         modifier = Modifier.padding(paddingValues),
         state = lazyListState,
-        flingBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState)
+        flingBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState),
     ) {
         items(displayedSongs) { songObject ->
             SongCard(
