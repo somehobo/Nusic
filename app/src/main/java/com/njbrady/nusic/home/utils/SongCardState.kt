@@ -35,7 +35,7 @@ class SongCardState private constructor(
     fun playIfFirst() {
         if (_songCardStateState.value == SongCardStateStates.Ready) {
             _upNow = true
-            if (!_mediaPlayer.isPlaying) {
+            if (!_mediaPlayer.isPlaying && !forcePause) {
                 _mediaPlayer.start()
                 _songCardStateState.value = SongCardStateStates.Playing
             }
@@ -60,11 +60,14 @@ class SongCardState private constructor(
 
     fun forcePause() {
         if (songCardStateState.value != SongCardStateStates.Empty) {
-            if (_songCardStateState.value != SongCardStateStates.Paused) {
+            if (_songCardStateState.value != SongCardStateStates.Paused && _songCardStateState.value != SongCardStateStates.Loading) {
+                pause()
                 forcePause = true
+            } else if(_songCardStateState.value == SongCardStateStates.Loading) {
+                forcePause = true
+            } else if (_songCardStateState.value == SongCardStateStates.Paused) {
+                pause()
             }
-            _songCardStateState.value = SongCardStateStates.Paused
-            _mediaPlayer.pause()
         }
     }
 
@@ -123,6 +126,14 @@ class SongCardState private constructor(
                 }
             }
             true // Return true to indicate the error has been handled
+        }
+
+        mediaPlayer.setOnInfoListener { mp, what, extra ->
+            when (what) {
+                MediaPlayer.MEDIA_INFO_BUFFERING_START -> _songCardStateState.value = SongCardStateStates.Loading
+                MediaPlayer.MEDIA_INFO_BUFFERING_END -> _songCardStateState.value = SongCardStateStates.Playing
+            }
+            false
         }
         return mediaPlayer
     }
