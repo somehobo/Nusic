@@ -80,7 +80,9 @@ private fun HomeScreenContent(
             SongStack(
                 homeScreenViewModel = homeScreenViewModel,
                 paddingValues = paddingValues,
-                modifier = Modifier.fillMaxSize(0.9f),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(dimensionResource(id = R.dimen.NusicDimenX1)),
                 upNow = upNow,
                 upNext = upNext,
                 upLast = upLast
@@ -376,7 +378,7 @@ private fun SongCardErrorOverlay(
                                 dimensionResource(id = R.dimen.NusicDimenX1)
                             ),
                         painter = painterResource(id = R.drawable.nusic_replay_icon),
-                        contentDescription = "Play button",
+                        contentDescription = stringResource(id = R.string.refresh_button_content_description),
                         tint = colorResource(
                             id = R.color.pause_play_color
                         )
@@ -391,7 +393,7 @@ private fun SongCardErrorOverlay(
                                     dimensionResource(id = R.dimen.NusicDimenX1)
                                 ),
                             painter = painterResource(id = R.drawable.nusic_cancel_icon),
-                            contentDescription = "Play button",
+                            contentDescription = stringResource(id = R.string.cancel_button_content_description),
                             tint = colorResource(
                                 id = R.color.pause_play_color
                             )
@@ -424,7 +426,7 @@ private fun SongCardPausedOverlay(
                                 dimensionResource(id = R.dimen.NusicDimenX1)
                             ),
                         painter = painterResource(id = R.drawable.nusic_play_button),
-                        contentDescription = "Play button",
+                        contentDescription = stringResource(R.string.play_button_content_description),
                         tint = colorResource(
                             id = R.color.pause_play_color
                         )
@@ -439,7 +441,7 @@ private fun SongCardPausedOverlay(
                                 dimensionResource(id = R.dimen.NusicDimenX1)
                             ),
                         painter = painterResource(id = R.drawable.nusic_replay_icon),
-                        contentDescription = "Restart Button",
+                        contentDescription = stringResource(R.string.restart_button_content_description),
                         tint = colorResource(
                             id = R.color.pause_play_color
                         )
@@ -470,7 +472,7 @@ private fun SongCardCompletedOverlay(
                             dimensionResource(id = R.dimen.NusicDimenX1)
                         ),
                     painter = painterResource(id = R.drawable.nusic_replay_icon),
-                    contentDescription = "Restart Button",
+                    contentDescription = stringResource(id = R.string.restart_button_content_description),
                     tint = colorResource(
                         id = R.color.pause_play_color
                     )
