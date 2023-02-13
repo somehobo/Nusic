@@ -6,7 +6,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.njbrady.nusic.home.responseObjects.SongObject
 import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.utils.ProfilePagedDataSource
