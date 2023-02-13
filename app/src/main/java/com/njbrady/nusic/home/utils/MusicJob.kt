@@ -2,8 +2,8 @@ package com.njbrady.nusic.home.utils
 
 import com.njbrady.nusic.home.requests.getSong
 import com.njbrady.nusic.home.requests.likeSong
-import com.njbrady.nusic.home.responseObjects.SongObject
-import com.njbrady.nusic.home.responseObjects.SongObjectErrorWrapper
+import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongObjectErrorWrapper
 import com.njbrady.nusic.utils.TokenStorage
 
 

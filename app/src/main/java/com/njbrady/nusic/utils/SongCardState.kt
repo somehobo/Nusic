@@ -1,10 +1,12 @@
 package com.njbrady.nusic.home.utils
 
 import android.media.MediaPlayer
-import com.njbrady.nusic.home.responseObjects.SongObject
+import com.njbrady.nusic.home.model.SongObject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+
+//TODO: Refactor this ugly class
 class SongCardState private constructor(
     initialState: SongCardStateStates, val songObject: SongObject?
 ) {
@@ -12,7 +14,7 @@ class SongCardState private constructor(
     private var _playWhenReady = false
     private val _songCardStateState = MutableStateFlow(initialState)
     private val _errorMessage = MutableStateFlow("")
-    private var pauseWhenReady = false
+    private var _pauseWhenReady = false
 
     val songCardStateState: StateFlow<SongCardStateStates> = _songCardStateState
     val errorMessage: StateFlow<String> = _errorMessage
@@ -36,7 +38,7 @@ class SongCardState private constructor(
     fun playIfFirst() {
         if (_songCardStateState.value == SongCardStateStates.Ready || _songCardStateState.value == SongCardStateStates.Paused) {
             _playWhenReady = true
-            if (!_mediaPlayer.isPlaying && !pauseWhenReady) {
+            if (!_mediaPlayer.isPlaying && !_pauseWhenReady) {
                 _mediaPlayer.seekTo(0)
                 _mediaPlayer.start()
                 _songCardStateState.value = SongCardStateStates.Playing
@@ -64,9 +66,9 @@ class SongCardState private constructor(
         if (songCardStateState.value != SongCardStateStates.Empty) {
             if (_songCardStateState.value != SongCardStateStates.Paused && _songCardStateState.value != SongCardStateStates.Loading) {
                 pause()
-                pauseWhenReady = true
+                _pauseWhenReady = true
             } else if (_songCardStateState.value == SongCardStateStates.Loading) {
-                pauseWhenReady = true
+                _pauseWhenReady = true
             } else if (_songCardStateState.value == SongCardStateStates.Paused) {
                 pause()
             }
@@ -78,9 +80,9 @@ class SongCardState private constructor(
         if (songCardStateState.value != SongCardStateStates.Empty) {
             if (_songCardStateState.value != SongCardStateStates.Paused && _songCardStateState.value != SongCardStateStates.Loading) {
                 _mediaPlayer.pause()
-                pauseWhenReady = true
+                _pauseWhenReady = true
             } else if (_songCardStateState.value == SongCardStateStates.Loading) {
-                pauseWhenReady = true
+                _pauseWhenReady = true
             } else if (_songCardStateState.value == SongCardStateStates.Paused) {
                 _mediaPlayer.pause()
             }
@@ -88,7 +90,7 @@ class SongCardState private constructor(
     }
 
     fun resetForcePause() {
-        pauseWhenReady = false
+        _pauseWhenReady = false
     }
 
     fun replayFromScroll() {
@@ -98,11 +100,11 @@ class SongCardState private constructor(
 
     fun resumePreviousPlayState() {
         if (songCardStateState.value != SongCardStateStates.Empty) {
-            if (pauseWhenReady) {
+            if (_pauseWhenReady) {
                 _songCardStateState.value = SongCardStateStates.Playing
                 _mediaPlayer.start()
             }
-            pauseWhenReady = false
+            _pauseWhenReady = false
         }
     }
 

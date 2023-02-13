@@ -1,7 +1,7 @@
 package com.njbrady.nusic.home.utils
 
 import com.njbrady.nusic.home.HomeScreenViewModel
-import com.njbrady.nusic.home.responseObjects.SongObjectErrorWrapper
+import com.njbrady.nusic.home.model.SongObjectErrorWrapper
 import com.njbrady.nusic.utils.TokenStorage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

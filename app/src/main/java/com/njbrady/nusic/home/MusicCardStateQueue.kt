@@ -1,6 +1,6 @@
 package com.njbrady.nusic.home
 
-import com.njbrady.nusic.home.responseObjects.SongObject
+import com.njbrady.nusic.home.model.SongObject
 import com.njbrady.nusic.home.utils.SongCardState
 import kotlinx.coroutines.flow.MutableStateFlow
 

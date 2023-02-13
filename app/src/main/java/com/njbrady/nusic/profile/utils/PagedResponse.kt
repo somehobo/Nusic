@@ -1,6 +1,6 @@
 package com.njbrady.nusic.profile.utils
 
-import com.njbrady.nusic.home.responseObjects.SongObject
+import com.njbrady.nusic.home.model.SongObject
 import org.json.JSONObject
 
 data class PagedResponse(

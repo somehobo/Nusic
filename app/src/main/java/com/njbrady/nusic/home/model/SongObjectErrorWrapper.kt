@@ -1,4 +1,4 @@
-package com.njbrady.nusic.home.responseObjects
+package com.njbrady.nusic.home.model
 
 data class SongObjectErrorWrapper(
     val nonBlockingError: String? = null,

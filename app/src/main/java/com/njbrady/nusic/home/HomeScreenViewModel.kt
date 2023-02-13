@@ -2,7 +2,7 @@ package com.njbrady.nusic.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.njbrady.nusic.home.responseObjects.SongObject
+import com.njbrady.nusic.home.model.SongObject
 import com.njbrady.nusic.home.utils.*
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher

@@ -28,6 +28,7 @@
     <string name="settings_button">Settings Button</string>
     <string name="logout">Logout</string>
     <string name="matching_passwords_error">Passwords do not match</string>
+    <string name="error">Error</string>
     <string name="play_button_content_description">Play button</string>
     <string name="restart_button_content_description">Restart Button</string>
 </resources>

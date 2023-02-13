@@ -2,7 +2,6 @@ package com.njbrady.nusic.profile.utils
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.njbrady.nusic.home.responseObjects.SongObject
 import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.requests.pagedRequest

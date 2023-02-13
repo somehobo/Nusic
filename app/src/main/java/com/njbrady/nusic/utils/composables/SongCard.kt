@@ -19,7 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import com.njbrady.nusic.R
-import com.njbrady.nusic.home.responseObjects.SongObject
+import com.njbrady.nusic.home.model.SongObject
 import com.njbrady.nusic.home.utils.Direction
 import com.njbrady.nusic.home.utils.SongCardStateStates
 import com.njbrady.nusic.home.utils.rememberSwipeableCardState

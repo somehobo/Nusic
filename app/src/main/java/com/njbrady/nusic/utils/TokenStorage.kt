@@ -64,7 +64,7 @@ class TokenStorage(private val context: Context) {
         val secretKey = keystore.getKey(KEY_ALIAS, null) as SecretKey
         cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
         val decryptedToken = cipher.doFinal(encryptedToken)
-        return "TOKEN " + String(decryptedToken)
+        return TOKEN_PREFACE + String(decryptedToken)
     }
 
     fun deleteToken() {
@@ -92,5 +92,6 @@ class TokenStorage(private val context: Context) {
         private const val PREFS_FILENAME = "token_prefs"
         private const val PREF_TOKEN = "token"
         private const val PREF_IV = "iv"
+        private const val TOKEN_PREFACE = "TOKEN "
     }
 }
