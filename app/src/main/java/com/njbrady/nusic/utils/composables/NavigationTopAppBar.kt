@@ -9,7 +9,7 @@ import androidx.navigation.NavController
 import com.njbrady.nusic.R
 
 @Composable
-fun NavigationTopAppBar(navController: NavController, title: String) {
+fun NavigationTopAppBar(navController: NavController, title: String, onBackClick: () -> Unit = {}) {
     return TopAppBar(title = {
         Text(
             text = title,
@@ -17,7 +17,9 @@ fun NavigationTopAppBar(navController: NavController, title: String) {
         )
     }, navigationIcon = if (navController.previousBackStackEntry != null) {
         {
-            IconButton(onClick = { navController.navigateUp() }) {
+            IconButton(onClick = { navController.navigateUp()
+                onBackClick()
+            }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = stringResource(id = R.string.back_button_content_description)

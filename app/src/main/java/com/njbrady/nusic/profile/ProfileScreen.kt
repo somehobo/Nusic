@@ -120,8 +120,8 @@ private fun ProfileScreenContent(
             }
 
             itemsIndexed(items = displayedSongs) { index, item ->
-                item?.let {
-                    MusicElement(songObject = item, onSelected = onSelected, index = index)
+                item?.songObject?.let {
+                    MusicElement(songObject = it, onSelected = onSelected, index = index)
                     Divider()
                 }
 

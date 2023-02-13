@@ -6,21 +6,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class SongCardState private constructor(
-    initialState: SongCardStateStates,
-    val songObject: SongObject?
+    initialState: SongCardStateStates, val songObject: SongObject?
 ) {
     private lateinit var _mediaPlayer: MediaPlayer
-    private var _upNow = false
+    private var _playWhenReady = false
     private val _songCardStateState = MutableStateFlow(initialState)
     private val _errorMessage = MutableStateFlow("")
-    private var forcePause = false
+    private var pauseWhenReady = false
 
     val songCardStateState: StateFlow<SongCardStateStates> = _songCardStateState
     val errorMessage: StateFlow<String> = _errorMessage
 
     constructor() : this(SongCardStateStates.Empty, null)
 
-    constructor(songObject: SongObject, viewOnly: Boolean = false) : this(SongCardStateStates.Loading, songObject) {
+    constructor(
+        songObject: SongObject, viewOnly: Boolean = false
+    ) : this(SongCardStateStates.Loading, songObject) {
         _mediaPlayer = mediaPlayerFactory(songObject)
     }
 
@@ -33,14 +34,15 @@ class SongCardState private constructor(
     }
 
     fun playIfFirst() {
-        if (_songCardStateState.value == SongCardStateStates.Ready) {
-            _upNow = true
-            if (!_mediaPlayer.isPlaying && !forcePause) {
+        if (_songCardStateState.value == SongCardStateStates.Ready || _songCardStateState.value == SongCardStateStates.Paused) {
+            _playWhenReady = true
+            if (!_mediaPlayer.isPlaying && !pauseWhenReady) {
+                _mediaPlayer.seekTo(0)
                 _mediaPlayer.start()
                 _songCardStateState.value = SongCardStateStates.Playing
             }
         } else {
-            _upNow = true
+            _playWhenReady = true
         }
     }
 
@@ -58,26 +60,44 @@ class SongCardState private constructor(
         }
     }
 
-    fun forcePause() {
+    fun pauseWhenReady() {
         if (songCardStateState.value != SongCardStateStates.Empty) {
             if (_songCardStateState.value != SongCardStateStates.Paused && _songCardStateState.value != SongCardStateStates.Loading) {
                 pause()
-                forcePause = true
-            } else if(_songCardStateState.value == SongCardStateStates.Loading) {
-                forcePause = true
+                pauseWhenReady = true
+            } else if (_songCardStateState.value == SongCardStateStates.Loading) {
+                pauseWhenReady = true
             } else if (_songCardStateState.value == SongCardStateStates.Paused) {
                 pause()
             }
         }
     }
 
+    //used only for the purpose of avoiding a recomposition
+    fun quietPauseWhenReady() {
+        if (songCardStateState.value != SongCardStateStates.Empty) {
+            if (_songCardStateState.value != SongCardStateStates.Paused && _songCardStateState.value != SongCardStateStates.Loading) {
+                _mediaPlayer.pause()
+                pauseWhenReady = true
+            } else if (_songCardStateState.value == SongCardStateStates.Loading) {
+                pauseWhenReady = true
+            } else if (_songCardStateState.value == SongCardStateStates.Paused) {
+                _mediaPlayer.pause()
+            }
+        }
+    }
+
+    fun resetForcePause() {
+        pauseWhenReady = false
+    }
+
     fun resumePreviousPlayState() {
         if (songCardStateState.value != SongCardStateStates.Empty) {
-            if (forcePause) {
+            if (pauseWhenReady) {
                 _songCardStateState.value = SongCardStateStates.Playing
                 _mediaPlayer.start()
             }
-            forcePause = false
+            pauseWhenReady = false
         }
     }
 
@@ -101,7 +121,7 @@ class SongCardState private constructor(
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener {
             _songCardStateState.value = SongCardStateStates.Ready
-            if (_upNow) {
+            if (_playWhenReady) {
                 playIfFirst()
             }
         }
@@ -130,8 +150,10 @@ class SongCardState private constructor(
 
         mediaPlayer.setOnInfoListener { mp, what, extra ->
             when (what) {
-                MediaPlayer.MEDIA_INFO_BUFFERING_START -> _songCardStateState.value = SongCardStateStates.Loading
-                MediaPlayer.MEDIA_INFO_BUFFERING_END -> _songCardStateState.value = SongCardStateStates.Playing
+                MediaPlayer.MEDIA_INFO_BUFFERING_START -> _songCardStateState.value =
+                    SongCardStateStates.Loading
+                MediaPlayer.MEDIA_INFO_BUFFERING_END -> _songCardStateState.value =
+                    SongCardStateStates.Playing
             }
             false
         }
@@ -148,11 +170,5 @@ class SongCardState private constructor(
 }
 
 enum class SongCardStateStates {
-    Loading,
-    Error,
-    Ready,
-    Playing,
-    Paused,
-    Completed,
-    Empty
+    Loading, Error, Ready, Playing, Paused, Completed, Empty
 }

@@ -255,6 +255,7 @@ fun SongCard(
     onRestart: () -> Unit = {},
     onResume: () -> Unit = {},
     onCancel: () -> Unit = {},
+    cancelAvailable: Boolean = true
 ) {
 
     if (songCardStateState != SongCardStateStates.Empty) {
@@ -274,7 +275,8 @@ fun SongCard(
                         .zIndex(1f),
                         onRetry = { onRetry() },
                         onCancel = { onCancel() },
-                        errorMessage = errorMessage
+                        errorMessage = errorMessage,
+                        cancelAvailable = cancelAvailable
                     )
 
                     SongCardStateStates.Completed -> SongCardCompletedOverlay(modifier = Modifier.zIndex(
@@ -347,7 +349,7 @@ private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: Son
 
 @Composable
 private fun SongCardErrorOverlay(
-    modifier: Modifier = Modifier, onRetry: () -> Unit, onCancel: () -> Unit, errorMessage: String
+    modifier: Modifier = Modifier, onRetry: () -> Unit, onCancel: () -> Unit, errorMessage: String, cancelAvailable: Boolean
 ) {
     SongCardOverlay(modifier = modifier) {
         Column(
@@ -380,19 +382,21 @@ private fun SongCardErrorOverlay(
                         )
                     )
                 }
-                IconButton(onClick = { onCancel() }) {
-                    Icon(
-                        modifier = Modifier
-                            .size(dimensionResource(id = R.dimen.NusicDimenX8))
-                            .padding(
-                                dimensionResource(id = R.dimen.NusicDimenX1)
-                            ),
-                        painter = painterResource(id = R.drawable.nusic_cancel_icon),
-                        contentDescription = "Play button",
-                        tint = colorResource(
-                            id = R.color.pause_play_color
+                if (cancelAvailable) {
+                    IconButton(onClick = { onCancel() }) {
+                        Icon(
+                            modifier = Modifier
+                                .size(dimensionResource(id = R.dimen.NusicDimenX8))
+                                .padding(
+                                    dimensionResource(id = R.dimen.NusicDimenX1)
+                                ),
+                            painter = painterResource(id = R.drawable.nusic_cancel_icon),
+                            contentDescription = "Play button",
+                            tint = colorResource(
+                                id = R.color.pause_play_color
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

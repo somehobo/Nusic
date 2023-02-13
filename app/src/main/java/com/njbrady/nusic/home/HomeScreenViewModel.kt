@@ -91,7 +91,7 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun forcePauseCurrent() {
-        upNow.value.forcePause()
+        upNow.value.pauseWhenReady()
     }
 
     fun resumeCurrentPreviousPlayState() {
