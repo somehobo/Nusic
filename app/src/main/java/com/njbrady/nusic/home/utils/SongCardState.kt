@@ -91,6 +91,11 @@ class SongCardState private constructor(
         pauseWhenReady = false
     }
 
+    fun replayFromScroll() {
+        resetForcePause()
+        playIfFirst()
+    }
+
     fun resumePreviousPlayState() {
         if (songCardStateState.value != SongCardStateStates.Empty) {
             if (pauseWhenReady) {

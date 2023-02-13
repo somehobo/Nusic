@@ -23,4 +23,8 @@
     <string name="back_button_content_description">Back</string>
     <string name="liked_songs_header">Liked Songs</string>
     <string name="created_songs_header">Created Songs</string>
+    <string name="profile_image">Profile Image</string>
+    <string name="upload_button">Upload Button</string>
+    <string name="settings_button">Settings Button</string>
+    <string name="logout">Logout</string>
 </resources>

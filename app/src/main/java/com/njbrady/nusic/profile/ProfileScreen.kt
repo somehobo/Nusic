@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -55,15 +56,13 @@ private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(ProfileScreens.Profile.route) {
-                ProfileScreenContent(
-                    mainViewModel = mainViewModel,
+                ProfileScreenContent(mainViewModel = mainViewModel,
                     currentlySelected = currentlySelected,
-                    onFilter = { newFilter -> currentlySelected = newFilter},
+                    onFilter = { newFilter -> currentlySelected = newFilter },
                     onSelected = { songObject ->
                         selectedSong = songObject
                         navController.navigate(ProfileScreens.LCSongs.route)
-                    }
-                )
+                    })
             }
             composable(ProfileScreens.LCSongs.route) {
                 ProfileScrollingSongs(
@@ -80,7 +79,10 @@ private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 private fun ProfileScreenContent(
-    mainViewModel: MainViewModel, currentlySelected: Type, onFilter: (Type) -> Unit, onSelected: (Int) -> Unit
+    mainViewModel: MainViewModel,
+    currentlySelected: Type,
+    onFilter: (Type) -> Unit,
+    onSelected: (Int) -> Unit
 ) {
 
     val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
@@ -138,7 +140,7 @@ private fun MusicElement(songObject: SongObject, onSelected: (Int) -> Unit, inde
             .clickable { onSelected(index) },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        SongPicture(
             modifier = Modifier
                 .padding(dimensionResource(id = R.dimen.NusicDimenX1))
                 .size(dimensionResource(id = R.dimen.NusicDimenX5))
@@ -146,54 +148,72 @@ private fun MusicElement(songObject: SongObject, onSelected: (Int) -> Unit, inde
                     RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1))
                 )
                 .background(MaterialTheme.colors.primary)
-                .padding(dimensionResource(id = R.dimen.NusicDimenX1))
-        ) {
-            if (songObject.imageUrl != null) {
-                SubcomposeAsyncImage(
-                    modifier = Modifier.fillMaxSize(),
-                    model = songObject.imageUrl,
-                    loading = {
-                        Box(
-                            modifier = Modifier.background(colorResource(id = R.color.card_overlay)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(
-                                    dimensionResource(
-                                        id = R.dimen.NusicDimenX8
-                                    )
-                                )
-                            )
-                        }
-                    },
-                    contentDescription = "Profile Image",
-                )
-            }
-        }
-        Column {
-            songObject.name?.let {
-                Text(
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.NusicDimenX1), top = dimensionResource(id = R.dimen.NusicDimenX1)),
-                    text = it
-                )
-            }
-            songObject.artist?.let {
-                Text(
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.NusicDimenX1), bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
-                    text = "- $it",
-                    style = MaterialTheme.typography.caption
-                )
-            }
+                .padding(dimensionResource(id = R.dimen.NusicDimenX1)), songObject = songObject
+        )
+
+        SongNameWithArtist(
+            name = songObject.name,
+            artist = songObject.artist
+        )
+    }
+}
+
+@Composable
+private fun SongNameWithArtist(name: String?, artist: String?) {
+    Column {
+        name?.let {
+            Text(
+                modifier = Modifier.padding(
+                    start = dimensionResource(id = R.dimen.NusicDimenX1),
+                    top = dimensionResource(id = R.dimen.NusicDimenX1)
+                ), text = it
+            )
         }
 
+        artist?.let {
+            Text(
+                modifier = Modifier.padding(
+                    start = dimensionResource(id = R.dimen.NusicDimenX1),
+                    bottom = dimensionResource(id = R.dimen.NusicDimenX1)
+                ), text = "- $it", style = MaterialTheme.typography.caption
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun SongPicture(modifier: Modifier = Modifier, songObject: SongObject) {
+    Box(
+        modifier = modifier
+    ) {
+        if (songObject.imageUrl != null) {
+            SubcomposeAsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model = songObject.imageUrl,
+                loading = {
+                    Box(
+                        modifier = Modifier.background(colorResource(id = R.color.card_overlay)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(
+                                dimensionResource(
+                                    id = R.dimen.NusicDimenX8
+                                )
+                            )
+                        )
+                    }
+                },
+                contentDescription = stringResource(R.string.profile_image),
+            )
+        }
     }
 }
 
 @Composable
 private fun MusicSelectionTab(
-    modifier: Modifier = Modifier,
-    currentlySelected: Type,
-    onFilter: (Type) -> Unit
+    modifier: Modifier = Modifier, currentlySelected: Type, onFilter: (Type) -> Unit
 ) {
     TabRow(modifier = modifier,
         selectedTabIndex = currentlySelected.ordinal,
@@ -248,9 +268,8 @@ private fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
                         CircularProgressIndicator(modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX8)))
                     }
                 },
-                contentDescription = "Profile Image",
+                contentDescription = stringResource(id = R.string.profile_image),
             )
-
         }
     }
 
@@ -275,7 +294,7 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel) {
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.nusic_upload_icon),
-                    contentDescription = "Upload Button"
+                    contentDescription = stringResource(R.string.upload_button)
                 )
             }
             Box(
@@ -291,12 +310,12 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel) {
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.nusic_settings_icon),
-                        contentDescription = "Settings Button"
+                        contentDescription = stringResource(R.string.settings_button)
                     )
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     DropdownMenuItem(onClick = { mainViewModel.logout() }) {
-                        Text("Logout", color = MaterialTheme.colors.error)
+                        Text(stringResource(R.string.logout), color = MaterialTheme.colors.error)
                     }
                 }
             }

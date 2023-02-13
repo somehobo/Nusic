@@ -28,8 +28,10 @@ import com.njbrady.nusic.home.utils.SongCardState
 fun ProfileScrollingSongs(
     mainViewModel: MainViewModel, navController: NavController, selectedSongIndex: Int, type: Type
 ) {
-    val displayedSongs = if (type == Type.Liked) mainViewModel.likedSongs.collectAsLazyPagingItems()
-    else mainViewModel.createdSongs.collectAsLazyPagingItems()
+    val displayedSongs = if (type == Type.Liked)
+        mainViewModel.likedSongs.collectAsLazyPagingItems()
+    else
+        mainViewModel.createdSongs.collectAsLazyPagingItems()
 
     Scaffold(topBar = {
         NavigationTopAppBar(
@@ -38,8 +40,7 @@ fun ProfileScrollingSongs(
                 R.string.created_songs_header
             ),
             onBackClick = {
-                mainViewModel.currentlyPlayingSong?.quietPauseWhenReady()
-                mainViewModel.currentlyPlayingSong = null
+                mainViewModel.pauseAndReset()
             }
         )
     }) { paddingValues ->
@@ -62,47 +63,51 @@ private fun ScrollingSongList(
 ) {
     val lazyListState = rememberLazyListState()
 
-    LaunchedEffect(lazyListState) {
+    LaunchedEffect(key1 = lazyListState) {
         snapshotFlow { lazyListState.layoutInfo }.collect { layoutInfo ->
             layoutInfo.visibleItemsInfo.forEach {
+
                 val visibleSongCard = displayedSongs[it.index]
+
                 if (it.offset == 0 && visibleSongCard != mainViewModel.currentlyPlayingSong) {
                     mainViewModel.currentlyPlayingSong?.pauseWhenReady()
-                    visibleSongCard?.resetForcePause()
-                    visibleSongCard?.playIfFirst()
+                    visibleSongCard?.replayFromScroll()
                     mainViewModel.currentlyPlayingSong = visibleSongCard
                 }
+
             }
         }
     }
 
-    LaunchedEffect(true) {
+    LaunchedEffect(key1 = true) {
         lazyListState.scrollToItem(selectedSongIndex)
     }
-
 
     LazyColumn(
         modifier = Modifier.padding(paddingValues),
         state = lazyListState,
         flingBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState),
     ) {
-        items(displayedSongs) { songCardState ->
+        items(items = displayedSongs) { songCardState ->
             songCardState?.let {
-                val songCardStateState by songCardState.songCardStateState.collectAsState()
-                val songCardStateError by songCardState.errorMessage.collectAsState()
-                SongCard(
-                    modifier = Modifier
-                        .fillParentMaxSize()
-                        .padding(dimensionResource(id = R.dimen.NusicDimenX1))
-                        .clickable { songCardState.pause() },
-                    songCardStateState = songCardStateState,
-                    errorMessage = songCardStateError,
-                    songObject = songCardState.songObject,
-                    onRestart = { songCardState.restart() },
-                    onResume = { songCardState.resume() },
-                    onRetry = { songCardState.retry() },
-                    cancelAvailable = false
-                )
+                with(it) {
+                    val songCardStateState by songCardStateState.collectAsState()
+                    val songCardStateError by errorMessage.collectAsState()
+
+                    SongCard(
+                        modifier = Modifier
+                            .fillParentMaxSize()
+                            .padding(dimensionResource(id = R.dimen.NusicDimenX1))
+                            .clickable { pause() },
+                        songCardStateState = songCardStateState,
+                        errorMessage = songCardStateError,
+                        songObject = songObject,
+                        onRestart = { restart() },
+                        onResume = { resume() },
+                        onRetry = { retry() },
+                        cancelAvailable = false
+                    )
+                }
             }
         }
     }

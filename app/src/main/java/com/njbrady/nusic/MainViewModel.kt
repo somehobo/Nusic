@@ -49,4 +49,10 @@ class MainViewModel @Inject constructor(
         return onLogoutHit
     }
 
+    fun pauseAndReset() {
+        currentlyPlayingSong?.quietPauseWhenReady()
+        currentlyPlayingSong = null
+    }
+
+
 }
