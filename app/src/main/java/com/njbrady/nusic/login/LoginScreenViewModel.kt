@@ -5,15 +5,20 @@ import androidx.lifecycle.viewModelScope
 import com.njbrady.nusic.login.requests.loginRequest
 import com.njbrady.nusic.login.requests.registerRequest
 import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginScreenViewModel @Inject constructor(
     val tokenStorage: TokenStorage,
+    @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher
+
 ) : ViewModel() {
     private val _loginState = MutableStateFlow(LoginStates.FillingOut)
     private val _registerState = MutableStateFlow(LoginStates.FillingOut)
@@ -105,58 +110,60 @@ class LoginScreenViewModel @Inject constructor(
 
     fun attemptLogin() {
         viewModelScope.launch {
-            _loginState.value = LoginStates.Loading
-            val loginRepository =
-                loginRequest(userNameInput.value, passwordInput.value, tokenStorage)
-            if (loginRepository.containsError) {
-                _errorMessages.value = loginRepository.errorMessages
-                _userNameErrorMessages.value = loginRepository.usernameError
-                _passwordErrorMessages.value = loginRepository.passwordError
-                _loginState.value = LoginStates.FillingOut
-                return@launch
+            withContext(defaultDispatcher) {
+                _loginState.value = LoginStates.Loading
+                val loginRepository =
+                    loginRequest(userNameInput.value, passwordInput.value, tokenStorage)
+                if (loginRepository.containsError) {
+                    _errorMessages.value = loginRepository.errorMessages
+                    _userNameErrorMessages.value = loginRepository.usernameError
+                    _passwordErrorMessages.value = loginRepository.passwordError
+                    _loginState.value = LoginStates.FillingOut
+                } else {
+                    _loginState.value = LoginStates.Success
+                }
             }
-            _loginState.value = LoginStates.Success
         }
     }
 
     fun attemptRegisterUser() {
         viewModelScope.launch {
-            _registerState.value = LoginStates.Loading
-            if (registerPasswordInput.value != registerSecondaryPasswordInput.value) {
-                _registerState.value = LoginStates.FillingOut
-                _errorMessages.value = listOf("Passwords do not match")
-                return@launch
-            }
+            withContext(defaultDispatcher) {
+                _registerState.value = LoginStates.Loading
+                if (registerPasswordInput.value != registerSecondaryPasswordInput.value) {
+                    _registerState.value = LoginStates.FillingOut
+                    _errorMessages.value = listOf("Passwords don't match")
+                } else {
+                    val registerRepository = registerRequest(
+                        registerUserNameInput.value,
+                        registerPasswordInput.value,
+                        registerEmailInput.value
+                    )
 
-            val registerRepository = registerRequest(
-                registerUserNameInput.value,
-                registerPasswordInput.value,
-                registerEmailInput.value
-            )
-
-            if (registerRepository.containsError) {
-                _registerUsernameErrorMessages.value = registerRepository.usernameError
-                _registerPasswordErrorMessages.value = registerRepository.passwordError
-                _registerEmailErrorMessages.value = registerRepository.emailError
-                _errorMessages.value = registerRepository.errorMessages
-                _registerState.value = LoginStates.FillingOut
-                return@launch
+                    if (registerRepository.containsError) {
+                        _registerUsernameErrorMessages.value = registerRepository.usernameError
+                        _registerPasswordErrorMessages.value = registerRepository.passwordError
+                        _registerEmailErrorMessages.value = registerRepository.emailError
+                        _errorMessages.value = registerRepository.errorMessages
+                        _registerState.value = LoginStates.FillingOut
+                    } else {
+                        val loginRepository =
+                            loginRequest(
+                                _registerUserNameInput.value,
+                                _registerPasswordInput.value,
+                                tokenStorage
+                            )
+                        if (loginRepository.containsError) {
+                            _errorMessages.value = loginRepository.errorMessages
+                            _registerUsernameErrorMessages.value = loginRepository.usernameError
+                            _registerPasswordErrorMessages.value = loginRepository.passwordError
+                            _registerState.value = LoginStates.FillingOut
+                        } else {
+                            _registerState.value = LoginStates.Success
+                        }
+                    }
+                }
             }
-
-            val loginRepository =
-                loginRequest(
-                    _registerUserNameInput.value,
-                    _registerPasswordInput.value,
-                    tokenStorage
-                )
-            if (loginRepository.containsError) {
-                _errorMessages.value = loginRepository.errorMessages
-                _registerUsernameErrorMessages.value = loginRepository.usernameError
-                _registerPasswordErrorMessages.value = loginRepository.passwordError
-                _registerState.value = LoginStates.FillingOut
-                return@launch
-            }
-            _registerState.value = LoginStates.Success
         }
     }
 

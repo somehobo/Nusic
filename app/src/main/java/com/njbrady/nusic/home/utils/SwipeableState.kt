@@ -52,7 +52,6 @@ class SwipeableCardState(
      * Null value means the card has not been swiped fully yet.
      */
     var swipedDirection: Direction? by mutableStateOf(null)
-//        private set
 
     internal suspend fun reset() {
         offset.animateTo(offset(0f, 0f), tween(400))

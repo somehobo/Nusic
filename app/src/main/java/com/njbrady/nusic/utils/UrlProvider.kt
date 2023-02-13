@@ -9,6 +9,5 @@ class UrlProvider {
         const val feedbackUrl = baseUrl + "songfeedback/"
         const val likedSongsPagedUrl = baseUrl + "pagedLikedSongs/"
         const val createdSongsPagedUrl = baseUrl + "pagedCreatedSongs/"
-
     }
 }

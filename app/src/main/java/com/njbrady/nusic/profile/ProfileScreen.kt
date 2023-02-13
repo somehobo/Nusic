@@ -44,10 +44,10 @@ fun ProfileScreen(mainViewModel: MainViewModel) {
 @Composable
 private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
     val navController = rememberNavController()
+    var selectedSong = 0
     var currentlySelected by remember {
         mutableStateOf(Type.Liked)
     }
-    var selectedSong = 0
 
     Scaffold { paddingValues ->
         NavHost(
@@ -126,7 +126,6 @@ private fun ProfileScreenContent(
                     MusicElement(songObject = it, onSelected = onSelected, index = index)
                     Divider()
                 }
-
             }
         }
     }
@@ -152,8 +151,7 @@ private fun MusicElement(songObject: SongObject, onSelected: (Int) -> Unit, inde
         )
 
         SongNameWithArtist(
-            name = songObject.name,
-            artist = songObject.artist
+            name = songObject.name, artist = songObject.artist
         )
     }
 }
@@ -233,14 +231,14 @@ private fun MusicSelectionTab(
         divider = { }) {
         Type.values().forEachIndexed() { index, type ->
             val selected = index == currentlySelected.ordinal
-
-            val textModifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
-
             Tab(modifier = Modifier, selected = selected, onClick = {
                 onFilter(type)
             }) {
                 Text(
-                    modifier = textModifier, text = type.name
+                    modifier = Modifier.padding(
+                        vertical = dimensionResource(id = R.dimen.NusicDimenX1),
+                        horizontal = dimensionResource(id = R.dimen.NusicDimenX2)
+                    ), text = type.name
                 )
             }
         }

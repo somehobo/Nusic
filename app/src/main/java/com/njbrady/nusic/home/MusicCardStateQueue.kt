@@ -12,7 +12,6 @@ class MusicCardStateQueue(
 
     private val _realSongQueue = mutableListOf<SongCardState>()
 
-
     fun push(songObject: SongObject?) {
         songObject?.let {
             _realSongQueue.add(SongCardState(it))

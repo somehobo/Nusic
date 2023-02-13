@@ -3,8 +3,6 @@ package com.njbrady.nusic.login.model
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,6 +17,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.navigation.NavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.login.composables.*
+import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 
 @Composable
 fun RegisterScreen(loginScreenViewModel: LoginScreenViewModel, navController: NavController) {
@@ -42,25 +41,11 @@ private fun RegisterContent(
     val registerEmailErrors by loginScreenViewModel.registerEmailErrorMessages.collectAsState()
     val registerPasswordErrors by loginScreenViewModel.registerPasswordErrorMessages.collectAsState()
     val errorMessage by loginScreenViewModel.errorMessage.collectAsState()
-    Scaffold(topBar = {
-        TopAppBar(title = {
-            Text(
-                text = stringResource(id = R.string.register_screen),
-                style = MaterialTheme.typography.h5
-            )
-        }, navigationIcon = if (navController.previousBackStackEntry != null) {
-            {
-                IconButton(onClick = { navController.navigateUp() }) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = stringResource(id = R.string.back_button_content_description)
-                    )
-                }
-            }
-        } else {
-            null
-        }
 
+    Scaffold(topBar = {
+        NavigationTopAppBar(
+            navController = navController,
+            title = stringResource(id = R.string.register_screen)
         )
     }) { paddingValues ->
         if (registerState == LoginStates.Loading) {
