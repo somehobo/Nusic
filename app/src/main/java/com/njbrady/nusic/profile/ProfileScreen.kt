@@ -26,10 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import coil.compose.SubcomposeAsyncImage
 import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.profile.composables.ProfileScrollingSongs
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.utils.ProfilePhoto
@@ -125,6 +127,31 @@ private fun ProfileScreenContent(
                 item?.songObject?.let {
                     MusicElement(songObject = it, onSelected = onSelected, index = index)
                     Divider()
+                }
+            }
+            item {
+                when (val state = displayedSongs.loadState.refresh) { //FIRST LOAD
+                    is LoadState.Error -> {
+                        //TODO Error Item
+                        //state.error to get error message
+                    }
+                    is LoadState.Loading -> { // Loading UI
+                        CenteredProgressIndicator(paddingValues = paddingValues)
+                    }
+                    else -> {}
+                }
+            }
+
+            item {
+                when (val state = displayedSongs.loadState.append) { // Pagination
+                    is LoadState.Error -> {
+                        //TODO Pagination Error Item
+                        //state.error to get error message
+                    }
+                    is LoadState.Loading -> { // Pagination Loading UI
+                        CenteredProgressIndicator(paddingValues = paddingValues)
+                    }
+                    else -> {}
                 }
             }
         }
@@ -314,6 +341,18 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel) {
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     DropdownMenuItem(onClick = { mainViewModel.logout() }) {
                         Text(stringResource(R.string.logout), color = MaterialTheme.colors.error)
+                        Icon(
+                            modifier = Modifier
+                                .size(dimensionResource(id = R.dimen.NusicDimenX6))
+                                .padding(
+                                    start = dimensionResource(
+                                        id = R.dimen.NusicDimenX1
+                                    )
+                                ),
+                            painter = painterResource(id = R.drawable.nusic_portal_exit),
+                            tint = MaterialTheme.colors.error,
+                            contentDescription = stringResource(R.string.logout)
+                        )
                     }
                 }
             }
