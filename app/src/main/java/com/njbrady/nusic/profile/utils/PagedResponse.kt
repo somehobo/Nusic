@@ -14,9 +14,11 @@ data class PagedResponse(
             return try {
                 val total = jsonObject.getInt(ProfileKeys.totalKey)
                 val songList = mutableListOf<SongObject>()
-                val jsonArray = jsonObject.getJSONArray(ProfileKeys.songObjectsKey)
-                for (index in 0 until total) {
-                    songList.add(SongObject.fromJson(jsonArray.getJSONObject(index)))
+                val jsonArray = jsonObject.optJSONArray(ProfileKeys.songObjectsKey)
+                if (jsonArray != null && jsonArray.length() != 0) {
+                    for (index in 0 until total) {
+                        songList.add(SongObject.fromJson(jsonArray.getJSONObject(index)))
+                    }
                 }
                 PagedResponse(
                     songObjects = songList,

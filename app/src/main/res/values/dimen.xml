@@ -8,6 +8,7 @@
     <dimen name="NusicDimenX6">48dp</dimen>
     <dimen name="NusicDimenX7">56dp</dimen>
     <dimen name="NusicDimenX8">64dp</dimen>
+    <dimen name="ShimmerSongNameDimen">128dp</dimen>
     <dimen name="ProfileImageDimen">128dp</dimen>
     <dimen name="BorderStrokeSize">1dp</dimen>
 </resources>

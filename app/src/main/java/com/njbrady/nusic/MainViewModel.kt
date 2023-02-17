@@ -24,12 +24,12 @@ class MainViewModel @Inject constructor(
 
     var currentlyPlayingSong: SongCardState? = null
 
-    val likedSongs: Flow<PagingData<SongCardState>> = Pager(config = PagingConfig(pageSize = 3), pagingSourceFactory  =  {
+    val likedSongs: Flow<PagingData<SongCardState>> = Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory  =  {
         ProfilePagedDataSource(tokenStorage, Type.Liked)
     }).flow.cachedIn(viewModelScope)
 
 
-    val createdSongs: Flow<PagingData<SongCardState>> = Pager(config = PagingConfig(pageSize = 3), pagingSourceFactory  =  {
+    val createdSongs: Flow<PagingData<SongCardState>> = Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory  =  {
         ProfilePagedDataSource(tokenStorage, Type.Created)
     }).flow.cachedIn(viewModelScope)
 
@@ -52,6 +52,9 @@ class MainViewModel @Inject constructor(
         currentlyPlayingSong?.quietPauseWhenReady()
         currentlyPlayingSong = null
     }
-
+    companion object {
+        // This must match the backend constant as well
+        const val PAGE_SIZE = 6
+    }
 
 }

@@ -26,15 +26,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import coil.compose.SubcomposeAsyncImage
 import com.njbrady.nusic.home.model.SongObject
-import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.profile.composables.ProfileScrollingSongs
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.utils.ProfilePhoto
+import com.njbrady.nusic.profile.utils.SongListFurtherCommunicatedState
+import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
 
 
@@ -129,30 +129,13 @@ private fun ProfileScreenContent(
                     Divider()
                 }
             }
+
             item {
-                when (val state = displayedSongs.loadState.refresh) { //FIRST LOAD
-                    is LoadState.Error -> {
-                        //TODO Error Item
-                        //state.error to get error message
-                    }
-                    is LoadState.Loading -> { // Loading UI
-                        CenteredProgressIndicator(paddingValues = paddingValues)
-                    }
-                    else -> {}
-                }
+                SongListInitialCommunicatedState(loadState = displayedSongs.loadState)
             }
 
             item {
-                when (val state = displayedSongs.loadState.append) { // Pagination
-                    is LoadState.Error -> {
-                        //TODO Pagination Error Item
-                        //state.error to get error message
-                    }
-                    is LoadState.Loading -> { // Pagination Loading UI
-                        CenteredProgressIndicator(paddingValues = paddingValues)
-                    }
-                    else -> {}
-                }
+                SongListFurtherCommunicatedState(loadState = displayedSongs.loadState)
             }
         }
     }
