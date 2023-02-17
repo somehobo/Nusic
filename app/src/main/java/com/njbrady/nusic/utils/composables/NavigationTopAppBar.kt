@@ -12,21 +12,17 @@ import com.njbrady.nusic.R
 fun NavigationTopAppBar(navController: NavController, title: String, onBackClick: () -> Unit = {}) {
     return TopAppBar(title = {
         Text(
-            text = title,
-            style = MaterialTheme.typography.h5
+            text = title, style = MaterialTheme.typography.h5
         )
-    }, navigationIcon = if (navController.previousBackStackEntry != null) {
-        {
-            IconButton(onClick = { navController.navigateUp()
-                onBackClick()
-            }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = stringResource(id = R.string.back_button_content_description)
-                )
-            }
+    }, navigationIcon = {
+        IconButton(onClick = {
+            navController.navigateUp()
+            onBackClick()
+        }) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = stringResource(id = R.string.back_button_content_description)
+            )
         }
-    } else {
-        null
     })
 }

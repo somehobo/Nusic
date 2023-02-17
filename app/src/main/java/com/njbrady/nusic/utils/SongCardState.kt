@@ -36,9 +36,9 @@ class SongCardState private constructor(
     }
 
     fun playIfFirst() {
-        if (_songCardStateState.value == SongCardStateStates.Ready || _songCardStateState.value == SongCardStateStates.Paused) {
+        if (_songCardStateState.value == SongCardStateStates.Ready || _songCardStateState.value == SongCardStateStates.Paused || _songCardStateState.value == SongCardStateStates.Playing) {
             _playWhenReady = true
-            if (!_mediaPlayer.isPlaying && !_pauseWhenReady) {
+            if (!_pauseWhenReady) {
                 _mediaPlayer.seekTo(0)
                 _mediaPlayer.start()
                 _songCardStateState.value = SongCardStateStates.Playing
@@ -73,6 +73,10 @@ class SongCardState private constructor(
                 pause()
             }
         }
+    }
+
+    fun pauseWhenReadyFlagSet(): Boolean {
+        return _pauseWhenReady
     }
 
     //used only for the purpose of avoiding a recomposition

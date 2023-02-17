@@ -15,34 +15,29 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.items
+import androidx.paging.compose.itemsIndexed
 import com.njbrady.nusic.MainViewModel
-import com.njbrady.nusic.home.SongCard
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 import com.njbrady.nusic.R
 import com.njbrady.nusic.home.utils.SongCardState
+import com.njbrady.nusic.utils.composables.ItemImpression
+import com.njbrady.nusic.utils.composables.SongCard
 
 
 @Composable
 fun ProfileScrollingSongs(
     mainViewModel: MainViewModel, navController: NavController, selectedSongIndex: Int, type: Type
 ) {
-    val displayedSongs = if (type == Type.Liked)
-        mainViewModel.likedSongs.collectAsLazyPagingItems()
-    else
-        mainViewModel.createdSongs.collectAsLazyPagingItems()
+    val displayedSongs = if (type == Type.Liked) mainViewModel.likedSongs.collectAsLazyPagingItems()
+    else mainViewModel.createdSongs.collectAsLazyPagingItems()
 
     Scaffold(topBar = {
-        NavigationTopAppBar(
-            navController = navController,
+        NavigationTopAppBar(navController = navController,
             title = if (type == Type.Liked) stringResource(R.string.liked_songs_header) else stringResource(
                 R.string.created_songs_header
             ),
-            onBackClick = {
-                mainViewModel.pauseAndReset()
-            }
-        )
+            onBackClick = { mainViewModel.pauseAndReset() })
     }) { paddingValues ->
         ScrollingSongList(
             paddingValues = paddingValues,
@@ -63,23 +58,8 @@ private fun ScrollingSongList(
 ) {
     val lazyListState = rememberLazyListState()
 
-    LaunchedEffect(key1 = lazyListState) {
-        snapshotFlow { lazyListState.layoutInfo }.collect { layoutInfo ->
-            layoutInfo.visibleItemsInfo.forEach {
 
-                val visibleSongCard = displayedSongs[it.index]
-
-                if (it.offset == 0 && visibleSongCard != mainViewModel.currentlyPlayingSong) {
-                    mainViewModel.currentlyPlayingSong?.pauseWhenReady()
-                    visibleSongCard?.replayFromScroll()
-                    mainViewModel.currentlyPlayingSong = visibleSongCard
-                }
-
-            }
-        }
-    }
-
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(Unit) {
         lazyListState.scrollToItem(selectedSongIndex)
     }
 
@@ -88,7 +68,16 @@ private fun ScrollingSongList(
         state = lazyListState,
         flingBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState),
     ) {
-        items(items = displayedSongs) { songCardState ->
+        itemsIndexed(items = displayedSongs) { index, songCardState ->
+            ItemImpression(index = index, lazyListState = lazyListState, onItemViewed = {
+                songCardState?.let{ songCardState ->
+                    if (songCardState != mainViewModel.currentlyPlayingSong) {
+                        mainViewModel.currentlyPlayingSong?.pauseWhenReady()
+                        songCardState.replayFromScroll()
+                        mainViewModel.currentlyPlayingSong = songCardState
+                    }
+                }
+            })
             songCardState?.let {
                 with(it) {
                     val songCardStateState by songCardStateState.collectAsState()
