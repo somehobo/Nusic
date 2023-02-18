@@ -22,7 +22,7 @@ class SongCardState private constructor(
     constructor() : this(SongCardStateStates.Empty, null)
 
     constructor(
-        songObject: SongObject, viewOnly: Boolean = false
+        songObject: SongObject
     ) : this(SongCardStateStates.Loading, songObject) {
         _mediaPlayer = mediaPlayerFactory(songObject)
     }
@@ -36,7 +36,7 @@ class SongCardState private constructor(
     }
 
     fun playIfFirst() {
-        if (_songCardStateState.value == SongCardStateStates.Ready || _songCardStateState.value == SongCardStateStates.Paused || _songCardStateState.value == SongCardStateStates.Playing) {
+        if (_songCardStateState.value == SongCardStateStates.Ready || _songCardStateState.value == SongCardStateStates.Paused || !_mediaPlayer.isPlaying) {
             _playWhenReady = true
             if (!_pauseWhenReady) {
                 _mediaPlayer.seekTo(0)
@@ -73,10 +73,6 @@ class SongCardState private constructor(
                 pause()
             }
         }
-    }
-
-    fun pauseWhenReadyFlagSet(): Boolean {
-        return _pauseWhenReady
     }
 
     //used only for the purpose of avoiding a recomposition
