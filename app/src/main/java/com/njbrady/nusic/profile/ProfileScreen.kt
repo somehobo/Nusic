@@ -23,6 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -39,13 +41,13 @@ import com.njbrady.nusic.ui.theme.NusicTheme
 
 
 @Composable
-fun ProfileScreen(mainViewModel: MainViewModel) {
-    ProfileScrenNavigation(mainViewModel = mainViewModel)
+fun ProfileScreen(mainViewModel: MainViewModel, navController: NavController) {
+    val profileNavController = rememberNavController()
+    ProfileScrenNavigation(mainViewModel = mainViewModel, profileNavController = profileNavController, mainNavController = navController)
 }
 
 @Composable
-private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
-    val navController = rememberNavController()
+private fun ProfileScrenNavigation(mainViewModel: MainViewModel, profileNavController: NavHostController, mainNavController: NavController) {
     var selectedSong = 0
     var currentlySelected by remember {
         mutableStateOf(Type.Liked)
@@ -53,28 +55,37 @@ private fun ProfileScrenNavigation(mainViewModel: MainViewModel) {
 
     Scaffold { paddingValues ->
         NavHost(
-            navController = navController,
+            navController = profileNavController,
             startDestination = ProfileScreens.Profile.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(ProfileScreens.Profile.route) {
+                mainViewModel.pauseAndReset()
                 ProfileScreenContent(mainViewModel = mainViewModel,
                     currentlySelected = currentlySelected,
                     onFilter = { newFilter -> currentlySelected = newFilter },
                     onSelected = { songObject ->
                         selectedSong = songObject
-                        navController.navigate(ProfileScreens.LCSongs.route)
+                        profileNavController.navigate(ProfileScreens.LCSongs.route)
                     })
             }
             composable(ProfileScreens.LCSongs.route) {
                 ProfileScrollingSongs(
                     mainViewModel = mainViewModel,
-                    navController = navController,
+                    navController = profileNavController,
                     selectedSongIndex = selectedSong,
                     type = currentlySelected
                 )
             }
         }
+    }
+
+    mainNavController.addOnDestinationChangedListener { _, destination, _ ->
+        if (destination.route != Screen.Profile.route) {
+            if (profileNavController.currentDestination?.route != ProfileScreens.Profile.route)
+                profileNavController.navigate(route = ProfileScreens.Profile.route)
+        }
+
     }
 }
 

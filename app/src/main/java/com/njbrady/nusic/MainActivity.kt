@@ -98,7 +98,7 @@ private fun MainContent(homeScreenViewModel: HomeScreenViewModel, mainViewModel:
         NavHost(
             navController, startDestination = Screen.Home.route, Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Profile.route) { ProfileScreen(mainViewModel) }
+            composable(Screen.Profile.route) { ProfileScreen(mainViewModel, navController) }
             composable(Screen.Home.route) {
                 homeScreenViewModel.retry()
                 HomeScreen(homeScreenViewModel, navController)

@@ -52,6 +52,7 @@ class MainViewModel @Inject constructor(
         currentlyPlayingSong?.quietPauseWhenReady()
         currentlyPlayingSong = null
     }
+
     companion object {
         // This must match the backend constant as well
         const val PAGE_SIZE = 6

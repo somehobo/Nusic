@@ -33,11 +33,12 @@ fun ProfileScrollingSongs(
     else mainViewModel.createdSongs.collectAsLazyPagingItems()
 
     Scaffold(topBar = {
-        NavigationTopAppBar(navController = navController,
+        NavigationTopAppBar(
+            navController = navController,
             title = if (type == Type.Liked) stringResource(R.string.liked_songs_header) else stringResource(
                 R.string.created_songs_header
             ),
-            onBackClick = { mainViewModel.pauseAndReset() })
+        )
     }) { paddingValues ->
         ScrollingSongList(
             paddingValues = paddingValues,
@@ -70,7 +71,7 @@ private fun ScrollingSongList(
     ) {
         itemsIndexed(items = displayedSongs) { index, songCardState ->
             ItemImpression(index = index, lazyListState = lazyListState, onItemViewed = {
-                songCardState?.let{ songCardState ->
+                songCardState?.let { songCardState ->
                     if (songCardState != mainViewModel.currentlyPlayingSong) {
                         mainViewModel.currentlyPlayingSong?.pauseWhenReady()
                         songCardState.replayFromScroll()
