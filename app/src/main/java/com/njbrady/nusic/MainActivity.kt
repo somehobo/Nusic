@@ -53,12 +53,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
+        mainViewModel.pauseCurrent()
         homeScreenViewModel.forcePauseCurrent()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        homeScreenViewModel.resumeCurrentPreviousPlayState()
     }
 
     override fun onDestroy() {

@@ -53,6 +53,14 @@ class MainViewModel @Inject constructor(
         currentlyPlayingSong = null
     }
 
+    fun pauseCurrent() {
+        currentlyPlayingSong?.pauseWhenReady()
+    }
+
+    fun resumeCurrent() {
+        currentlyPlayingSong?.resumePreviousPlayState()
+    }
+
     companion object {
         // This must match the backend constant as well
         const val PAGE_SIZE = 6
