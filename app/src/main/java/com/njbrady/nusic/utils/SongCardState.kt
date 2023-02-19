@@ -36,7 +36,7 @@ class SongCardState private constructor(
     }
 
     fun playIfFirst() {
-        if (_songCardStateState.value == SongCardStateStates.Ready || _songCardStateState.value == SongCardStateStates.Paused || !_mediaPlayer.isPlaying) {
+        if (_songCardStateState.value == SongCardStateStates.Ready || _songCardStateState.value == SongCardStateStates.Paused) {
             _playWhenReady = true
             if (!_pauseWhenReady) {
                 _mediaPlayer.seekTo(0)
