@@ -31,4 +31,5 @@
     <string name="error">Error</string>
     <string name="play_button_content_description">Play button</string>
     <string name="restart_button_content_description">Restart Button</string>
+    <string name="current_songs_image">Current Song\'s Image</string>
 </resources>

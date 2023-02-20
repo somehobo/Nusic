@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="card_overlay">#10000000</color>
     <color name="pause_play_color">#E6FFFFFF</color>
+    <color name="nusic_card_grey">#AEAEAE</color>
+    <color name="nusic_blue">#98CEDF</color>
+    <color name="nusic_orange">#CD6E61</color>
 </resources>

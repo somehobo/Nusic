@@ -1,6 +1,6 @@
 package com.njbrady.nusic.home.requests
 
-import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.model.SongObjectErrorWrapper
 import com.njbrady.nusic.home.utils.SongKeys
 import com.njbrady.nusic.utils.HttpOptions
@@ -24,7 +24,7 @@ fun getSong(
             in 200..299 -> {
                 val response = connection.inputStream.bufferedReader().use { it.readText() }
                 val jsonResponse = JSONObject(response)
-                SongObjectErrorWrapper(songObject = SongObject.fromJson(jsonResponse))
+                SongObjectErrorWrapper(songObject = SongModel.fromJson(jsonResponse))
             }
             418 -> {
                 val nonBlockingError = connection.errorStream.bufferedReader().use { it.readText() }
@@ -44,7 +44,7 @@ fun getSong(
 }
 
 fun likeSong(
-    songObject: SongObject,
+    songObject: SongModel,
     liked: Boolean,
     tokenStorage: TokenStorage
 ): SongObjectErrorWrapper {
@@ -68,7 +68,7 @@ fun likeSong(
             in 200..299 -> {
                 val response = connection.inputStream.bufferedReader().use { it.readText() }
                 val jsonResponse = JSONObject(response)
-                SongObjectErrorWrapper(songObject = SongObject.fromJson(jsonResponse))
+                SongObjectErrorWrapper(songObject = SongModel.fromJson(jsonResponse))
             }
             418 -> {
                 val nonBlockingError = connection.errorStream.bufferedReader().use { it.readText() }

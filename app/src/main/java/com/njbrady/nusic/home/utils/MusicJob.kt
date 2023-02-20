@@ -2,7 +2,7 @@ package com.njbrady.nusic.home.utils
 
 import com.njbrady.nusic.home.requests.getSong
 import com.njbrady.nusic.home.requests.likeSong
-import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.model.SongObjectErrorWrapper
 import com.njbrady.nusic.utils.TokenStorage
 
@@ -21,7 +21,7 @@ class GetSongJob(tokenStorage: TokenStorage) : MusicJob(tokenStorage) {
 }
 
 class LikeSongJob(
-    private val songObject: SongObject,
+    private val songObject: SongModel,
     private val liked: Boolean,
     tokenStorage: TokenStorage
 ) : MusicJob(tokenStorage) {

@@ -2,7 +2,7 @@ package com.njbrady.nusic.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.*
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
@@ -52,7 +52,7 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     //add logic for empty state case
-    fun likeSong(song: SongObject?, like: Boolean) {
+    fun likeSong(song: SongModel?, like: Boolean) {
         song?.let {
             _musicCardQueue.pop()
             _jobRunner.enqueueJob(LikeSongJob(it, like, tokenStorage))

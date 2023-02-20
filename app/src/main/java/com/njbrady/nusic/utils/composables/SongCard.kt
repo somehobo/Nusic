@@ -10,28 +10,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import coil.compose.SubcomposeAsyncImage
 import com.njbrady.nusic.R
-import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.Direction
 import com.njbrady.nusic.home.utils.SongCardStateStates
 import com.njbrady.nusic.home.utils.rememberSwipeableCardState
 import com.njbrady.nusic.home.utils.swipableCard
 import com.njbrady.nusic.login.composables.ErrorWithField
+import com.njbrady.nusic.utils.shimmerBackground
 
 @Composable
 fun SwipeableCardWrapper(
     modifier: Modifier = Modifier,
     songCardStateState: SongCardStateStates,
     errorMessage: String,
-    songObject: SongObject?,
+    songObject: SongModel?,
     onRetry: () -> Unit,
     onRestart: () -> Unit,
     onResume: () -> Unit,
@@ -75,7 +81,7 @@ fun SongCard(
     modifier: Modifier = Modifier,
     songCardStateState: SongCardStateStates,
     errorMessage: String,
-    songObject: SongObject?,
+    songObject: SongModel?,
     onRetry: () -> Unit = {},
     onRestart: () -> Unit = {},
     onResume: () -> Unit = {},
@@ -88,17 +94,35 @@ fun SongCard(
             modifier = modifier,
             shape = RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)),
             border = BorderStroke(
-                dimensionResource(id = R.dimen.BorderStrokeSize), MaterialTheme.colors.onBackground
+                dimensionResource(id = R.dimen.BorderStrokeSize),
+                colorResource(id = R.color.nusic_card_grey)
             ),
-            backgroundColor = MaterialTheme.colors.secondary
+            backgroundColor = colorResource(id = R.color.nusic_card_grey)
         ) {
+            songObject?.imageUrl?.let {
+                SubcomposeAsyncImage(
+                    modifier = Modifier.fillMaxSize(),
+                    model = it,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .background(colorResource(id = R.color.card_overlay))
+                                .fillMaxSize()
+                                .shimmerBackground(),
+                        ) {
+
+                        }
+                    },
+                    contentScale = ContentScale.Crop,
+                    contentDescription = stringResource(R.string.current_songs_image)
+                )
+            }
             Box(modifier = Modifier.fillMaxSize()) {
 
                 when (songCardStateState) {
-                    SongCardStateStates.Error -> SongCardErrorOverlay(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .zIndex(1f),
+                    SongCardStateStates.Error -> SongCardErrorOverlay(modifier = Modifier
+                        .fillMaxSize()
+                        .zIndex(1f),
                         onRetry = { onRetry() },
                         onCancel = { onCancel() },
                         errorMessage = errorMessage,
@@ -121,14 +145,14 @@ fun SongCard(
                         .wrapContentHeight()
                         .fillMaxWidth()
                         .zIndex(0f)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    colorResource(id = R.color.card_overlay), Color.Black
-                                )
-                            )
+//                        .background(
+//                            brush = Brush.verticalGradient(
+//                                colors = listOf(
+//                                    colorResource(id = R.color.card_overlay), Color.Black
+//                                )
+//                            )
 
-                        )
+//                        )
                         .align(Alignment.BottomCenter), songObject = songObject
                 )
                 if (songCardStateState == SongCardStateStates.Loading) {
@@ -144,7 +168,24 @@ fun SongCard(
 }
 
 @Composable
-private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: SongObject?) {
+private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: SongModel?) {
+
+    val adaptiveTextName = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        letterSpacing = 0.25.sp,
+        background = MaterialTheme.colors.onBackground
+    )
+
+    val adaptiveTextCreator = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        letterSpacing = 0.25.sp,
+        background = MaterialTheme.colors.onBackground
+    )
+
     Row(modifier = modifier, verticalAlignment = Alignment.Bottom) {
         Box(
             modifier = Modifier,
@@ -158,14 +199,17 @@ private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: Son
 
                 songObject?.name?.let {
                     Text(
-                        text = it, style = MaterialTheme.typography.h4, color = Color.White
+                        modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
+                        text = it,
+                        style = adaptiveTextName,
+                        color = MaterialTheme.colors.background
                     )
                 }
                 songObject?.artist?.let {
                     Text(
                         text = stringResource(id = R.string.author_creditor) + " $it",
-                        style = MaterialTheme.typography.h5,
-                        color = Color.White
+                        style = adaptiveTextCreator,
+                        color = MaterialTheme.colors.background
                     )
                 }
             }
@@ -286,17 +330,16 @@ private fun SongCardCompletedOverlay(
 }
 
 @Composable
-private fun SongCardOverlayStandardButton(painter: Painter, contentDescription: String, onClick: () -> Unit) {
+private fun SongCardOverlayStandardButton(
+    painter: Painter, contentDescription: String, onClick: () -> Unit
+) {
     IconButton(onClick = { onClick() }) {
         Icon(
             modifier = Modifier
                 .size(dimensionResource(id = R.dimen.NusicDimenX8))
                 .padding(
                     dimensionResource(id = R.dimen.NusicDimenX1)
-                ),
-            painter = painter,
-            contentDescription = contentDescription,
-            tint = colorResource(
+                ), painter = painter, contentDescription = contentDescription, tint = colorResource(
                 id = R.color.pause_play_color
             )
         )

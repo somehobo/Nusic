@@ -14,7 +14,9 @@ fun NavigationTopAppBar(navController: NavController, title: String, onBackClick
         Text(
             text = title, style = MaterialTheme.typography.h5
         )
-    }, navigationIcon = {
+    },
+        backgroundColor = MaterialTheme.colors.background,
+        navigationIcon = {
         IconButton(onClick = {
             navController.navigateUp()
             onBackClick()

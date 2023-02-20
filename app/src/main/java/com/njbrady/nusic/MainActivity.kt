@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        homeScreenViewModel.retry()
         mainViewModel.setOnLogoutHit {
             val intent = Intent(this, LoginActivity::class.java)
             finish()
@@ -68,7 +69,7 @@ class MainActivity : ComponentActivity() {
 private fun MainContent(homeScreenViewModel: HomeScreenViewModel, mainViewModel: MainViewModel) {
     val navController = rememberNavController()
     Scaffold(bottomBar = {
-        BottomNavigation {
+        BottomNavigation(backgroundColor = MaterialTheme.colors.background) {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
             screens.forEach { screen ->
@@ -96,7 +97,6 @@ private fun MainContent(homeScreenViewModel: HomeScreenViewModel, mainViewModel:
         ) {
             composable(Screen.Profile.route) { ProfileScreen(mainViewModel, navController) }
             composable(Screen.Home.route) {
-                homeScreenViewModel.retry()
                 HomeScreen(homeScreenViewModel, navController)
             }
             composable(Screen.Conversation.route) { ConversationScreen() }

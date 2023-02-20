@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -31,23 +32,32 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import coil.compose.SubcomposeAsyncImage
-import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.profile.composables.ProfileScrollingSongs
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.utils.ProfilePhoto
 import com.njbrady.nusic.profile.utils.SongListFurtherCommunicatedState
 import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.utils.shimmerBackground
 
 
 @Composable
 fun ProfileScreen(mainViewModel: MainViewModel, navController: NavController) {
     val profileNavController = rememberNavController()
-    ProfileScrenNavigation(mainViewModel = mainViewModel, profileNavController = profileNavController, mainNavController = navController)
+    ProfileScrenNavigation(
+        mainViewModel = mainViewModel,
+        profileNavController = profileNavController,
+        mainNavController = navController
+    )
 }
 
 @Composable
-private fun ProfileScrenNavigation(mainViewModel: MainViewModel, profileNavController: NavHostController, mainNavController: NavController) {
+private fun ProfileScrenNavigation(
+    mainViewModel: MainViewModel,
+    profileNavController: NavHostController,
+    mainNavController: NavController
+) {
     var selectedSong = 0
     var currentlySelected by remember {
         mutableStateOf(Type.Liked)
@@ -153,22 +163,21 @@ private fun ProfileScreenContent(
 }
 
 @Composable
-private fun MusicElement(songObject: SongObject, onSelected: (Int) -> Unit, index: Int) {
+private fun MusicElement(songObject: SongModel, onSelected: (Int) -> Unit, index: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onSelected(index) },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SongPicture(
+        SongPreviewPicture(
             modifier = Modifier
                 .padding(dimensionResource(id = R.dimen.NusicDimenX1))
                 .size(dimensionResource(id = R.dimen.NusicDimenX5))
                 .clip(
                     RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1))
                 )
-                .background(MaterialTheme.colors.primary)
-                .padding(dimensionResource(id = R.dimen.NusicDimenX1)), songObject = songObject
+                , songObject = songObject
         )
 
         SongNameWithArtist(
@@ -202,7 +211,7 @@ private fun SongNameWithArtist(name: String?, artist: String?) {
 
 
 @Composable
-private fun SongPicture(modifier: Modifier = Modifier, songObject: SongObject) {
+private fun SongPreviewPicture(modifier: Modifier = Modifier, songObject: SongModel) {
     Box(
         modifier = modifier
     ) {
@@ -212,18 +221,12 @@ private fun SongPicture(modifier: Modifier = Modifier, songObject: SongObject) {
                 model = songObject.imageUrl,
                 loading = {
                     Box(
-                        modifier = Modifier.background(colorResource(id = R.color.card_overlay)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(
-                                dimensionResource(
-                                    id = R.dimen.NusicDimenX8
-                                )
-                            )
-                        )
-                    }
+                        modifier = Modifier.background(colorResource(id = R.color.card_overlay))
+                            .fillMaxSize()
+                            .shimmerBackground(),
+                    )
                 },
+                contentScale = ContentScale.Crop,
                 contentDescription = stringResource(R.string.profile_image),
             )
         }

@@ -1,6 +1,6 @@
 package com.njbrady.nusic.home
 
-import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.SongCardState
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -12,7 +12,7 @@ class MusicCardStateQueue(
 
     private val _realSongQueue = mutableListOf<SongCardState>()
 
-    fun push(songObject: SongObject?) {
+    fun push(songObject: SongModel?) {
         songObject?.let {
             _realSongQueue.add(SongCardState(it))
         }

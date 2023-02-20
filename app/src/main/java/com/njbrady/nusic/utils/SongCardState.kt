@@ -1,14 +1,14 @@
 package com.njbrady.nusic.home.utils
 
 import android.media.MediaPlayer
-import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 
 //TODO: Refactor this ugly class
 class SongCardState private constructor(
-    initialState: SongCardStateStates, val songObject: SongObject?
+    initialState: SongCardStateStates, val songObject: SongModel?
 ) {
     private lateinit var _mediaPlayer: MediaPlayer
     private var _playWhenReady = false
@@ -22,7 +22,7 @@ class SongCardState private constructor(
     constructor() : this(SongCardStateStates.Empty, null)
 
     constructor(
-        songObject: SongObject
+        songObject: SongModel
     ) : this(SongCardStateStates.Loading, songObject) {
         _mediaPlayer = mediaPlayerFactory(songObject)
     }
@@ -121,7 +121,7 @@ class SongCardState private constructor(
         _songCardStateState.value = SongCardStateStates.Playing
     }
 
-    private fun mediaPlayerFactory(songObject: SongObject): MediaPlayer {
+    private fun mediaPlayerFactory(songObject: SongModel): MediaPlayer {
         _songCardStateState.value = SongCardStateStates.Loading
         val mediaPlayer = MediaPlayer()
         mediaPlayer.setDataSource(songObject.songUrl)

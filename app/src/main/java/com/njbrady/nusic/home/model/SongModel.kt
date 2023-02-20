@@ -2,7 +2,7 @@ package com.njbrady.nusic.home.model
 
 import org.json.JSONObject
 
-data class SongObject(
+data class SongModel(
     val name: String? = null,
     val artist: String? = null,
     val start: Int? = null,
@@ -18,14 +18,14 @@ data class SongObject(
         private const val keyStart = "start"
         private const val keyEnd = "end"
         private const val keySongUrl = "song"
-        private const val keyImageUrl = "image"
+        private const val keyImageUrl = "imageUrl"
         private const val keySongId = "id"
         private const val keyArtistId = "id"
         private const val keyUsername = "username"
 
-        fun fromJson(json: JSONObject): SongObject {
+        fun fromJson(json: JSONObject): SongModel {
             try {
-                return SongObject(
+                return SongModel(
                     name = nonEmptyOrNull(json.optString(keyName)),
                     artist = nonEmptyOrNull(json.getJSONObject(keyArtist).optString(keyUsername)),
                     start = nonNegOrNull(json.optInt(keyStart, -1)),

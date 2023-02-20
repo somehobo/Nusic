@@ -1,10 +1,10 @@
 package com.njbrady.nusic.profile.utils
 
-import com.njbrady.nusic.home.model.SongObject
+import com.njbrady.nusic.home.model.SongModel
 import org.json.JSONObject
 
 data class PagedResponse(
-    var songObjects: List<SongObject>,
+    var songObjects: List<SongModel>,
     var page: Int,
     var per_page: Int,
     var total: Int,
@@ -13,11 +13,11 @@ data class PagedResponse(
         fun fromJson(jsonObject: JSONObject): PagedResponse {
             return try {
                 val total = jsonObject.getInt(ProfileKeys.totalKey)
-                val songList = mutableListOf<SongObject>()
+                val songList = mutableListOf<SongModel>()
                 val jsonArray = jsonObject.optJSONArray(ProfileKeys.songObjectsKey)
                 if (jsonArray != null && jsonArray.length() != 0) {
                     for (index in 0 until total) {
-                        songList.add(SongObject.fromJson(jsonArray.getJSONObject(index)))
+                        songList.add(SongModel.fromJson(jsonArray.getJSONObject(index)))
                     }
                 }
                 PagedResponse(
