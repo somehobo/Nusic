@@ -118,7 +118,9 @@ class SongCardState private constructor(
 
     fun release() {
         _mediaPlayer.release()
-        _songCardStateState.value = SongCardStateStates.Playing
+        if(_songCardStateState.value != SongCardStateStates.Playing) {
+            _songCardStateState.value = SongCardStateStates.Playing
+        }
     }
 
     private fun mediaPlayerFactory(songObject: SongModel): MediaPlayer {

@@ -145,14 +145,6 @@ fun SongCard(
                         .wrapContentHeight()
                         .fillMaxWidth()
                         .zIndex(0f)
-//                        .background(
-//                            brush = Brush.verticalGradient(
-//                                colors = listOf(
-//                                    colorResource(id = R.color.card_overlay), Color.Black
-//                                )
-//                            )
-
-//                        )
                         .align(Alignment.BottomCenter), songObject = songObject
                 )
                 if (songCardStateState == SongCardStateStates.Loading) {
