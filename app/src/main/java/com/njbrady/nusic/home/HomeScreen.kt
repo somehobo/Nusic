@@ -6,17 +6,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.Screen
@@ -164,33 +160,37 @@ private fun SongStack(
         }
 
 
-
-        SongCard(
-            modifier = Modifier.fillMaxSize().zIndex(0f),
-            songCardStateState = upLastState,
-            errorMessage = upLastError,
-            songObject = upLast.songObject
-        )
-
-
-        SongCard(
-            modifier = Modifier.fillMaxSize().zIndex(1f),
-            songCardStateState = upNextState,
-            errorMessage = upNextError,
-            songObject = upNext.songObject
-        )
+        key(upLast.songObject) {
+            SongCard(
+                modifier = Modifier.fillMaxSize(),
+                songCardStateState = upLastState,
+                errorMessage = upLastError,
+                songObject = upLast.songObject
+            )
+        }
 
 
-        SwipeableCardWrapper(modifier = Modifier.fillMaxSize().zIndex(2f),
-            songCardStateState = upNowState,
-            errorMessage = upNowError,
-            songObject = upNow.songObject,
-            onRetry = { upNow.retry() },
-            onCancel = { homeScreenViewModel.cancelTop() },
-            onRestart = { upNow.restart() },
-            onResume = { upNow.resume() },
-            onPause = { upNow.pause() },
-            onLiked = { like -> homeScreenViewModel.likeTop(like) })
+        key(upNext.songObject) {
+            SongCard(
+                modifier = Modifier.fillMaxSize(),
+                songCardStateState = upNextState,
+                errorMessage = upNextError,
+                songObject = upNext.songObject
+            )
+        }
+
+        key(upNow.songObject) {
+            SwipeableCardWrapper(modifier = Modifier.fillMaxSize(),
+                songCardStateState = upNowState,
+                errorMessage = upNowError,
+                songObject = upNow.songObject,
+                onRetry = { upNow.retry() },
+                onCancel = { homeScreenViewModel.cancelTop() },
+                onRestart = { upNow.restart() },
+                onResume = { upNow.resume() },
+                onPause = { upNow.pause() },
+                onLiked = { like -> homeScreenViewModel.likeTop(like) })
+        }
     }
 }
 
