@@ -1,5 +1,7 @@
 package com.njbrady.nusic
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -13,6 +15,7 @@ import com.njbrady.nusic.profile.utils.ProfilePhoto
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -20,8 +23,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     val tokenStorage: TokenStorage,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
+
 
     var currentlyPlayingSong: SongCardState? = null
 
@@ -34,7 +38,7 @@ class MainViewModel @Inject constructor(
         ProfilePagedDataSource(tokenStorage, Type.Created)
     }).flow.cachedIn(viewModelScope)
 
-    val profilePhoto = ProfilePhoto()
+    val profilePhoto = ProfilePhoto(scope = viewModelScope, tokenStorage = tokenStorage, defaultDispatcher = defaultDispatcher)
 
     private var onLogoutHit: () -> Unit = {}
 
@@ -62,6 +66,10 @@ class MainViewModel @Inject constructor(
 
     fun resumeCurrent() {
         currentlyPlayingSong?.resumePreviousPlayState()
+    }
+
+    fun uploadProfilePicture(uri: Uri, context: Context) {
+        profilePhoto.setImage(uri = uri, context = context)
     }
 
     companion object {

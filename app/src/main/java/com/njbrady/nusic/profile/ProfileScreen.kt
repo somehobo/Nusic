@@ -1,6 +1,7 @@
 package com.njbrady.nusic
 
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -45,6 +47,7 @@ import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
 import com.njbrady.nusic.utils.glowLoad
 import com.njbrady.nusic.utils.shimmerBackground
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 
 @Composable
@@ -279,11 +282,12 @@ private fun MusicSelectionTab(
 private fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
     val profilePhotoState by profilePhoto.profilePhotoState.collectAsState()
     val photoUrl by profilePhoto.photoUrl.collectAsState()
+    val localContext = LocalContext.current
     val selectImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
         if (uri != null) {
-            profilePhoto.setImage(uri)
+            profilePhoto.setImage(uri, localContext)
         }
     }
     Box(modifier = Modifier

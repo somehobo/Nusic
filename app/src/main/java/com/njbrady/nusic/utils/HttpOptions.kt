@@ -7,5 +7,6 @@ class HttpOptions {
         const val ContentType = "Content-Type"
         const val JsonContentType = "application/json"
         const val Authorization = "Authorization"
+        const val FormContentType = "multipart/form-data"
     }
 }

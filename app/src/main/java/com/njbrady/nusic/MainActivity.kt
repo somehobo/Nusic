@@ -35,7 +35,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        homeScreenViewModel.retry()
         mainViewModel.setOnLogoutHit {
             val intent = Intent(this, LoginActivity::class.java)
             finish()
@@ -58,10 +57,6 @@ class MainActivity : ComponentActivity() {
         homeScreenViewModel.forcePauseCurrent()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        homeScreenViewModel.resetState()
-    }
 }
 
 

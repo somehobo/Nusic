@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     homeScreenViewModel: HomeScreenViewModel, navController: NavController
 ) {
+    homeScreenViewModel.retry()
     navController.addOnDestinationChangedListener { _, destination, _ ->
         when (destination.route) {
             Screen.Home.route -> {
