@@ -1,6 +1,9 @@
 package com.njbrady.nusic
 
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -36,9 +39,11 @@ import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.profile.composables.ProfileScrollingSongs
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.utils.ProfilePhoto
+import com.njbrady.nusic.profile.utils.ProfilePhotoState
 import com.njbrady.nusic.profile.utils.SongListFurtherCommunicatedState
 import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.utils.glowLoad
 import com.njbrady.nusic.utils.shimmerBackground
 
 
@@ -126,7 +131,7 @@ private fun ProfileScreenContent(
                         .padding(vertical = dimensionResource(id = R.dimen.NusicDimenX4)),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    ProfilePhotoComposable(ProfilePhoto())
+                    ProfilePhotoComposable(mainViewModel.profilePhoto)
                 }
             }
 
@@ -176,8 +181,7 @@ private fun MusicElement(songObject: SongModel, onSelected: (Int) -> Unit, index
                 .size(dimensionResource(id = R.dimen.NusicDimenX5))
                 .clip(
                     RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1))
-                )
-                , songObject = songObject
+                ), songObject = songObject
         )
 
         SongNameWithArtist(
@@ -221,7 +225,8 @@ private fun SongPreviewPicture(modifier: Modifier = Modifier, songObject: SongMo
                 model = songObject.imageUrl,
                 loading = {
                     Box(
-                        modifier = Modifier.background(colorResource(id = R.color.card_overlay))
+                        modifier = Modifier
+                            .background(colorResource(id = R.color.card_overlay))
                             .fillMaxSize()
                             .shimmerBackground(),
                     )
@@ -274,13 +279,23 @@ private fun MusicSelectionTab(
 private fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
     val profilePhotoState by profilePhoto.profilePhotoState.collectAsState()
     val photoUrl by profilePhoto.photoUrl.collectAsState()
-
+    val selectImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->
+        if (uri != null) {
+            profilePhoto.setImage(uri)
+        }
+    }
     Box(modifier = Modifier
         .clip(shape = CircleShape)
-        .clickable { }) {
+        .clickable {
+            if (profilePhotoState != ProfilePhotoState.SuccessPending)
+                selectImageLauncher.launch("image/*")
+        }
+        .size(dimensionResource(id = R.dimen.ProfileImageDimen))) {
         photoUrl?.let {
             SubcomposeAsyncImage(
-                modifier = Modifier.size(dimensionResource(id = R.dimen.ProfileImageDimen)),
+                modifier = Modifier.fillMaxSize(),
                 model = it,
                 loading = {
                     Box(
@@ -291,7 +306,11 @@ private fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
                     }
                 },
                 contentDescription = stringResource(id = R.string.profile_image),
+                contentScale = ContentScale.Crop
             )
+            if (profilePhotoState == ProfilePhotoState.SuccessPending) {
+                Box(modifier = Modifier.fillMaxSize().glowLoad())
+            }
         }
     }
 

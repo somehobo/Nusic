@@ -9,6 +9,7 @@ import androidx.paging.cachedIn
 import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.utils.ProfilePagedDataSource
+import com.njbrady.nusic.profile.utils.ProfilePhoto
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,8 @@ class MainViewModel @Inject constructor(
     val createdSongs: Flow<PagingData<SongCardState>> = Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory  =  {
         ProfilePagedDataSource(tokenStorage, Type.Created)
     }).flow.cachedIn(viewModelScope)
+
+    val profilePhoto = ProfilePhoto()
 
     private var onLogoutHit: () -> Unit = {}
 

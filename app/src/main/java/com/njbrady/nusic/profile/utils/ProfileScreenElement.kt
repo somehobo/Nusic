@@ -1,8 +1,8 @@
 package com.njbrady.nusic.profile.utils
 
+import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.lang.Thread.State
 
 
 class ProfilePhoto() {
@@ -13,6 +13,7 @@ class ProfilePhoto() {
     val photoUrl: StateFlow<String?> = _photoUrl
     val profilePhotoState: StateFlow<ProfilePhotoState> = _profilePhotoState
 
+
     init {
         //get profile photo or first initial
         _profilePhotoState.value = ProfilePhotoState.Loading
@@ -20,8 +21,13 @@ class ProfilePhoto() {
         _profilePhotoState.value = ProfilePhotoState.Success
     }
 
+    fun setImage(Uri: Uri) {
+        _profilePhotoState.value = ProfilePhotoState.SuccessPending
+        _photoUrl.value = Uri.toString()
+    }
+
 }
 
 enum class ProfilePhotoState {
-    Loading, Error, Success
+    Loading, Error, Success, SuccessPending
 }
