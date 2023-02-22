@@ -18,6 +18,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,6 +28,8 @@ class MainViewModel @Inject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
+    private val _refreshingProfile = MutableStateFlow(false)
+    private var onLogoutHit: () -> Unit = {}
 
     var currentlyPlayingSong: SongCardState? = null
 
@@ -40,7 +44,12 @@ class MainViewModel @Inject constructor(
 
     val profilePhoto = ProfilePhoto(scope = viewModelScope, tokenStorage = tokenStorage, defaultDispatcher = defaultDispatcher)
 
-    private var onLogoutHit: () -> Unit = {}
+    val refreshingProfile: StateFlow<Boolean> = _refreshingProfile
+
+    fun refreshProfile() {
+        _refreshingProfile.value = true
+//        likedSongs.
+    }
 
     fun logout() {
         onLogoutHit()

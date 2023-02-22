@@ -1,7 +1,6 @@
 package com.njbrady.nusic
 
 
-import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,6 +15,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,7 +49,6 @@ import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
 import com.njbrady.nusic.utils.glowLoad
 import com.njbrady.nusic.utils.shimmerBackground
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 
 @Composable
@@ -107,7 +108,9 @@ private fun ProfileScrenNavigation(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class,
+    ExperimentalMaterialApi::class
+)
 @Composable
 private fun ProfileScreenContent(
     mainViewModel: MainViewModel,
@@ -119,53 +122,57 @@ private fun ProfileScreenContent(
     val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
     val createdSongs = mainViewModel.createdSongs.collectAsLazyPagingItems()
     val displayedSongs = if (currentlySelected == Type.Liked) likedSongs else createdSongs
-
+    var refreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(refreshing = refreshing, onRefresh = { refreshing = true })
     Scaffold(topBar = { ProfileScreenHeader(mainViewModel) }) { paddingValues ->
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = dimensionResource(id = R.dimen.NusicDimenX4)),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    ProfilePhotoComposable(mainViewModel.profilePhoto)
-                }
-            }
-
-            stickyHeader {
-                MusicSelectionTab(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        bottom = dimensionResource(
-                            id = R.dimen.NusicDimenX2
-                        )
-                    ), currentlySelected = currentlySelected, onFilter = { newFilter ->
-                    if (newFilter != currentlySelected) {
-                        onFilter(newFilter)
+        Box(modifier = Modifier.pullRefresh(pullRefreshState,true)) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .pullRefresh(state = pullRefreshState, enabled = true)
+            ) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = dimensionResource(id = R.dimen.NusicDimenX4)),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        ProfilePhotoComposable(mainViewModel.profilePhoto)
                     }
-                })
-            }
+                }
 
-            itemsIndexed(items = displayedSongs) { index, item ->
-                item?.songObject?.let {
-                    MusicElement(songObject = it, onSelected = onSelected, index = index)
-                    Divider()
+                stickyHeader {
+                    MusicSelectionTab(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            bottom = dimensionResource(
+                                id = R.dimen.NusicDimenX2
+                            )
+                        ), currentlySelected = currentlySelected, onFilter = { newFilter ->
+                        if (newFilter != currentlySelected) {
+                            onFilter(newFilter)
+                        }
+                    })
+                }
+
+                itemsIndexed(items = displayedSongs) { index, item ->
+                    item?.songObject?.let {
+                        MusicElement(songObject = it, onSelected = onSelected, index = index)
+                        Divider()
+                    }
+                }
+
+                item {
+                    SongListInitialCommunicatedState(loadState = displayedSongs.loadState)
+                }
+
+                item {
+                    SongListFurtherCommunicatedState(loadState = displayedSongs.loadState)
                 }
             }
-
-            item {
-                SongListInitialCommunicatedState(loadState = displayedSongs.loadState)
-            }
-
-            item {
-                SongListFurtherCommunicatedState(loadState = displayedSongs.loadState)
-            }
+            PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }
     }
 }
@@ -313,7 +320,9 @@ private fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
                 contentScale = ContentScale.Crop
             )
             if (profilePhotoState == ProfilePhotoState.SuccessPending) {
-                Box(modifier = Modifier.fillMaxSize().glowLoad())
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .glowLoad())
             }
         }
     }
