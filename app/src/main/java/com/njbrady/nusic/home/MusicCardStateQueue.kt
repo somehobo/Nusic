@@ -17,14 +17,12 @@ class MusicCardStateQueue(
             _realSongQueue.add(SongCardState(it))
         }
         setValues()
-        _upNow.value.playIfFirst()
     }
 
     fun pop() {
         _realSongQueue.first().release()
         _realSongQueue.removeFirstOrNull()
         setValues()
-        _upNow.value.playIfFirst()
     }
 
     fun size(): Int {
@@ -47,7 +45,7 @@ class MusicCardStateQueue(
         _upLast.value = getAtIndex(2)
         _upNext.value = getAtIndex(1)
         _upNow.value = getAtIndex(0)
-
+        _upNow.value.playIfFirst()
     }
 
     private fun getAtIndex(index: Int): SongCardState {

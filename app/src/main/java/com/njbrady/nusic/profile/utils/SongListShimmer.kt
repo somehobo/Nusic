@@ -12,9 +12,9 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
 import com.njbrady.nusic.MainViewModel
+import com.njbrady.nusic.R
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.utils.shimmerBackground
-import com.njbrady.nusic.R
 
 @Composable
 fun SongListInitialCommunicatedState(loadState: CombinedLoadStates) {

@@ -16,11 +16,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.Screen
-import com.njbrady.nusic.home.utils.*
+import com.njbrady.nusic.home.utils.Direction
+import com.njbrady.nusic.home.utils.SongCardState
+import com.njbrady.nusic.home.utils.SwipeableCardState
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.ui.theme.NusicTheme
-import com.njbrady.nusic.home.utils.Direction
 import com.njbrady.nusic.utils.composables.SongCard
 import com.njbrady.nusic.utils.composables.SwipeableCardWrapper
 import kotlinx.coroutines.launch
@@ -30,7 +31,6 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     homeScreenViewModel: HomeScreenViewModel, navController: NavController
 ) {
-    homeScreenViewModel.retry()
     navController.addOnDestinationChangedListener { _, destination, _ ->
         when (destination.route) {
             Screen.Home.route -> {

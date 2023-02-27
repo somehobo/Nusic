@@ -26,12 +26,16 @@ import com.njbrady.nusic.home.HomeScreenViewModel
 import com.njbrady.nusic.login.LoginActivity
 import com.njbrady.nusic.ui.theme.NusicTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val homeScreenViewModel: HomeScreenViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
+
+    @Inject
+    lateinit var mainSocketHandler: MainSocketHandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

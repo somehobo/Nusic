@@ -17,11 +17,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.njbrady.nusic.MainViewModel
-import com.njbrady.nusic.profile.requests.Type
-import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 import com.njbrady.nusic.R
 import com.njbrady.nusic.home.utils.SongCardState
+import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.utils.composables.ItemImpression
+import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 import com.njbrady.nusic.utils.composables.SongCard
 
 

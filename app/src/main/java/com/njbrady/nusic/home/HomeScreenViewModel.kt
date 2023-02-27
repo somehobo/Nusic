@@ -1,16 +1,14 @@
 package com.njbrady.nusic.home
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.njbrady.nusic.MainSocketHandler
 import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.*
-import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.util.*
 import javax.inject.Inject
 
 /*
@@ -22,29 +20,40 @@ known bugs:
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val tokenStorage: TokenStorage,
-    @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher
+    @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher,
+    mainSocketHandler: MainSocketHandler
 ) : ViewModel() {
 
-    private val _jobRunner = JobRunner(
-        scope = viewModelScope,
-        onRecieved = { songObjectErrorWrapper -> _musicCardQueue.push(songObjectErrorWrapper.songObject) },
-        defaultDispatcher = defaultDispatcher,
-        tokenStorage = tokenStorage
+    private val messageHandler = HomeMessageHandler(
+        onSong = { songModel -> _musicCardQueue.push(songModel) },
+        onError = { error ->
+            _nonBlockingError.value = error
+            _errorToast.value = error
+        },
+        onBlockingError = { error ->
+            _blockingError.value = error
+            _errorToast.value = error
+        },
+        mainSocketHandler = mainSocketHandler
     )
+
+
     private val _upNow = MutableStateFlow(SongCardState())
     private val _upNext = MutableStateFlow(SongCardState())
     private val _upLast = MutableStateFlow(SongCardState())
     private val _musicCardQueue = MusicCardStateQueue(_upNow, _upNext, _upLast)
-    private val _jobQueue: Queue<MusicJob> = LinkedList()
+    private val _isLoading = MutableStateFlow(false)
+    private val _nonBlockingError = MutableStateFlow<String?>(null)
+    private val _blockingError = MutableStateFlow<String?>(null)
+    private val _errorToast = MutableStateFlow<String?>(null)
 
     val upNow: StateFlow<SongCardState> = _upNow
     val upNext: StateFlow<SongCardState> = _upNext
     val upLast: StateFlow<SongCardState> = _upLast
-    val isLoading: StateFlow<Boolean> = _jobRunner.isLoading
-    val nonBlockingError: StateFlow<String?> = _jobRunner.nonBlockingError
-    val blockingError: StateFlow<String?> = _jobRunner.blockingError
-    val blockingErrorToast: StateFlow<String?> = _jobRunner.blockingErrorToast
+    val isLoading: StateFlow<Boolean> = _isLoading
+    val nonBlockingError: StateFlow<String?> = _nonBlockingError
+    val blockingError: StateFlow<String?> = _blockingError
+    val blockingErrorToast: StateFlow<String?> = _errorToast
 
 
     init {
@@ -55,13 +64,13 @@ class HomeScreenViewModel @Inject constructor(
     fun likeSong(song: SongModel?, like: Boolean) {
         song?.let {
             _musicCardQueue.pop()
-            _jobRunner.enqueueJob(LikeSongJob(it, like, tokenStorage))
+            runJob(LikeSongMessage(songModel = it, liked = like))
         }
     }
 
     fun cancelTop() {
         _musicCardQueue.pop()
-        _jobRunner.enqueueJob(GetSongJob(tokenStorage))
+        runJob(GetSongMessage())
     }
 
     fun likeTop(like: Boolean) {
@@ -77,17 +86,20 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun retry() {
-        _jobRunner.retry(_musicCardQueue.size())
+        val requestFurther = MaxQueueSize - _musicCardQueue.size()
+
+        for (i in 0 until requestFurther) {
+            runJob(GetSongMessage())
+        }
+
     }
 
     fun resetToastErrors() {
-        _jobRunner.resetToastErrors()
+        _errorToast.value = null
     }
 
     fun resetState() {
-        _jobQueue.clear()
         _musicCardQueue.clear()
-        _jobRunner.resetState()
     }
 
     fun forcePauseCurrent() {
@@ -98,10 +110,13 @@ class HomeScreenViewModel @Inject constructor(
         upNow.value.resumePreviousPlayState()
     }
 
+    private fun runJob(musicMessage: MusicMessage){
+        messageHandler.sendMessage(musicMessage.getMessage())
+    }
+
     override fun onCleared() {
         super.onCleared()
         _musicCardQueue.release()
-        _jobRunner.release()
     }
 
     companion object {
