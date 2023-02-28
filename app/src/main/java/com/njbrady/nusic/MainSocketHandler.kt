@@ -6,6 +6,7 @@ import com.njbrady.nusic.utils.OnSocketRoute
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.UrlProvider.Companion.baseWebSocketUrl
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import okhttp3.*
 import okio.ByteString
 import org.json.JSONObject
@@ -16,9 +17,12 @@ class MainSocketHandler(private val okHttpClient: OkHttpClient, private val toke
 
     private val _messageQueue = LinkedList<String>()
     private val _socketRoutes = mutableListOf<OnSocketRoute>()
-    private var _connected = MutableStateFlow(false)
-
+    private val _connected = MutableStateFlow(true)
+    private val _loadingConnection = MutableStateFlow(false)
     private lateinit var _webSocket: WebSocket
+
+    val connected: StateFlow<Boolean> = _connected
+    val loadingConnection: StateFlow<Boolean> = _loadingConnection
 
     init {
         Log.e("MAINSOCKETHANDLER", "socket handler created")
@@ -26,12 +30,18 @@ class MainSocketHandler(private val okHttpClient: OkHttpClient, private val toke
     }
 
     private fun openConnection() {
+        _loadingConnection.value = true
         val request = Request.Builder()
             .url(baseWebSocketUrl)
             .header(HttpOptions.Authorization, tokenStorage.retrieveToken())
             .build()
 
         _webSocket = okHttpClient.newWebSocket(request, this)
+        _loadingConnection.value = false
+    }
+
+    fun retryConnection() {
+        openConnection()
     }
 
     fun subscribeNewRoute(route: String, callback: (JSONObject) -> Unit) {
@@ -56,6 +66,7 @@ class MainSocketHandler(private val okHttpClient: OkHttpClient, private val toke
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
+        _connected.value = false
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
