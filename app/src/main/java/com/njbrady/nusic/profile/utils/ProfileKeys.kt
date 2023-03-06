@@ -6,4 +6,5 @@ object ProfileKeys {
     const val perPageKey = "per_page"
     const val totalKey = "total"
     const val profilePhotoKey = "profilePhoto"
+    const val songListType = "song_list_type"
 }

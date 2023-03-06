@@ -13,7 +13,7 @@ private val DarkColorPalette = darkColors(
     secondary = NusicOrange,
     background = Color.Black,
     onBackground = Color.White,
-    onError = Color.White
+    onError = Color.Black
 )
 
 private val LightColorPalette = lightColors(
@@ -22,7 +22,7 @@ private val LightColorPalette = lightColors(
     secondary = NusicBlue,
     background = Color.White,
     onBackground = Color.Black ,
-    onError = Color.Black
+    onError = Color.White
 
     /* Other default colors to override
     background = Color.White,

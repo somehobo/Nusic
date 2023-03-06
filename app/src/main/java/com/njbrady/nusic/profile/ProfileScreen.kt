@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -121,9 +122,18 @@ private fun ProfileScreenContent(
 
     val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
     val createdSongs = mainViewModel.createdSongs.collectAsLazyPagingItems()
+    val prependedLikedSongs by mainViewModel.prependedLikedSongs.collectAsState()
+    val prependedCreatedSongs by mainViewModel.prependedCreatedSongs.collectAsState()
+    val displayedPrependedSongs = if (currentlySelected == Type.Liked) prependedLikedSongs else prependedCreatedSongs
     val displayedSongs = if (currentlySelected == Type.Liked) likedSongs else createdSongs
-    var refreshing by remember { mutableStateOf(false) }
-    val pullRefreshState = rememberPullRefreshState(refreshing = refreshing, onRefresh = { refreshing = true })
+    val refreshing by mainViewModel.refreshingProfile.collectAsState()
+    val pullRefreshState = rememberPullRefreshState(refreshing = refreshing, onRefresh = {
+        mainViewModel.setRefresh(true)
+        likedSongs.refresh()
+        createdSongs.refresh()
+        mainViewModel.refreshProfile()
+        mainViewModel.setRefresh(false)
+    })
     Scaffold(topBar = { ProfileScreenHeader(mainViewModel) }) { paddingValues ->
         Box(modifier = Modifier.pullRefresh(pullRefreshState,true)) {
             LazyColumn(
@@ -157,10 +167,24 @@ private fun ProfileScreenContent(
                     })
                 }
 
+                itemsIndexed(items = displayedPrependedSongs) { index, item ->
+                    if(item.second) {
+                        item.first.songObject?.let {
+                            MusicElement(songObject = it, onSelected = onSelected, index = index)
+                            Divider()
+                        }
+                    }
+                }
+
                 itemsIndexed(items = displayedSongs) { index, item ->
-                    item?.songObject?.let {
-                        MusicElement(songObject = it, onSelected = onSelected, index = index)
-                        Divider()
+                    val canShow = displayedPrependedSongs.find {
+                        it.second && it.first.songObject?.songId == item?.songObject?.songId
+                    }
+                    if (canShow == null) {
+                        item?.songObject?.let {
+                            MusicElement(songObject = it, onSelected = onSelected, index = index)
+                            Divider()
+                        }
                     }
                 }
 

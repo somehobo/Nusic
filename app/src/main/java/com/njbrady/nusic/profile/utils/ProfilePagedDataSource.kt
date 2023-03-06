@@ -8,8 +8,8 @@ import com.njbrady.nusic.profile.requests.pagedRequest
 import com.njbrady.nusic.utils.TokenStorage
 
 class ProfilePagedDataSource(private val tokenStorage: TokenStorage, private val type: Type) : PagingSource<Int, SongCardState>() {
-    override fun getRefreshKey(state: PagingState<Int, SongCardState>): Int? {
-        return state.anchorPosition
+    override fun getRefreshKey(state: PagingState<Int, SongCardState>): Int {
+        return 1
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, SongCardState> {
@@ -29,4 +29,6 @@ class ProfilePagedDataSource(private val tokenStorage: TokenStorage, private val
             return LoadResult.Error(exception)
         }
     }
+
+
 }

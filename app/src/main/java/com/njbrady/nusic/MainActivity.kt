@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,7 +27,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.njbrady.nusic.home.HomeScreen
 import com.njbrady.nusic.home.HomeScreenViewModel
-import com.njbrady.nusic.home.RetryButton
 import com.njbrady.nusic.login.LoginActivity
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.ui.theme.NusicTheme
@@ -113,7 +113,7 @@ private fun MainContent(
                     if (loadingConnection) {
                         CenteredProgressIndicator()
                     } else {
-                        Row {
+                        Row(horizontalArrangement = Arrangement.Center) {
                             Text(
                                 text = stringResource(R.string.lost_socket_connection),
                                 style = MaterialTheme.typography.h5,
@@ -124,7 +124,18 @@ private fun MainContent(
                                     ), vertical = dimensionResource(id = R.dimen.NusicDimenX1)
                                 )
                             )
-                            RetryButton(callback = { mainSocketHandler.retryConnection() })
+                            Button(
+                                onClick = { mainSocketHandler.retryConnection() },
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = MaterialTheme.colors.background,
+                                    contentColor = MaterialTheme.colors.onBackground,
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = stringResource(id = R.string.refresh_button_content_description),
+                                )
+                            }
                         }
                     }
                 }

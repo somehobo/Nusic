@@ -18,7 +18,7 @@ suspend fun getProfilePhoto(tokenStorage: TokenStorage): String {
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = HttpOptions.GET
             connection.doOutput = false
-            connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.retrieveToken())
+            connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.prefacedRetrieveToken())
             connection.addRequestProperty(HttpOptions.ContentType, HttpOptions.JsonContentType)
 
             if (connection.responseCode in 200.. 300) {

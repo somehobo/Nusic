@@ -6,4 +6,5 @@ object GeneralKeys {
     const val ERROR_FLAG = "error_flag"
     const val MESSAGE_TYPE = "type"
     const val SONG_ID = "song_id"
+    const val SONG_CATEGORY = "song_category"
 }

@@ -34,7 +34,7 @@ suspend fun uploadProfilePhoto(tokenStorage: TokenStorage, uri: Uri, context: Co
             connection.requestMethod = HttpOptions.POST
             connection.doInput = true
             connection.useCaches = false
-            connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.retrieveToken())
+            connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.prefacedRetrieveToken())
             connection.addRequestProperty(
                 HttpOptions.ContentType, HttpOptions.FormContentType + ";boundary=$boundary"
             )

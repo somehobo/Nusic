@@ -3,6 +3,7 @@ package com.njbrady.nusic.profile.requests
 import com.njbrady.nusic.home.utils.SongKeys
 import com.njbrady.nusic.profile.utils.PagedResponse
 import com.njbrady.nusic.profile.utils.ProfileKeys
+import com.njbrady.nusic.profile.utils.ProfileValues
 import com.njbrady.nusic.utils.HttpOptions
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.UrlProvider
@@ -17,14 +18,15 @@ enum class Type {Liked, Created}
 suspend fun pagedRequest(tokenStorage: TokenStorage, page: Int, type: Type): PagedResponse {
     return try {
         withContext(Dispatchers.IO) {
-            val url = if (type == Type.Liked) URL(UrlProvider.likedSongsPagedUrl) else URL(UrlProvider.createdSongsPagedUrl)
+            val url = URL(UrlProvider.pagedSongsUrl)
+            val listType = if (type == Type.Liked) ProfileValues.likedListValue else ProfileValues.createdistValue
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = HttpOptions.POST
             connection.doOutput = true
-            connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.retrieveToken())
+            connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.prefacedRetrieveToken())
             connection.addRequestProperty(HttpOptions.ContentType, HttpOptions.JsonContentType)
             val toSend =
-                mapOf(ProfileKeys.pageKey to page)
+                mapOf(ProfileKeys.pageKey to page, ProfileKeys.songListType to listType)
 
             val toSendJson = JSONObject(toSend).toString()
 

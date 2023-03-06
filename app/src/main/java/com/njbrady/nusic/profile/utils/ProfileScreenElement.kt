@@ -45,6 +45,10 @@ class ProfilePhoto(
         }
     }
 
+    fun refresh() {
+        getImage()
+    }
+
     fun setImage(uri: Uri, context: Context) {
         scope.launch {
             _profilePhotoState.value = ProfilePhotoState.SuccessPending

@@ -10,9 +10,9 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.profile.requests.Type
+import com.njbrady.nusic.profile.utils.ProfileMessageHandler
 import com.njbrady.nusic.profile.utils.ProfilePagedDataSource
 import com.njbrady.nusic.profile.utils.ProfilePhoto
-import com.njbrady.nusic.utils.OnSocketRoute
 import com.njbrady.nusic.utils.TokenStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,40 +30,68 @@ class MainViewModel @Inject constructor(
     val mainSocketHandler: MainSocketHandler
 ) : ViewModel() {
 
-    init {
-        mainSocketHandler.subscribeNewRoute(
-            route = OnSocketRoute.HOMEROUTE
-        ) { jsonObject -> onMessageRecieved(jsonObject = jsonObject) }
-    }
-
-    private val _refreshingProfile = MutableStateFlow(false)
     private var onLogoutHit: () -> Unit = {}
+    private val _refreshingProfile = MutableStateFlow(false)
+    private val _prependedLikedSongs = MutableStateFlow(listOf<Pair<SongCardState, Boolean>>())
+    private val _prependedCreatedSongs = MutableStateFlow(listOf<Pair<SongCardState, Boolean>>())
+
+    val refreshingProfile: StateFlow<Boolean> = _refreshingProfile
+    val prependedLikedSongs: StateFlow<List<Pair<SongCardState, Boolean>>> = _prependedLikedSongs
+    val prependedCreatedSongs: StateFlow<List<Pair<SongCardState, Boolean>>> = _prependedCreatedSongs
 
     var currentlyPlayingSong: SongCardState? = null
 
-    val likedSongs: Flow<PagingData<SongCardState>> = Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory  =  {
-        ProfilePagedDataSource(tokenStorage, Type.Liked)
-    }).flow.cachedIn(viewModelScope)
 
+    private val messageHandler = ProfileMessageHandler(onSongReceived = { songCardState, type, liked ->
+        when (type) {
+            Type.Liked -> {
+                val likedSongsList = _prependedLikedSongs.value.filter {
+                    it.first.songObject?.songId != songCardState.songObject?.songId
+                }
+                _prependedLikedSongs.value =
+                    listOf(Pair(songCardState, liked)) + likedSongsList
+            }
+            Type.Created -> {
+                val createdSongsList = _prependedCreatedSongs.value.filter {
+                    it.first.songObject?.songId != songCardState.songObject?.songId
+                }
+                _prependedCreatedSongs.value =
+                    listOf(Pair(songCardState, liked)) + createdSongsList
+            }
+        }
+    }, onError = {}, onBlockingError = {}, mainSocketHandler = mainSocketHandler
+    )
 
-    val createdSongs: Flow<PagingData<SongCardState>> = Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory  =  {
-        ProfilePagedDataSource(tokenStorage, Type.Created)
-    }).flow.cachedIn(viewModelScope)
+    val likedSongs: Flow<PagingData<SongCardState>> =
+        Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = {
+            ProfilePagedDataSource(tokenStorage, Type.Liked)
+        }).flow.cachedIn(viewModelScope)
 
-    val profilePhoto = ProfilePhoto(scope = viewModelScope, tokenStorage = tokenStorage, defaultDispatcher = defaultDispatcher)
+    val createdSongs: Flow<PagingData<SongCardState>> =
+        Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = {
+            ProfilePagedDataSource(tokenStorage, Type.Created)
+        }).flow.cachedIn(viewModelScope)
 
-    val refreshingProfile: StateFlow<Boolean> = _refreshingProfile
-
-    fun refreshProfile() {
-        _refreshingProfile.value = true
-    }
+    val profilePhoto = ProfilePhoto(
+        scope = viewModelScope, tokenStorage = tokenStorage, defaultDispatcher = defaultDispatcher
+    )
 
     fun logout() {
         onLogoutHit()
         tokenStorage.deleteToken()
     }
 
-    fun setOnLogoutHit(function :() -> Unit) {
+    fun setRefresh(state: Boolean) {
+        _refreshingProfile.value = state
+    }
+
+    fun refreshProfile() {
+        _prependedLikedSongs.value = emptyList()
+        _prependedCreatedSongs.value = emptyList()
+        profilePhoto.refresh()
+    }
+
+    fun setOnLogoutHit(function: () -> Unit) {
         onLogoutHit = function
     }
 

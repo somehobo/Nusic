@@ -67,6 +67,10 @@ class TokenStorage(private val context: Context) {
         return String(decryptedToken)
     }
 
+    fun prefacedRetrieveToken(): String {
+        return TOKEN_PREFACE + retrieveToken()
+    }
+
     fun deleteToken() {
         val keystore = KeyStore.getInstance(ANDROID_KEY_STORE)
         val editor = prefs.edit()
