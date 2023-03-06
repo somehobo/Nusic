@@ -10,7 +10,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -87,7 +90,10 @@ private fun MainContent(
                 screens.forEach { screen ->
                     BottomNavigationItem(icon = {
                         Icon(
-                            Icons.Filled.Favorite, contentDescription = null
+                            when (screen) {
+                                Screen.Home -> Icons.Filled.Home
+                                Screen.Profile -> Icons.Filled.AccountCircle
+                            }, contentDescription = null
                         )
                     },
                         label = { Text(stringResource(screen.resourceId)) },
@@ -113,7 +119,10 @@ private fun MainContent(
                     if (loadingConnection) {
                         CenteredProgressIndicator()
                     } else {
-                        Row(horizontalArrangement = Arrangement.Center) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
                             Text(
                                 text = stringResource(R.string.lost_socket_connection),
                                 style = MaterialTheme.typography.h5,
@@ -145,21 +154,20 @@ private fun MainContent(
         NavHost(
             navController, startDestination = Screen.Home.route, Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Profile.route) { ProfileScreen(mainViewModel, navController) }
             composable(Screen.Home.route) {
                 HomeScreen(homeScreenViewModel, navController)
             }
-            composable(Screen.Conversation.route) { ConversationScreen() }
+            composable(Screen.Profile.route) { ProfileScreen(mainViewModel, navController) }
+
         }
     }
 }
 
 sealed class Screen(val route: String, @StringRes val resourceId: Int) {
     object Home : Screen("home", R.string.home_screen)
-    object Conversation : Screen("conversation", R.string.conversation_screen)
     object Profile : Screen("profile", R.string.profile_screen)
 }
 
 val screens = listOf(
-    Screen.Profile, Screen.Home, Screen.Conversation
+    Screen.Home, Screen.Profile
 )
