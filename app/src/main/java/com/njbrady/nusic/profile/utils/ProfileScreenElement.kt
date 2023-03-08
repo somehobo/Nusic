@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.njbrady.nusic.profile.requests.getProfilePhoto
 import com.njbrady.nusic.profile.requests.uploadProfilePhoto
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 class ProfilePhoto(
     private val scope: CoroutineScope,
     private val defaultDispatcher: CoroutineDispatcher,
-    private val tokenStorage: TokenStorage
+    private val localStorage: LocalStorage
 ) {
 
     private val _photoUrl = MutableStateFlow<String?>(null)
@@ -36,7 +36,7 @@ class ProfilePhoto(
         scope.launch {
             _profilePhotoState.value = ProfilePhotoState.Loading
             try {
-                _photoUrl.value = getProfilePhoto(tokenStorage = tokenStorage)
+                _photoUrl.value = getProfilePhoto(localStorage = localStorage)
                 _profilePhotoState.value = ProfilePhotoState.Success
             } catch (error: Exception) {
                 _errorMessage.value = error.message
@@ -55,7 +55,7 @@ class ProfilePhoto(
             _photoUrl.value = uri.toString()
             val oldPhoto = _photoUrl.value
             try {
-                uploadProfilePhoto(tokenStorage = tokenStorage, uri = uri, context = context)
+                uploadProfilePhoto(localStorage = localStorage, uri = uri, context = context)
                 _profilePhotoState.value = ProfilePhotoState.Success
             } catch (error: Exception) {
                 _errorMessage.value = error.message

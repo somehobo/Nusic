@@ -5,7 +5,7 @@ import com.njbrady.nusic.profile.utils.PagedResponse
 import com.njbrady.nusic.profile.utils.ProfileKeys
 import com.njbrady.nusic.profile.utils.ProfileValues
 import com.njbrady.nusic.utils.HttpOptions
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.UrlProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,7 +15,7 @@ import java.net.URL
 
 enum class Type {Liked, Created}
 
-suspend fun pagedRequest(tokenStorage: TokenStorage, page: Int, type: Type): PagedResponse {
+suspend fun pagedRequest(localStorage: LocalStorage, page: Int, type: Type): PagedResponse {
     return try {
         withContext(Dispatchers.IO) {
             val url = URL(UrlProvider.pagedSongsUrl)
@@ -23,7 +23,7 @@ suspend fun pagedRequest(tokenStorage: TokenStorage, page: Int, type: Type): Pag
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = HttpOptions.POST
             connection.doOutput = true
-            connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.prefacedRetrieveToken())
+            connection.addRequestProperty(HttpOptions.Authorization, localStorage.prefacedRetrieveToken())
             connection.addRequestProperty(HttpOptions.ContentType, HttpOptions.JsonContentType)
             val toSend =
                 mapOf(ProfileKeys.pageKey to page, ProfileKeys.songListType to listType)

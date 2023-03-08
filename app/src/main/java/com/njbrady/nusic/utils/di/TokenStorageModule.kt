@@ -1,7 +1,7 @@
 package com.njbrady.nusic.utils.di
 
 import android.content.Context
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,7 +16,7 @@ class TokenStorageModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideTokenStorage(@ApplicationContext context: Context): TokenStorage {
-        return TokenStorage(context)
+    fun provideTokenStorage(@ApplicationContext context: Context): LocalStorage {
+        return LocalStorage(context)
     }
 }

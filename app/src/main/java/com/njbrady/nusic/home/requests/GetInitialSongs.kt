@@ -4,21 +4,21 @@ import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.model.SongObjectErrorWrapper
 import com.njbrady.nusic.home.utils.SongKeys
 import com.njbrady.nusic.utils.HttpOptions
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.UrlProvider
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
 fun getSong(
-    tokenStorage: TokenStorage
+    localStorage: LocalStorage
 ): SongObjectErrorWrapper {
     try {
         val url = URL(UrlProvider.initialSongUrl)
         val connection = url.openConnection() as HttpURLConnection
         connection.requestMethod = HttpOptions.GET
         connection.doOutput = false
-        connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.retrieveToken())
+        connection.addRequestProperty(HttpOptions.Authorization, localStorage.retrieveToken())
         connection.addRequestProperty(HttpOptions.ContentType, HttpOptions.JsonContentType)
         return when (connection.responseCode) {
             in 200..299 -> {
@@ -46,7 +46,7 @@ fun getSong(
 fun likeSong(
     songObject: SongModel,
     liked: Boolean,
-    tokenStorage: TokenStorage
+    localStorage: LocalStorage
 ): SongObjectErrorWrapper {
     try {
 
@@ -54,7 +54,7 @@ fun likeSong(
         val connection = url.openConnection() as HttpURLConnection
         connection.requestMethod = HttpOptions.POST
         connection.doOutput = true
-        connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.retrieveToken())
+        connection.addRequestProperty(HttpOptions.Authorization, localStorage.retrieveToken())
         connection.addRequestProperty(HttpOptions.ContentType, HttpOptions.JsonContentType)
 
         val toSend =

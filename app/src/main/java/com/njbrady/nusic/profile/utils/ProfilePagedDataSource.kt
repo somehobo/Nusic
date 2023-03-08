@@ -5,9 +5,9 @@ import androidx.paging.PagingState
 import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.requests.pagedRequest
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 
-class ProfilePagedDataSource(private val tokenStorage: TokenStorage, private val type: Type) : PagingSource<Int, SongCardState>() {
+class ProfilePagedDataSource(private val localStorage: LocalStorage, private val type: Type) : PagingSource<Int, SongCardState>() {
     override fun getRefreshKey(state: PagingState<Int, SongCardState>): Int {
         return 1
     }
@@ -15,7 +15,7 @@ class ProfilePagedDataSource(private val tokenStorage: TokenStorage, private val
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, SongCardState> {
         return try {
             val pageToGet = params.key ?: 1
-            val pagedResponse = pagedRequest(tokenStorage, pageToGet, type)
+            val pagedResponse = pagedRequest(localStorage, pageToGet, type)
             val songStates = mutableListOf<SongCardState>()
             pagedResponse.songObjects.forEach {
                 songStates.add(SongCardState(it))

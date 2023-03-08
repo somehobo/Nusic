@@ -6,7 +6,7 @@ import android.util.Log
 import com.njbrady.nusic.home.utils.SongKeys
 import com.njbrady.nusic.profile.utils.ProfileKeys
 import com.njbrady.nusic.utils.HttpOptions
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.UrlProvider
 import com.njbrady.nusic.utils.getFileFromUri
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
-suspend fun uploadProfilePhoto(tokenStorage: TokenStorage, uri: Uri, context: Context) {
+suspend fun uploadProfilePhoto(localStorage: LocalStorage, uri: Uri, context: Context) {
     return try {
         withContext(Dispatchers.IO) {
             val uriPath = uri.toString().replace("content://", "file://")
@@ -34,7 +34,7 @@ suspend fun uploadProfilePhoto(tokenStorage: TokenStorage, uri: Uri, context: Co
             connection.requestMethod = HttpOptions.POST
             connection.doInput = true
             connection.useCaches = false
-            connection.addRequestProperty(HttpOptions.Authorization, tokenStorage.prefacedRetrieveToken())
+            connection.addRequestProperty(HttpOptions.Authorization, localStorage.prefacedRetrieveToken())
             connection.addRequestProperty(
                 HttpOptions.ContentType, HttpOptions.FormContentType + ";boundary=$boundary"
             )

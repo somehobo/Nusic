@@ -23,7 +23,7 @@ class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val loginState = loginScreenViewModel.tokenStorage.containsToken.collectAsState()
+            val loginState = loginScreenViewModel.localStorage.containsToken.collectAsState()
             NusicTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background

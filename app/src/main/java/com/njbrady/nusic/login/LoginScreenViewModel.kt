@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.njbrady.nusic.login.requests.loginRequest
 import com.njbrady.nusic.login.requests.registerRequest
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginScreenViewModel @Inject constructor(
-    val tokenStorage: TokenStorage,
+    val localStorage: LocalStorage,
     @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher
 
 ) : ViewModel() {
@@ -113,7 +113,7 @@ class LoginScreenViewModel @Inject constructor(
             withContext(defaultDispatcher) {
                 _loginState.value = LoginStates.Loading
                 val loginRepository =
-                    loginRequest(userNameInput.value, passwordInput.value, tokenStorage)
+                    loginRequest(userNameInput.value, passwordInput.value, localStorage)
                 if (loginRepository.containsError) {
                     _errorMessages.value = loginRepository.errorMessages
                     _userNameErrorMessages.value = loginRepository.usernameError
@@ -151,7 +151,7 @@ class LoginScreenViewModel @Inject constructor(
                             loginRequest(
                                 _registerUserNameInput.value,
                                 _registerPasswordInput.value,
-                                tokenStorage
+                                localStorage
                             )
                         if (loginRepository.containsError) {
                             _errorMessages.value = loginRepository.errorMessages

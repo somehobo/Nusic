@@ -13,7 +13,7 @@ import com.njbrady.nusic.profile.requests.Type
 import com.njbrady.nusic.profile.utils.ProfileMessageHandler
 import com.njbrady.nusic.profile.utils.ProfilePagedDataSource
 import com.njbrady.nusic.profile.utils.ProfilePhoto
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    val tokenStorage: TokenStorage,
+    val localStorage: LocalStorage,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
     val mainSocketHandler: MainSocketHandler
 ) : ViewModel() {
@@ -38,7 +38,7 @@ class MainViewModel @Inject constructor(
     val refreshingProfile: StateFlow<Boolean> = _refreshingProfile
     val prependedLikedSongs: StateFlow<List<Pair<SongCardState, Boolean>>> = _prependedLikedSongs
     val prependedCreatedSongs: StateFlow<List<Pair<SongCardState, Boolean>>> = _prependedCreatedSongs
-
+    val username = localStorage.retrieveUsername()
     var currentlyPlayingSong: SongCardState? = null
 
 
@@ -64,21 +64,23 @@ class MainViewModel @Inject constructor(
 
     val likedSongs: Flow<PagingData<SongCardState>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = {
-            ProfilePagedDataSource(tokenStorage, Type.Liked)
+            ProfilePagedDataSource(localStorage, Type.Liked)
         }).flow.cachedIn(viewModelScope)
 
     val createdSongs: Flow<PagingData<SongCardState>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = {
-            ProfilePagedDataSource(tokenStorage, Type.Created)
+            ProfilePagedDataSource(localStorage, Type.Created)
         }).flow.cachedIn(viewModelScope)
 
     val profilePhoto = ProfilePhoto(
-        scope = viewModelScope, tokenStorage = tokenStorage, defaultDispatcher = defaultDispatcher
+        scope = viewModelScope, localStorage = localStorage, defaultDispatcher = defaultDispatcher
     )
 
     fun logout() {
         onLogoutHit()
-        tokenStorage.deleteToken()
+        mainSocketHandler.disconnect()
+        localStorage.deleteUsername()
+        localStorage.deleteToken()
     }
 
     fun setRefresh(state: Boolean) {

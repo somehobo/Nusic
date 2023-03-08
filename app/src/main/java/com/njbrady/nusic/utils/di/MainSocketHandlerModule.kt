@@ -1,7 +1,7 @@
 package com.njbrady.nusic.utils.di
 
 import com.njbrady.nusic.MainSocketHandler
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,7 +16,7 @@ class MainSocketHandlerModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideTokenStorage(tokenStorage: TokenStorage): MainSocketHandler {
-        return MainSocketHandler(OkHttpClient(), tokenStorage)
+    fun provideTokenStorage(localStorage: LocalStorage): MainSocketHandler {
+        return MainSocketHandler(OkHttpClient(), localStorage)
     }
 }

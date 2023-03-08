@@ -28,8 +28,12 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -100,14 +104,17 @@ private fun ProfileScrenNavigation(
 
     mainNavController.addOnDestinationChangedListener { _, destination, _ ->
         if (destination.route != Screen.Profile.route) {
-            if (profileNavController.currentDestination?.route != ProfileScreens.Profile.route)
-                profileNavController.navigate(route = ProfileScreens.Profile.route)
+            if (profileNavController.currentDestination?.route != ProfileScreens.Profile.route) profileNavController.navigate(
+                route = ProfileScreens.Profile.route
+            )
         }
 
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class,
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalAnimationApi::class,
     ExperimentalMaterialApi::class
 )
 @Composable
@@ -122,25 +129,32 @@ private fun ProfileScreenContent(
     val createdSongs = mainViewModel.createdSongs.collectAsLazyPagingItems()
     val prependedLikedSongs by mainViewModel.prependedLikedSongs.collectAsState()
     val prependedCreatedSongs by mainViewModel.prependedCreatedSongs.collectAsState()
-    val displayedPrependedSongs = if (currentlySelected == Type.Liked) prependedLikedSongs else prependedCreatedSongs
+    val displayedPrependedSongs =
+        if (currentlySelected == Type.Liked) prependedLikedSongs else prependedCreatedSongs
     val displayedSongs = if (currentlySelected == Type.Liked) likedSongs else createdSongs
     val refreshing by mainViewModel.refreshingProfile.collectAsState()
     val pullRefreshState = rememberPullRefreshState(refreshing = refreshing, onRefresh = {
-//        mainViewModel.setRefresh(true)
         likedSongs.refresh()
         createdSongs.refresh()
         mainViewModel.refreshProfile()
         mainViewModel.setRefresh(false)
     })
+    val adaptiveTextName = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        letterSpacing = 0.25.sp,
+        background = MaterialTheme.colors.onBackground
+    )
     Scaffold(topBar = { ProfileScreenHeader(mainViewModel) }) { paddingValues ->
-        Box(modifier = Modifier
-            .pullRefresh(pullRefreshState, enabled = true)
-            .fillMaxSize()
-            .padding(paddingValues)
+        Box(
+            modifier = Modifier
+                .pullRefresh(pullRefreshState, enabled = true)
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             ) {
                 item {
                     Row(
@@ -150,6 +164,23 @@ private fun ProfileScreenContent(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         ProfilePhotoComposable(mainViewModel.profilePhoto)
+                    }
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = dimensionResource(id = R.dimen.NusicDimenX3)),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        mainViewModel.username?.let { username ->
+                            Text(
+                                text = username,
+                                style = adaptiveTextName,
+                                color = MaterialTheme.colors.background
+                            )
+                        }
                     }
                 }
 
@@ -168,7 +199,7 @@ private fun ProfileScreenContent(
                 }
 
                 itemsIndexed(items = displayedPrependedSongs) { index, item ->
-                    if(item.second) {
+                    if (item.second) {
                         item.first.songObject?.let {
                             MusicElement(songObject = it, onSelected = onSelected, index = index)
                             Divider()
@@ -324,8 +355,9 @@ private fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
     Box(modifier = Modifier
         .clip(shape = CircleShape)
         .clickable {
-            if (profilePhotoState != ProfilePhotoState.SuccessPending)
-                selectImageLauncher.launch("image/*")
+            if (profilePhotoState != ProfilePhotoState.SuccessPending) selectImageLauncher.launch(
+                "image/*"
+            )
         }
         .size(dimensionResource(id = R.dimen.ProfileImageDimen))) {
         photoUrl?.let {
@@ -344,9 +376,11 @@ private fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
                 contentScale = ContentScale.Crop
             )
             if (profilePhotoState == ProfilePhotoState.SuccessPending) {
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .glowLoad())
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .glowLoad()
+                )
             }
         }
     }

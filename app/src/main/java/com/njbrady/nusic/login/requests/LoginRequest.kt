@@ -2,7 +2,7 @@ package com.njbrady.nusic.login.requests
 
 import com.njbrady.nusic.login.model.LoginRepository
 import com.njbrady.nusic.utils.HttpOptions
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.UrlProvider
 import com.njbrady.nusic.utils.toList
 import kotlinx.coroutines.GlobalScope
@@ -15,7 +15,7 @@ import java.net.URL
 suspend fun loginRequest(
     username: String,
     password: String,
-    tokenStorage: TokenStorage
+    localStorage: LocalStorage
 ): LoginRepository = GlobalScope.async {
     try {
         val url = URL(UrlProvider.loginUrl)
@@ -38,7 +38,8 @@ suspend fun loginRequest(
             val response = connection.inputStream.bufferedReader().use { it.readText() }
             val jsonResponse = JSONObject(response)
             val token = jsonResponse.getString(LoginJsonKeys.TokenKey)
-            tokenStorage.storeToken(token)
+            localStorage.storeToken(token)
+            localStorage.storeUsername(username)
             LoginRepository()
         } else {
             val error = connection.errorStream.bufferedReader().use { it.readText() }

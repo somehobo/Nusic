@@ -3,7 +3,7 @@ package com.njbrady.nusic
 import android.util.Log
 import com.njbrady.nusic.utils.HttpOptions
 import com.njbrady.nusic.utils.OnSocketRoute
-import com.njbrady.nusic.utils.TokenStorage
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.UrlProvider.Companion.baseWebSocketUrl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import org.json.JSONObject
 import java.util.*
 
 
-class MainSocketHandler(private val okHttpClient: OkHttpClient, private val tokenStorage: TokenStorage) : WebSocketListener() {
+class MainSocketHandler(private val okHttpClient: OkHttpClient, private val localStorage: LocalStorage) : WebSocketListener() {
 
     private val _messageQueue = LinkedList<String>()
     private val _socketRoutes = mutableListOf<OnSocketRoute>()
@@ -33,11 +33,15 @@ class MainSocketHandler(private val okHttpClient: OkHttpClient, private val toke
         _loadingConnection.value = true
         val request = Request.Builder()
             .url(baseWebSocketUrl)
-            .header(HttpOptions.Authorization, tokenStorage.retrieveToken())
+            .header(HttpOptions.Authorization, localStorage.retrieveToken())
             .build()
 
         _webSocket = okHttpClient.newWebSocket(request, this)
         _loadingConnection.value = false
+    }
+
+    fun disconnect() {
+        _webSocket.close(1000, "Loggin out!")
     }
 
     fun retryConnection() {
@@ -66,7 +70,7 @@ class MainSocketHandler(private val okHttpClient: OkHttpClient, private val toke
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
-        _connected.value = false
+//        _connected.value = false
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {

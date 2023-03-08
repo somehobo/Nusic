@@ -15,7 +15,7 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Singleton
 
 @Singleton
-class TokenStorage(private val context: Context) {
+class LocalStorage(private val context: Context) {
     private val prefs: SharedPreferences by lazy {
         context.getSharedPreferences(PREFS_FILENAME, Context.MODE_PRIVATE)
     }
@@ -26,6 +26,16 @@ class TokenStorage(private val context: Context) {
         _containsToken.value = checkLoggedIn()
     }
 
+
+    fun storeUsername(username: String) {
+        val editor = prefs.edit()
+        editor.putString(PREF_USERNAME, username)
+        editor.commit()
+    }
+
+    fun retrieveUsername(): String? {
+        return prefs.getString(PREF_USERNAME, null)
+    }
 
     fun storeToken(token: String) {
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
@@ -84,6 +94,12 @@ class TokenStorage(private val context: Context) {
         _containsToken.value = false
     }
 
+    fun deleteUsername() {
+        val editor = prefs.edit()
+        editor.remove(PREF_USERNAME)
+        editor.apply()
+    }
+
     private fun checkLoggedIn(): Boolean {
         val keystore = KeyStore.getInstance(ANDROID_KEY_STORE)
         keystore.load(null)
@@ -95,6 +111,7 @@ class TokenStorage(private val context: Context) {
         private const val KEY_ALIAS = "authentication_token_alias"
         private const val PREFS_FILENAME = "token_prefs"
         private const val PREF_TOKEN = "token"
+        private const val PREF_USERNAME = "username"
         private const val PREF_IV = "iv"
         private const val TOKEN_PREFACE = "TOKEN "
     }
