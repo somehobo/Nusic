@@ -6,9 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -128,19 +126,21 @@ private fun ProfileScreenContent(
     val displayedSongs = if (currentlySelected == Type.Liked) likedSongs else createdSongs
     val refreshing by mainViewModel.refreshingProfile.collectAsState()
     val pullRefreshState = rememberPullRefreshState(refreshing = refreshing, onRefresh = {
-        mainViewModel.setRefresh(true)
+//        mainViewModel.setRefresh(true)
         likedSongs.refresh()
         createdSongs.refresh()
         mainViewModel.refreshProfile()
         mainViewModel.setRefresh(false)
     })
     Scaffold(topBar = { ProfileScreenHeader(mainViewModel) }) { paddingValues ->
-        Box(modifier = Modifier.pullRefresh(pullRefreshState,true)) {
+        Box(modifier = Modifier
+            .pullRefresh(pullRefreshState, enabled = true)
+            .fillMaxSize()
+            .padding(paddingValues)
+        ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .pullRefresh(state = pullRefreshState, enabled = true)
             ) {
                 item {
                     Row(

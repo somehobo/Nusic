@@ -77,7 +77,7 @@ private fun ScrollingSongList(
         itemsIndexed(items = prependedDisplayedSongs) { index, pair ->
             val songCardState = pair.first
             val liked = pair.second
-            if (pair.second) {
+            if (liked) {
                 ItemImpression(index = index, lazyListState = lazyListState, onItemViewed = {
                     songCardState.let { songCardState ->
                         if (songCardState != mainViewModel.currentlyPlayingSong) {
