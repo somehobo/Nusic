@@ -24,7 +24,7 @@ class HomeScreenViewModel @Inject constructor(
     mainSocketHandler: MainSocketHandler
 ) : ViewModel() {
 
-    private val messageHandler = HomeMessageHandler(
+    private val _messageHandler = HomeMessageHandler(
         onSong = { songModel -> _musicCardQueue.push(songModel) },
         onError = { error ->
             _nonBlockingError.value = error
@@ -111,7 +111,7 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     private fun runJob(musicMessage: MusicMessage){
-        messageHandler.sendMessage(musicMessage.getMessage())
+        _messageHandler.sendMessage(musicMessage.getMessage())
     }
 
     override fun onCleared() {

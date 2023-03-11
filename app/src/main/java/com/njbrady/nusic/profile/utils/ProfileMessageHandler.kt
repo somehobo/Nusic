@@ -4,7 +4,7 @@ import com.njbrady.nusic.MainSocketHandler
 import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.home.utils.SongKeys.LikeKey
-import com.njbrady.nusic.profile.requests.Type
+import com.njbrady.nusic.profile.requests.SongListType
 import com.njbrady.nusic.utils.GeneralKeys.ERROR_KEY
 import com.njbrady.nusic.utils.GeneralKeys.MESSAGE_TYPE
 import com.njbrady.nusic.utils.GeneralKeys.SONG_CATEGORY
@@ -16,7 +16,7 @@ import com.njbrady.nusic.utils.OnSocketRoute
 import org.json.JSONObject
 
 class ProfileMessageHandler(
-    private val onSongReceived: (SongCardState, Type, Boolean) -> Unit,
+    private val onSongReceived: (SongCardState, SongListType, Boolean) -> Unit,
     private val onBlockingError: (String) -> Unit,
     private val onError: (String) -> Unit,
     private val mainSocketHandler: MainSocketHandler
@@ -41,15 +41,15 @@ class ProfileMessageHandler(
     }
 
     private fun onNewReceived(jsonObject: JSONObject) {
-        val songType =
+        val songListType =
             if(jsonObject.get(SONG_CATEGORY) == CREATED_TYPE) {
-                Type.Created
+                SongListType.Created
             } else {
-                Type.Liked
+                SongListType.Liked
             }
         val songCardState = SongCardState(SongModel.fromJson(jsonObject))
         val liked = jsonObject.getBoolean(LikeKey)
-        onSongReceived(songCardState, songType, liked)
+        onSongReceived(songCardState, songListType, liked)
     }
 
     private fun onErrorTypeReceived(jsonObject: JSONObject) {

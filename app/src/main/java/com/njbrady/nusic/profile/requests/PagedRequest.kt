@@ -13,13 +13,13 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-enum class Type {Liked, Created}
+enum class SongListType { Liked, Created }
 
-suspend fun pagedRequest(localStorage: LocalStorage, page: Int, type: Type): PagedResponse {
+suspend fun pagedRequest(localStorage: LocalStorage, page: Int, type: SongListType): PagedResponse {
     return try {
         withContext(Dispatchers.IO) {
             val url = URL(UrlProvider.pagedSongsUrl)
-            val listType = if (type == Type.Liked) ProfileValues.likedListValue else ProfileValues.createdistValue
+            val listType = if (type == SongListType.Liked) ProfileValues.likedListValue else ProfileValues.createdistValue
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = HttpOptions.POST
             connection.doOutput = true
