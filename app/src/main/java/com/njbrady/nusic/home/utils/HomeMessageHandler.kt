@@ -7,6 +7,7 @@ import com.njbrady.nusic.utils.GeneralKeys.MESSAGE_TYPE
 import com.njbrady.nusic.utils.GeneralTypes.BLOCKING_ERROR_TYPE
 import com.njbrady.nusic.utils.GeneralTypes.ERROR_TYPE
 import com.njbrady.nusic.utils.GeneralTypes.SONG_TYPE
+import com.njbrady.nusic.utils.MessageHandler
 import com.njbrady.nusic.utils.OnSocketRoute
 import org.json.JSONObject
 
@@ -14,25 +15,15 @@ class HomeMessageHandler(
     private val onSong: (SongModel) -> Unit,
     private val onBlockingError: (String) -> Unit,
     private val onError: (String) -> Unit,
-    private val mainSocketHandler: MainSocketHandler
-) {
+    mainSocketHandler: MainSocketHandler
+): MessageHandler(OnSocketRoute.HOMEROUTE, mainSocketHandler) {
 
-    init {
-        mainSocketHandler.subscribeNewRoute(
-            route = OnSocketRoute.HOMEROUTE
-        ) { jsonObject -> onMessageRecieved(jsonObject = jsonObject) }
-    }
-
-    private fun onMessageRecieved(jsonObject: JSONObject) {
+    override fun onMessageRecieved(jsonObject: JSONObject) {
         when (jsonObject.getString(MESSAGE_TYPE)) {
             SONG_TYPE -> onSongTypeReceived(jsonObject = jsonObject)//handle song
             ERROR_TYPE -> onErrorTypeReceived(jsonObject = jsonObject)//handle error
             BLOCKING_ERROR_TYPE -> onBlockingErrorTypeReceived(jsonObject = jsonObject)
         }
-    }
-
-    fun sendMessage(jsonObject: JSONObject) {
-        mainSocketHandler.send(jsonObject)
     }
 
     private fun onSongTypeReceived(jsonObject: JSONObject) {

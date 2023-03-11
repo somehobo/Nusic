@@ -1,7 +1,6 @@
 package com.njbrady.nusic.home.utils
 
 import android.media.MediaPlayer
-import android.media.PlaybackParams
 import com.njbrady.nusic.home.model.SongModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

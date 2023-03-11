@@ -16,7 +16,7 @@ class MainSocketHandlerModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideTokenStorage(localStorage: LocalStorage): MainSocketHandler {
+    fun provideSocketHandler(localStorage: LocalStorage): MainSocketHandler {
         return MainSocketHandler(OkHttpClient(), localStorage)
     }
 }

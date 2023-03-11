@@ -2,7 +2,7 @@ package com.njbrady.nusic
 
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -27,7 +27,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.njbrady.nusic.profile.ProfileScrollingSongs
-import com.njbrady.nusic.profile.composables.*
+import com.njbrady.nusic.profile.composables.MusicElement
+import com.njbrady.nusic.profile.composables.MusicSelectionTab
+import com.njbrady.nusic.profile.composables.ProfilePhotoComposable
+import com.njbrady.nusic.profile.composables.ProfileUsername
 import com.njbrady.nusic.profile.requests.SongListType
 import com.njbrady.nusic.profile.utils.SongListFurtherCommunicatedState
 import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState

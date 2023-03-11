@@ -4,9 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.njbrady.nusic.MainSocketHandler
 import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.*
-import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -20,7 +18,6 @@ known bugs:
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher,
     mainSocketHandler: MainSocketHandler
 ) : ViewModel() {
 
@@ -117,6 +114,7 @@ class HomeScreenViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         _musicCardQueue.release()
+        _messageHandler.onClear()
     }
 
     companion object {
