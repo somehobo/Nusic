@@ -28,7 +28,7 @@ import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.Direction
 import com.njbrady.nusic.home.utils.SongCardStateStates
 import com.njbrady.nusic.home.utils.rememberSwipeableCardState
-import com.njbrady.nusic.home.utils.swipableCard
+import com.njbrady.nusic.home.utils.swipeableCard
 import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.utils.shimmerBackground
 
@@ -49,7 +49,7 @@ fun SwipeableCardWrapper(
 
     SongCard(
         modifier = modifier
-            .swipableCard(
+            .swipeableCard(
                 state = swipeableCardState,
                 blockedDirections = listOf(Direction.Down, Direction.Up),
                 onSwiped = { dir ->
@@ -109,9 +109,7 @@ fun SongCard(
                                 .background(colorResource(id = R.color.card_overlay))
                                 .fillMaxSize()
                                 .shimmerBackground(),
-                        ) {
-
-                        }
+                        )
                     },
                     contentScale = ContentScale.Crop,
                     contentDescription = stringResource(R.string.current_songs_image)

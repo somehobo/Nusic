@@ -24,7 +24,7 @@ class GetSongMessage() : MusicMessage() {
     }
 }
 
-class LikeSongMessage(private val songModel: SongModel, private val liked: Boolean): MusicMessage() {
+class LikeSongMessage(songModel: SongModel, liked: Boolean): MusicMessage() {
     override val map = mapOf(MESSAGE_TYPE to FEEDBACK_TYPE, SONG_ID to songModel.songId, LikeKey to liked)
 
     override fun getMessage(): JSONObject {

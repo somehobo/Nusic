@@ -9,12 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
-/*
-known bugs:
-- Sometimes a duplicate music card appears
-- On empty screen flash of old card
-- need loading state in the middle
- */
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(

@@ -63,7 +63,7 @@ class SwipeableCardState(
     }
 
     /*
-    animates the finished swipe with 400 ms duration
+    animates the finished swipe with 800 ms duration
      */
     suspend fun finishSwipe(
         direction: Direction,

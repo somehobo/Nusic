@@ -4,6 +4,10 @@ import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.SongCardState
 import kotlinx.coroutines.flow.MutableStateFlow
 
+/*
+    The purpose of this class is to assist with building a stack of composables 3 deep
+ */
+
 class MusicCardStateQueue(
     private val _upNow: MutableStateFlow<SongCardState>,
     private val _upNext: MutableStateFlow<SongCardState>,

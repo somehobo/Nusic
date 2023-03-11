@@ -10,7 +10,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-fun Modifier.swipableCard(
+fun Modifier.swipeableCard(
     state: SwipeableCardState,
     onSwiped: (Direction) -> Unit,
     onSwipeCancel: () -> Unit = {},
