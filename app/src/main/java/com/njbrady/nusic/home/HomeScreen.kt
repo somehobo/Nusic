@@ -50,9 +50,7 @@ fun HomeScreen(
 private fun HomeScreenContent(
     homeScreenViewModel: HomeScreenViewModel,
 ) {
-    val upNow by homeScreenViewModel.upNow.collectAsState()
-    val upNext by homeScreenViewModel.upNext.collectAsState()
-    val upLast by homeScreenViewModel.upLast.collectAsState()
+    val songQueue by homeScreenViewModel.realSongQueue.collectAsState()
 
     Scaffold(
         modifier = Modifier.windowInsetsPadding(
@@ -62,19 +60,14 @@ private fun HomeScreenContent(
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues.calculateBottomPadding())
+            modifier = Modifier.fillMaxSize().padding(paddingValues.calculateBottomPadding())
         ) {
             SongStack(
                 homeScreenViewModel = homeScreenViewModel,
                 paddingValues = paddingValues,
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
                     .padding(dimensionResource(id = R.dimen.NusicDimenX1)),
-                upNow = upNow,
-                upNext = upNext,
-                upLast = upLast
+                songQueue = songQueue
             )
         }
     }
@@ -122,17 +115,9 @@ private fun SongStack(
     homeScreenViewModel: HomeScreenViewModel,
     modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(),
-    upNow: SongCardState,
-    upNext: SongCardState,
-    upLast: SongCardState,
+    songQueue: List<SongCardState>
 ) {
 
-    val upNowState by upNow.songCardStateState.collectAsState()
-    val upNowError by upNow.errorMessage.collectAsState()
-    val upNextState by upNext.songCardStateState.collectAsState()
-    val upNextError by upNext.errorMessage.collectAsState()
-    val upLastState by upLast.songCardStateState.collectAsState()
-    val upLastError by upLast.errorMessage.collectAsState()
     val nonBlockingError by homeScreenViewModel.nonBlockingError.collectAsState()
     val loading by homeScreenViewModel.isLoading.collectAsState()
     val blockingError by homeScreenViewModel.blockingError.collectAsState()
@@ -153,6 +138,8 @@ private fun SongStack(
             )
         }
 
+
+
         blockingErrorToast?.let {
             Toast.makeText(
                 LocalContext.current, it, Toast.LENGTH_LONG
@@ -160,41 +147,33 @@ private fun SongStack(
             homeScreenViewModel.resetToastErrors()
         }
 
-
-        key(upLast.songObject) {
-            SongCard(
-                modifier = Modifier.fillMaxSize(),
-                songCardStateState = upLastState,
-                errorMessage = upLastError,
-                songObject = upLast.songObject
-            )
-        }
-
-
-        key(upNext.songObject) {
-            SongCard(
-                modifier = Modifier.fillMaxSize(),
-                songCardStateState = upNextState,
-                errorMessage = upNextError,
-                songObject = upNext.songObject
-            )
-        }
-
-        key(upNow.songObject) {
-            SwipeableCardWrapper(modifier = Modifier.fillMaxSize(),
-                songCardStateState = upNowState,
-                errorMessage = upNowError,
-                songObject = upNow.songObject,
-                onRetry = { upNow.retry() },
-                onCancel = { homeScreenViewModel.cancelTop() },
-                onRestart = { upNow.restart() },
-                onResume = { upNow.resume() },
-                onPause = { upNow.pause() },
-                onLiked = { like -> homeScreenViewModel.likeTop(like) })
+        songQueue.asReversed().forEachIndexed { index, songCardState ->
+            val songCardStateState by songCardState.songCardStateState.collectAsState()
+            val songCardStateError by songCardState.errorMessage.collectAsState()
+            key(songCardState.songObject?.songId) {
+                if (index == 0) {
+                    SwipeableCardWrapper(modifier = Modifier.fillMaxSize(),
+                        songCardStateState = songCardStateState,
+                        errorMessage = songCardStateError,
+                        songObject = songCardState.songObject,
+                        onRetry = { songCardState.retry() },
+                        onCancel = { homeScreenViewModel.cancelTop() },
+                        onRestart = { songCardState.restart() },
+                        onResume = { songCardState.resume() },
+                        onPause = { songCardState.pause() },
+                        onLiked = { like -> homeScreenViewModel.likeTop(like) })
+                } else {
+                    SongCard(
+                        modifier = Modifier.fillMaxSize(),
+                        songCardStateState = songCardStateState,
+                        errorMessage = songCardStateError,
+                        songObject = songCardState.songObject
+                    )
+                }
+            }
         }
     }
 }
-
 
 
 @Composable
@@ -212,16 +191,14 @@ private fun ErrorScreen(
         blockingError?.let {
             ErrorWithField(
                 message = it,
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .padding(dimensionResource(id = R.dimen.NusicDimenX2))
             )
         }
         nonBlockingError?.let {
             ErrorWithField(
                 message = it,
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .padding(dimensionResource(id = R.dimen.NusicDimenX2))
             )
         }

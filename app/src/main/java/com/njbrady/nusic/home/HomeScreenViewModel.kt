@@ -16,7 +16,7 @@ class HomeScreenViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _messageHandler = HomeMessageHandler(
-        onSong = { songModel -> _musicCardQueue.push(songModel) },
+        onSong = { songModel -> pushSongQueue(songModel) },
         onError = { error ->
             _nonBlockingError.value = error
             _errorToast.value = error
@@ -29,55 +29,62 @@ class HomeScreenViewModel @Inject constructor(
     )
 
 
-    private val _upNow = MutableStateFlow(SongCardState())
-    private val _upNext = MutableStateFlow(SongCardState())
-    private val _upLast = MutableStateFlow(SongCardState())
-    private val _musicCardQueue = MusicCardStateQueue(_upNow, _upNext, _upLast)
     private val _isLoading = MutableStateFlow(false)
     private val _nonBlockingError = MutableStateFlow<String?>(null)
     private val _blockingError = MutableStateFlow<String?>(null)
     private val _errorToast = MutableStateFlow<String?>(null)
+    private val _realSongQueue = MutableStateFlow(listOf<SongCardState>())
 
-    val upNow: StateFlow<SongCardState> = _upNow
-    val upNext: StateFlow<SongCardState> = _upNext
-    val upLast: StateFlow<SongCardState> = _upLast
     val isLoading: StateFlow<Boolean> = _isLoading
     val nonBlockingError: StateFlow<String?> = _nonBlockingError
     val blockingError: StateFlow<String?> = _blockingError
     val blockingErrorToast: StateFlow<String?> = _errorToast
-
+    val realSongQueue: StateFlow<List<SongCardState>> = _realSongQueue
 
     init {
         retry()
     }
 
+    private fun popSongQueue() {
+        _realSongQueue.value.first().release()
+        _realSongQueue.value = _realSongQueue.value.drop(0)
+    }
+
+    private fun pushSongQueue(songModel: SongModel) {
+        _realSongQueue.value = _realSongQueue.value.plusElement(SongCardState(songModel))
+    }
+
     //add logic for empty state case
     fun likeSong(song: SongModel?, like: Boolean) {
         song?.let {
-            _musicCardQueue.pop()
+            pushSongQueue(songModel = it)
             runJob(LikeSongMessage(songModel = it, liked = like))
         }
     }
 
     fun cancelTop() {
-        _musicCardQueue.pop()
+        popSongQueue()
         runJob(GetSongMessage())
     }
 
     fun likeTop(like: Boolean) {
-        if (upNow.value.songCardStateState.value != SongCardStateStates.Empty) upNow.value.songObject?.let { songObject ->
-            likeSong(
-                songObject, like
-            )
+        with(realSongQueue.value.firstOrNull()) {
+            if (this?.songCardStateState?.value != SongCardStateStates.Empty) this?.songObject?.let { songObject ->
+                likeSong(
+                    songObject, like
+                )
+            }
         }
     }
 
     fun restartTop() {
-        if (upNow.value.songCardStateState.value != SongCardStateStates.Empty) upNow.value.restart()
+        with(realSongQueue.value.firstOrNull()) {
+            if (this?.songCardStateState?.value != SongCardStateStates.Empty) this?.restart()
+        }
     }
 
     fun retry() {
-        val requestFurther = MaxQueueSize - _musicCardQueue.size()
+        val requestFurther = MaxQueueSize - _realSongQueue.value.size
 
         for (i in 0 until requestFurther) {
             runJob(GetSongMessage())
@@ -90,15 +97,21 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun resetState() {
-        _musicCardQueue.clear()
+        _realSongQueue.value.forEach {
+            it.release()
+        }
     }
 
     fun forcePauseCurrent() {
-        upNow.value.pauseWhenReady()
+        with(realSongQueue.value.firstOrNull()) {
+            this?.pauseWhenReady()
+        }
     }
 
     fun resumeCurrentPreviousPlayState() {
-        upNow.value.resumePreviousPlayState()
+        with(realSongQueue.value.firstOrNull()) {
+            this?.resumePreviousPlayState()
+        }
     }
 
     private fun runJob(musicMessage: MusicMessage){
@@ -107,7 +120,9 @@ class HomeScreenViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        _musicCardQueue.release()
+        _realSongQueue.value.forEach {
+            it.release()
+        }
         _messageHandler.onClear()
     }
 

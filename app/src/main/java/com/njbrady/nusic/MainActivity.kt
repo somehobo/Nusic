@@ -36,6 +36,9 @@ import com.njbrady.nusic.ui.theme.NusicTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+// Nolan is my baby and im so lucky to have been w him for 21 months <3
+
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
