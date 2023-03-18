@@ -16,15 +16,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.Screen
-import com.njbrady.nusic.home.utils.Direction
 import com.njbrady.nusic.home.utils.SongCardState
-import com.njbrady.nusic.home.utils.SwipeableCardState
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.ui.theme.NusicTheme
 import com.njbrady.nusic.utils.composables.SongCard
 import com.njbrady.nusic.utils.composables.SwipeableCardWrapper
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -60,51 +57,18 @@ private fun HomeScreenContent(
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(paddingValues.calculateBottomPadding())
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues.calculateBottomPadding())
         ) {
             SongStack(
                 homeScreenViewModel = homeScreenViewModel,
                 paddingValues = paddingValues,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(dimensionResource(id = R.dimen.NusicDimenX1)),
                 songQueue = songQueue
             )
-        }
-    }
-}
-
-@Composable
-private fun FeedbackButtons(
-    modifier: Modifier = Modifier,
-    swipeableCardState: SwipeableCardState,
-    onLikeAction: (Boolean) -> Unit
-) {
-    val coroutineScope = rememberCoroutineScope()
-
-    Row(
-        modifier = modifier
-    ) {
-        Button(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1)),
-            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error),
-            onClick = {
-                coroutineScope.launch {
-                    swipeableCardState.finishSwipe(direction = Direction.Left)
-                    swipeableCardState.resetInstant()
-                    onLikeAction(false)
-                }
-            }) {
-            Text(text = stringResource(id = R.string.dislike_button_text))
-        }
-        Button(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX1)),
-            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondaryVariant),
-            onClick = {
-                coroutineScope.launch {
-                    swipeableCardState.finishSwipe(direction = Direction.Right)
-                    swipeableCardState.resetInstant()
-                    onLikeAction(true)
-                }
-            }) {
-            Text(text = stringResource(id = R.string.like_button_text))
         }
     }
 }
@@ -138,8 +102,6 @@ private fun SongStack(
             )
         }
 
-
-
         blockingErrorToast?.let {
             Toast.makeText(
                 LocalContext.current, it, Toast.LENGTH_LONG
@@ -148,9 +110,9 @@ private fun SongStack(
         }
 
         songQueue.asReversed().forEachIndexed { index, songCardState ->
-            val songCardStateState by songCardState.songCardStateState.collectAsState()
-            val songCardStateError by songCardState.errorMessage.collectAsState()
             key(songCardState.songObject?.songId) {
+                val songCardStateState by songCardState.songCardStateState.collectAsState()
+                val songCardStateError by songCardState.errorMessage.collectAsState()
                 if (index == 0) {
                     SwipeableCardWrapper(modifier = Modifier.fillMaxSize(),
                         songCardStateState = songCardStateState,
@@ -191,14 +153,16 @@ private fun ErrorScreen(
         blockingError?.let {
             ErrorWithField(
                 message = it,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(dimensionResource(id = R.dimen.NusicDimenX2))
             )
         }
         nonBlockingError?.let {
             ErrorWithField(
                 message = it,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(dimensionResource(id = R.dimen.NusicDimenX2))
             )
         }
