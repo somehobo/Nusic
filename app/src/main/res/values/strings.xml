@@ -33,4 +33,8 @@
     <string name="restart_button_content_description">Restart Button</string>
     <string name="current_songs_image">Current Song\'s Image</string>
     <string name="lost_socket_connection">Lost socket connection</string>
+    <string name="upload_photo">Upload Photo</string>
+    <string name="upload_song">Upload Song</string>
+    <string name="song_title">Song Title</string>
+    <string name="song_card_preview">Song Card Preview</string>
 </resources>

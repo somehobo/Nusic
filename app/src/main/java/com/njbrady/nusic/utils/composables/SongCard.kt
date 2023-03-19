@@ -1,5 +1,8 @@
 package com.njbrady.nusic.utils.composables
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,6 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +35,7 @@ import com.njbrady.nusic.home.utils.SongCardStateStates
 import com.njbrady.nusic.home.utils.rememberSwipeableCardState
 import com.njbrady.nusic.home.utils.swipeableCard
 import com.njbrady.nusic.login.composables.ErrorWithField
+import com.njbrady.nusic.upload.UploadScreenViewModel
 import com.njbrady.nusic.utils.shimmerBackground
 
 @Composable
@@ -75,6 +81,76 @@ fun SwipeableCardWrapper(
     )
 }
 
+@Composable
+private fun BaseSongCard(modifier: Modifier, content: @Composable () -> Unit) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)),
+        border = BorderStroke(
+            dimensionResource(id = R.dimen.BorderStrokeSize),
+            colorResource(id = R.color.nusic_card_grey)
+        ),
+        backgroundColor = colorResource(id = R.color.nusic_card_grey)
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun EditableImageBackground(viewModel: UploadScreenViewModel) {
+    val photoUrl by viewModel.songPhotoUrl.collectAsState()
+    val selectImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.setPhotoUrl(uri = uri)
+        }
+    }
+
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .clickable {
+            selectImageLauncher.launch(
+                "image/*"
+            )
+        }) {
+        if (photoUrl != null) {
+            SubcomposeAsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model = photoUrl,
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .background(colorResource(id = R.color.card_overlay))
+                            .fillMaxSize()
+                            .shimmerBackground(),
+                    )
+                },
+                contentScale = ContentScale.Crop,
+                contentDescription = stringResource(R.string.current_songs_image)
+            )
+        }
+    }
+}
+
+@Composable
+fun EditableSongCard(
+    viewModel: UploadScreenViewModel, modifier: Modifier
+) {
+    BaseSongCard(modifier = modifier) {
+        EditableImageBackground(viewModel = viewModel)
+        Box(modifier = Modifier.fillMaxSize()) {
+            EditableSongCardBottomContent(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .zIndex(0f)
+                    .align(Alignment.BottomCenter), viewModel = viewModel
+            )
+        }
+    }
+}
+
 
 @Composable
 fun SongCard(
@@ -90,15 +166,7 @@ fun SongCard(
 ) {
 
     if (songCardStateState != SongCardStateStates.Empty) {
-        Card(
-            modifier = modifier,
-            shape = RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)),
-            border = BorderStroke(
-                dimensionResource(id = R.dimen.BorderStrokeSize),
-                colorResource(id = R.color.nusic_card_grey)
-            ),
-            backgroundColor = colorResource(id = R.color.nusic_card_grey)
-        ) {
+        BaseSongCard(modifier = modifier) {
             songObject?.imageUrl?.let {
                 SubcomposeAsyncImage(
                     modifier = Modifier.fillMaxSize(),
@@ -115,6 +183,7 @@ fun SongCard(
                     contentDescription = stringResource(R.string.current_songs_image)
                 )
             }
+
             Box(modifier = Modifier.fillMaxSize()) {
 
                 when (songCardStateState) {
@@ -158,8 +227,29 @@ fun SongCard(
 }
 
 @Composable
-private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: SongModel?) {
+private fun BaseSongCardBottomContent(modifier: Modifier, content: @Composable () -> Unit) {
 
+    Row(modifier = modifier, verticalAlignment = Alignment.Bottom) {
+        Box(
+            modifier = Modifier,
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = dimensionResource(R.dimen.NusicDimenX2),
+                    vertical = dimensionResource(R.dimen.NusicDimenX4)
+                )
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditableSongCardBottomContent(
+    modifier: Modifier = Modifier, viewModel: UploadScreenViewModel
+) {
+    val songTitle by viewModel.songTitle.collectAsState()
     val adaptiveTextName = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
@@ -176,35 +266,65 @@ private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: Son
         background = MaterialTheme.colors.onBackground
     )
 
-    Row(modifier = modifier, verticalAlignment = Alignment.Bottom) {
-        Box(
-            modifier = Modifier,
-        ) {
-            Column(
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(R.dimen.NusicDimenX2),
-                    vertical = dimensionResource(R.dimen.NusicDimenX4)
-                )
-            ) {
+    BaseSongCardBottomContent(modifier = modifier) {
 
-                songObject?.name?.let {
-                    Text(
-                        modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
-                        text = it,
-                        style = adaptiveTextName,
-                        color = MaterialTheme.colors.background
-                    )
-                }
-                songObject?.artist?.let {
-                    Text(
-                        text = stringResource(id = R.string.author_creditor) + " $it",
-                        style = adaptiveTextCreator,
-                        color = MaterialTheme.colors.background
-                    )
-                }
-            }
+
+        TextField(
+            modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
+            value = songTitle,
+            onValueChange = { newTitle -> viewModel.setSongTitle(newTitle) },
+            textStyle = adaptiveTextName,
+            placeholder = { Text(text = "Song Title") },
+        )
+
+
+        viewModel.username?.let {
+            Text(
+                text = stringResource(id = R.string.author_creditor) + " $it",
+                style = adaptiveTextCreator,
+                color = MaterialTheme.colors.background
+            )
         }
     }
+}
+
+@Composable
+private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: SongModel?) {
+    val adaptiveTextName = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        letterSpacing = 0.25.sp,
+        background = MaterialTheme.colors.onBackground
+    )
+
+    val adaptiveTextCreator = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        letterSpacing = 0.25.sp,
+        background = MaterialTheme.colors.onBackground
+    )
+
+    BaseSongCardBottomContent(modifier = modifier) {
+
+        songObject?.name?.let {
+            Text(
+                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
+                text = it,
+                style = adaptiveTextName,
+                color = MaterialTheme.colors.background
+            )
+        }
+        songObject?.artist?.let {
+            Text(
+                text = stringResource(id = R.string.author_creditor) + " $it",
+                style = adaptiveTextCreator,
+                color = MaterialTheme.colors.background
+            )
+        }
+    }
+
 }
 
 @Composable
