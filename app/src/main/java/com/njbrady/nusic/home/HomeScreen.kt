@@ -113,7 +113,7 @@ private fun SongStack(
             key(songCardState.songObject?.songId) {
                 val songCardStateState by songCardState.songCardStateState.collectAsState()
                 val songCardStateError by songCardState.errorMessage.collectAsState()
-                if (index == 0) {
+                if (index == songQueue.lastIndex) {
                     SwipeableCardWrapper(modifier = Modifier.fillMaxSize(),
                         songCardStateState = songCardStateState,
                         errorMessage = songCardStateError,

@@ -47,17 +47,19 @@ class HomeScreenViewModel @Inject constructor(
 
     private fun popSongQueue() {
         _realSongQueue.value.first().release()
-        _realSongQueue.value = _realSongQueue.value.drop(0)
+        _realSongQueue.value = _realSongQueue.value.drop(1)
+        _realSongQueue.value.firstOrNull()?.playIfFirst()
     }
 
     private fun pushSongQueue(songModel: SongModel) {
         _realSongQueue.value = _realSongQueue.value.plusElement(SongCardState(songModel))
+        _realSongQueue.value.firstOrNull()?.playIfFirst()
     }
 
     //add logic for empty state case
     fun likeSong(song: SongModel?, like: Boolean) {
         song?.let {
-            pushSongQueue(songModel = it)
+            popSongQueue()
             runJob(LikeSongMessage(songModel = it, liked = like))
         }
     }
