@@ -35,14 +35,21 @@ import com.njbrady.nusic.profile.requests.SongListType
 import com.njbrady.nusic.profile.utils.SongListFurtherCommunicatedState
 import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.upload.UploadScreen
+import com.njbrady.nusic.upload.UploadScreenViewModel
 
 
 @Composable
-fun ProfileScreen(mainViewModel: MainViewModel, navController: NavController) {
+fun ProfileScreen(
+    mainViewModel: MainViewModel,
+    uploadScreenViewModel: UploadScreenViewModel,
+    navController: NavController
+) {
     val profileNavController = rememberNavController()
     ProfileScrenNavigation(
         mainViewModel = mainViewModel,
         profileNavController = profileNavController,
+        uploadScreenViewModel = uploadScreenViewModel,
         mainNavController = navController
     )
 }
@@ -50,6 +57,7 @@ fun ProfileScreen(mainViewModel: MainViewModel, navController: NavController) {
 @Composable
 private fun ProfileScrenNavigation(
     mainViewModel: MainViewModel,
+    uploadScreenViewModel: UploadScreenViewModel,
     profileNavController: NavHostController,
     mainNavController: NavController
 ) {
@@ -71,13 +79,23 @@ private fun ProfileScrenNavigation(
                     onSelected = { index ->
                         mainViewModel.selectedSongIndex = index
                         profileNavController.navigate(ProfileScreens.LCSongs.route)
-                    })
+                    },
+                    onUploadHit = {
+                        profileNavController.navigate(ProfileScreens.Upload.route)
+                    }
+                )
             }
             composable(ProfileScreens.LCSongs.route) {
                 ProfileScrollingSongs(
                     mainViewModel = mainViewModel,
                     navController = profileNavController,
                     songListType = currentlySelected
+                )
+            }
+            composable(ProfileScreens.Upload.route) {
+                UploadScreen(
+                    uploadScreenViewModel = uploadScreenViewModel,
+                    navController = profileNavController
                 )
             }
         }
@@ -101,7 +119,8 @@ private fun ProfileScreenContent(
     mainViewModel: MainViewModel,
     currentlySelected: SongListType,
     onFilter: (SongListType) -> Unit,
-    onSelected: (Int) -> Unit
+    onSelected: (Int) -> Unit,
+    onUploadHit: () -> Unit
 ) {
 
     val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
@@ -120,7 +139,7 @@ private fun ProfileScreenContent(
         mainViewModel.setRefresh(false)
     })
 
-    Scaffold(topBar = { ProfileScreenHeader(mainViewModel) }) { paddingValues ->
+    Scaffold(topBar = { ProfileScreenHeader(mainViewModel, onUploadHit) }) { paddingValues ->
         Box(
             modifier = Modifier
                 .pullRefresh(pullRefreshState, enabled = true)
@@ -203,10 +222,8 @@ private fun ProfileScreenContent(
 }
 
 
-
-
 @Composable
-private fun ProfileScreenHeader(mainViewModel: MainViewModel) {
+private fun ProfileScreenHeader(mainViewModel: MainViewModel, onUploadHit: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     TopAppBar(modifier = Modifier.fillMaxWidth(),
@@ -215,7 +232,7 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel) {
         title = {},
         actions = {
             IconButton(
-                onClick = { /*on upload*/ },
+                onClick = { onUploadHit() },
                 modifier = Modifier
                     .size(dimensionResource(id = R.dimen.NusicDimenX4))
                     .padding(
@@ -275,4 +292,5 @@ private fun viewer() {
 sealed class ProfileScreens(val route: String, @StringRes val resourceId: Int) {
     object Profile : ProfileScreens("ProfileScreen", R.string.profile_screen)
     object LCSongs : ProfileScreens("LCSongs", R.string.scrolling_songs_screen)
+    object Upload : ProfileScreens("Upload", R.string.upload_song)
 }

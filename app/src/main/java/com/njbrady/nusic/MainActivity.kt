@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -33,6 +34,7 @@ import com.njbrady.nusic.home.HomeScreenViewModel
 import com.njbrady.nusic.login.LoginActivity
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.upload.UploadScreenViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -44,6 +46,7 @@ class MainActivity : ComponentActivity() {
 
     private val homeScreenViewModel: HomeScreenViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
+    private val uploadScreenViewModel: UploadScreenViewModel by viewModels()
 
     @Inject
     lateinit var mainSocketHandler: MainSocketHandler
@@ -60,7 +63,12 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background
                 ) {
-                    MainContent(homeScreenViewModel, mainViewModel, mainSocketHandler)
+                    MainContent(
+                        homeScreenViewModel,
+                        mainViewModel,
+                        uploadScreenViewModel,
+                        mainSocketHandler
+                    )
                 }
             }
         }
@@ -79,6 +87,7 @@ class MainActivity : ComponentActivity() {
 private fun MainContent(
     homeScreenViewModel: HomeScreenViewModel,
     mainViewModel: MainViewModel,
+    uploadScreenViewModel: UploadScreenViewModel,
     mainSocketHandler: MainSocketHandler
 ) {
     val navController = rememberNavController()
@@ -165,7 +174,13 @@ private fun MainContent(
             composable(Screen.Home.route) {
                 HomeScreen(homeScreenViewModel, navController)
             }
-            composable(Screen.Profile.route) { ProfileScreen(mainViewModel, navController) }
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    mainViewModel,
+                    uploadScreenViewModel,
+                    navController
+                )
+            }
         }
     }
 }

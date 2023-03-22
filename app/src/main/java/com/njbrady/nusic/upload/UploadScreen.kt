@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import com.njbrady.nusic.utils.composables.EditableSongCard
 import com.njbrady.nusic.utils.composables.NavigationTopAppBar
@@ -47,6 +48,7 @@ private fun UploadScreenContent(
             viewModel = uploadScreenViewModel,
             modifier = Modifier
                 .fillMaxSize()
+                .padding(dimensionResource(id = R.dimen.NusicDimenX1))
         )
         //FFT Upload thing
         UploadSong(

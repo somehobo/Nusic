@@ -6,18 +6,26 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -25,8 +33,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.view.WindowCompat
 import coil.compose.SubcomposeAsyncImage
 import com.njbrady.nusic.R
 import com.njbrady.nusic.home.model.SongModel
@@ -97,7 +107,10 @@ private fun BaseSongCard(modifier: Modifier, content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun EditableImageBackground(viewModel: UploadScreenViewModel) {
+private fun EditableImageBackground(
+    modifier: Modifier = Modifier, viewModel: UploadScreenViewModel
+) {
+    val localFocusManager = LocalFocusManager.current
     val photoUrl by viewModel.songPhotoUrl.collectAsState()
     val selectImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -107,13 +120,11 @@ private fun EditableImageBackground(viewModel: UploadScreenViewModel) {
         }
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .clickable {
-            selectImageLauncher.launch(
-                "image/*"
-            )
-        }) {
+    Box(modifier = modifier.clickable {
+        selectImageLauncher.launch(
+            "image/*"
+        )
+    }) {
         if (photoUrl != null) {
             SubcomposeAsyncImage(
                 modifier = Modifier.fillMaxSize(),
@@ -137,9 +148,25 @@ private fun EditableImageBackground(viewModel: UploadScreenViewModel) {
 fun EditableSongCard(
     viewModel: UploadScreenViewModel, modifier: Modifier
 ) {
+    val localFocusManager = LocalFocusManager.current
+    val keyBoardPresent by keyboardAsState()
     BaseSongCard(modifier = modifier) {
-        EditableImageBackground(viewModel = viewModel)
-        Box(modifier = Modifier.fillMaxSize()) {
+        EditableImageBackground(
+            modifier = Modifier.fillMaxSize(), viewModel = viewModel
+        )
+        if (keyBoardPresent == Keyboard.Opened) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        localFocusManager.clearFocus()
+                    })
+                })
+        }
+
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
             EditableSongCardBottomContent(
                 modifier = Modifier
                     .wrapContentHeight()
@@ -245,17 +272,27 @@ private fun BaseSongCardBottomContent(modifier: Modifier, content: @Composable (
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun EditableSongCardBottomContent(
     modifier: Modifier = Modifier, viewModel: UploadScreenViewModel
 ) {
+    val localFocusManager = LocalFocusManager.current
     val songTitle by viewModel.songTitle.collectAsState()
     val adaptiveTextName = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
         fontSize = 28.sp,
         letterSpacing = 0.25.sp,
-        background = MaterialTheme.colors.onBackground
+        background = MaterialTheme.colors.onBackground,
+        color = MaterialTheme.colors.background
+    )
+
+    val adaptiveTextNamePlaceHolder = MaterialTheme.typography.subtitle1.copy(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        letterSpacing = 0.25.sp
     )
 
     val adaptiveTextCreator = TextStyle(
@@ -263,20 +300,21 @@ private fun EditableSongCardBottomContent(
         fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
         letterSpacing = 0.25.sp,
-        background = MaterialTheme.colors.onBackground
+        background = MaterialTheme.colors.onBackground,
+        color = MaterialTheme.colors.background
     )
 
     BaseSongCardBottomContent(modifier = modifier) {
-
 
         TextField(
             modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
             value = songTitle,
             onValueChange = { newTitle -> viewModel.setSongTitle(newTitle) },
             textStyle = adaptiveTextName,
-            placeholder = { Text(text = "Song Title") },
+            placeholder = { Text(text = "Song Title", style = adaptiveTextNamePlaceHolder) },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { localFocusManager.clearFocus() }),
         )
-
 
         viewModel.username?.let {
             Text(
