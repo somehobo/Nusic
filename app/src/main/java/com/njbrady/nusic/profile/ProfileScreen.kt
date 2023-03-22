@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -226,7 +229,7 @@ private fun ProfileScreenContent(
 private fun ProfileScreenHeader(mainViewModel: MainViewModel, onUploadHit: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
-    TopAppBar(modifier = Modifier.fillMaxWidth(),
+    TopAppBar(
         backgroundColor = Color.Transparent,
         elevation = 0.dp,
         title = {},
@@ -234,13 +237,14 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel, onUploadHit: () ->
             IconButton(
                 onClick = { onUploadHit() },
                 modifier = Modifier
-                    .size(dimensionResource(id = R.dimen.NusicDimenX4))
+                    .size(dimensionResource(id = R.dimen.NusicDimenX5))
                     .padding(
                         end = dimensionResource(id = R.dimen.NusicDimenX1)
                     )
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.nusic_upload_icon),
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
+                    imageVector = Icons.Outlined.Add,
                     contentDescription = stringResource(R.string.upload_button)
                 )
             }
@@ -256,7 +260,8 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel, onUploadHit: () ->
                         )
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.nusic_settings_icon),
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
+                        imageVector = Icons.Outlined.Settings,
                         contentDescription = stringResource(R.string.settings_button)
                     )
                 }

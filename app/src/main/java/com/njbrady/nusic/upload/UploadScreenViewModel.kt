@@ -43,6 +43,15 @@ class UploadScreenViewModel @Inject constructor(
 
         //Start FFT here i believe
     }
+
+    fun clearState() {
+        _songTitle.value = ""
+        _songTitleErrorMessages.value = emptyList()
+        _songPhotoUrl.value = null
+        _songUrl.value = null
+        _uploadScreenState.value = UploadScreenState.UploadPhoto
+        _uploadScreenAuxState.value = UploadScreenAuxState.Passive
+    }
 }
 
 enum class UploadScreenState {

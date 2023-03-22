@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -120,11 +122,14 @@ private fun EditableImageBackground(
         }
     }
 
-    Box(modifier = modifier.clickable {
-        selectImageLauncher.launch(
-            "image/*"
-        )
-    }) {
+    Box(
+        modifier = modifier.clickable {
+            selectImageLauncher.launch(
+                "image/*"
+            )
+        },
+        contentAlignment = Alignment.Center
+    ) {
         if (photoUrl != null) {
             SubcomposeAsyncImage(
                 modifier = Modifier.fillMaxSize(),
@@ -139,6 +144,11 @@ private fun EditableImageBackground(
                 },
                 contentScale = ContentScale.Crop,
                 contentDescription = stringResource(R.string.current_songs_image)
+            )
+        } else {
+            Icon(
+                modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX7)),
+                imageVector = Icons.Filled.AddCircle, contentDescription = "Add Image"
             )
         }
     }
@@ -214,9 +224,10 @@ fun SongCard(
             Box(modifier = Modifier.fillMaxSize()) {
 
                 when (songCardStateState) {
-                    SongCardStateStates.Error -> SongCardErrorOverlay(modifier = Modifier
-                        .fillMaxSize()
-                        .zIndex(1f),
+                    SongCardStateStates.Error -> SongCardErrorOverlay(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(1f),
                         onRetry = { onRetry() },
                         onCancel = { onCancel() },
                         errorMessage = errorMessage,
