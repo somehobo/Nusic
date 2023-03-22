@@ -145,7 +145,8 @@ private fun ProfileScreenContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = dimensionResource(id = R.dimen.NusicDimenX3))
+                            .padding(bottom = dimensionResource(id = R.dimen.NusicDimenX3)),
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         ProfileUsername(
                             username = mainViewModel.username ?: ""
