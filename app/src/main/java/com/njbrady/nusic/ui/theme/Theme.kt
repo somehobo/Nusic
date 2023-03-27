@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 
 private val DarkColorPalette = darkColors(
     primary = NusicBlue,
-    primaryVariant = Purple700,
+    primaryVariant = NusicBlueLight,
     secondary = NusicOrange,
     background = Color.Black,
     onBackground = Color.White,
@@ -18,7 +18,7 @@ private val DarkColorPalette = darkColors(
 
 private val LightColorPalette = lightColors(
     primary = NusicOrange,
-    primaryVariant = Purple700,
+    primaryVariant = NusicOrangeLight,
     secondary = NusicBlue,
     background = Color.White,
     onBackground = Color.Black ,

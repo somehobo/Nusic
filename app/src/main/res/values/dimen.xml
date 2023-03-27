@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="NusicDimenXHalf">4dp</dimen>
     <dimen name="NusicDimenX1">8dp</dimen>
     <dimen name="NusicDimenX2">16dp</dimen>
     <dimen name="NusicDimenX3">24dp</dimen>
@@ -8,6 +9,8 @@
     <dimen name="NusicDimenX6">48dp</dimen>
     <dimen name="NusicDimenX7">56dp</dimen>
     <dimen name="NusicDimenX8">64dp</dimen>
+    <dimen name="NusicDimenX10">80dp</dimen>
+
     <dimen name="ShimmerSongNameDimen">128dp</dimen>
     <dimen name="ProfileImageDimen">128dp</dimen>
     <dimen name="BorderStrokeSize">1dp</dimen>
