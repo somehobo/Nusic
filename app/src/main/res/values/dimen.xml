@@ -11,7 +11,11 @@
     <dimen name="NusicDimenX8">64dp</dimen>
     <dimen name="NusicDimenX10">80dp</dimen>
 
+    <dimen name="NusicDimenX15">120dp</dimen>
+    <dimen name="NusicDimenX20">160dp</dimen>
+
     <dimen name="ShimmerSongNameDimen">128dp</dimen>
     <dimen name="ProfileImageDimen">128dp</dimen>
     <dimen name="BorderStrokeSize">1dp</dimen>
+    <dimen name="BorderStrokeSizeXHalf">0.5dp</dimen>
 </resources>

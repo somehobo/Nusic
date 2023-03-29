@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.Thread.State
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,6 +31,9 @@ class UploadScreenViewModel @Inject constructor(
     private val _uploadScreenState = MutableStateFlow(UploadScreenState.UploadPhoto)
     private val _uploadScreenAuxState = MutableStateFlow(UploadScreenAuxState.Passive)
     private val _uploadSongLoading = MutableStateFlow(false)
+    private val _uploadSongStartTime = MutableStateFlow(0)
+    private val _uploadSongEndTime = MutableStateFlow(30)
+    private val _uploadSongPlayerState = MutableStateFlow(PlayerState.Playing)
 
     val username = _localStorage.retrieveUsername()
     val songTitle: StateFlow<String> = _songTitle
@@ -40,7 +44,17 @@ class UploadScreenViewModel @Inject constructor(
     val uploadScreenState: StateFlow<UploadScreenState> = _uploadScreenState
     val uploadScreenAuxState: StateFlow<UploadScreenAuxState> = _uploadScreenAuxState
     val uploadSongLoading: StateFlow<Boolean> = _uploadSongLoading
+    val uploadSongStartTime: StateFlow<Int> = _uploadSongStartTime
+    val uploadSongEndTime: StateFlow<Int> = _uploadSongEndTime
+    val uploadSongPlayerState: StateFlow<PlayerState> = _uploadSongPlayerState
 
+    fun togglePlayState() {
+        when (uploadSongPlayerState.value) {
+            PlayerState.Playing -> _uploadSongPlayerState.value = PlayerState.Paused
+            PlayerState.Paused -> _uploadSongPlayerState.value = PlayerState.Playing
+            else -> {}
+        }
+    }
 
     fun setSongTitle(title: String) {
         _songTitle.value = title
@@ -48,6 +62,11 @@ class UploadScreenViewModel @Inject constructor(
 
     fun setPhotoUrl(uri: Uri) {
         _songPhotoUrl.value = uri
+    }
+
+    fun setStartTime(int: Int) {
+        _uploadSongStartTime.value = int
+        _uploadSongEndTime.value = int + 30
     }
 
     fun setSongUrl(uri: Uri, context: Context) {
@@ -70,6 +89,7 @@ class UploadScreenViewModel @Inject constructor(
         _songUrl.value = null
         _uploadScreenState.value = UploadScreenState.UploadPhoto
         _uploadScreenAuxState.value = UploadScreenAuxState.Passive
+        setStartTime(0)
     }
 
     companion object {
@@ -83,6 +103,10 @@ enum class UploadScreenState {
 
 enum class UploadScreenAuxState {
     Passive, Loading
+}
+
+enum class PlayerState {
+    Playing, Paused, Loading
 }
 
 fun UploadScreenState.stringResource(): Int {
