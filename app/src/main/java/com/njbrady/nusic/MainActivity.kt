@@ -78,6 +78,7 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         mainViewModel.pauseCurrent()
         homeScreenViewModel.forcePauseCurrent()
+        uploadScreenViewModel.pauseWhenReady()
     }
 
 }

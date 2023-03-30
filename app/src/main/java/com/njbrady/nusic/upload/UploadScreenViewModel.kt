@@ -66,6 +66,7 @@ class UploadScreenViewModel @Inject constructor(
                             PlayerState.Paused else _uploadSongPlayerState.value =
                             PlayerState.Playing
                     Player.STATE_BUFFERING -> _uploadSongPlayerState.value = PlayerState.Loading
+                    Player.STATE_ENDED -> _uploadSongPlayerState.value = PlayerState.Paused
                     else -> {}
                 }
             }
@@ -116,6 +117,8 @@ class UploadScreenViewModel @Inject constructor(
                     Handler(Looper.getMainLooper()).post {
                         _uploadSongLoading.value = false
                         _uploadSongPlayerState.value = PlayerState.Loading
+                        setStartTime(0)
+                        _uploadSongCurPos.value = null
                         _songAmplitude.value = amplitudes
                         mediaPlayerTracker.stopTracking()
                         currentSong.removeMediaItem(0)

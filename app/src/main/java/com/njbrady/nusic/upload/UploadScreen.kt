@@ -182,7 +182,11 @@ private fun UploadSong(
                             .padding(dimensionResource(id = R.dimen.NusicDimenX1))
                             .width(dimensionResource(id = R.dimen.NusicDimenX5)),
                         onTogglePlay = { uploadScreenViewModel.togglePlayState() },
-                        onChangeSong = { },
+                        onChangeSong = {
+                            selectSongLauncher.launch(
+                                "audio/*"
+                            )
+                        },
                         playState = playerState
                     )
                     Amplitude(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.NusicDimenX1)),
@@ -286,47 +290,73 @@ private fun Amplitude(
                 }
             }
         }
-        LazyRow(
-            modifier = Modifier.fillMaxSize(),
-            userScrollEnabled = scrollEnabled,
-            verticalAlignment = Alignment.CenterVertically,
-            state = lazyListState,
-            flingBehavior = rememberSnapFlingBehavior(
-                snapLayoutInfoProvider = SnapLayoutInfoProvider(
-                    lazyListState = lazyListState,
-                    positionInLayout = { _, _ -> 0f })
-            )
-        ) {
-            itemsIndexed(items = data) { index, item ->
-                val boxColor =
-                    if (index == currentLoc)
-                        currentLocColor
-                    else if (index in start..end)
-                        barColor
-                    else
-                        colorResource(id = R.color.nusic_card_grey)
-                Box(
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (scrollEnabled) {
+                Row(
                     modifier = Modifier
-                        .width(dimensionResource(id = R.dimen.NusicDimenXHalf))
-                        .fillMaxHeight(item)
-                        .background(boxColor)
-                        .border(
-                            border = BorderStroke(
-                                width = dimensionResource(id = R.dimen.BorderStrokeSizeXHalf),
-                                color = NusicSeeThroughBlack
-                            )
+                        .fillMaxWidth()
+                        .height(dimensionResource(id = R.dimen.NusicDimenX4)),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX2)),
+                        text = "clip: " + calculateMinuteFormat(start) + " - " + calculateMinuteFormat(
+                            end
                         )
-                )
+                    )
+                    currentLoc?.let {
+                        Text(
+                            text = "playing: " + calculateMinuteFormat(it),
+                        )
+                    }
+
+                }
             }
-            item {
-                Box(
-                    modifier = modifier
-                        .fillParentMaxHeight()
-                        .width(remainingFill)
+            LazyRow(
+                modifier = Modifier.fillMaxSize(),
+                userScrollEnabled = scrollEnabled,
+                verticalAlignment = Alignment.CenterVertically,
+                state = lazyListState,
+                flingBehavior = rememberSnapFlingBehavior(
+                    snapLayoutInfoProvider = SnapLayoutInfoProvider(lazyListState = lazyListState,
+                        positionInLayout = { _, _ -> 0f })
                 )
+            ) {
+                itemsIndexed(items = data) { index, item ->
+                    val boxColor = if (index == currentLoc) currentLocColor
+                    else if (index in start..end) barColor
+                    else colorResource(id = R.color.nusic_card_grey)
+                    Box(
+                        modifier = Modifier
+                            .width(dimensionResource(id = R.dimen.NusicDimenXHalf))
+                            .fillMaxHeight(item)
+                            .background(boxColor)
+                            .border(
+                                border = BorderStroke(
+                                    width = dimensionResource(id = R.dimen.BorderStrokeSizeXHalf),
+                                    color = NusicSeeThroughBlack
+                                )
+                            )
+                    )
+
+                }
+                item {
+                    Box(
+                        modifier = modifier
+                            .fillParentMaxHeight()
+                            .width(remainingFill)
+                    )
+                }
             }
         }
     }
+}
+
+fun calculateMinuteFormat(totalSeconds: Int): String {
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    val secondsRep = if (seconds < 10) "0$seconds" else "$seconds"
+    return "$minutes:$secondsRep"
 }
 
 
@@ -334,8 +364,7 @@ private fun Amplitude(
 @Preview(showBackground = true)
 private fun defaultPreview() {
     NusicTheme {
-        UploadSongOptions(
-            modifier = Modifier.size(120.dp),
+        UploadSongOptions(modifier = Modifier.size(120.dp),
             onChangeSong = {},
             onTogglePlay = {},
             playState = PlayerState.Playing
