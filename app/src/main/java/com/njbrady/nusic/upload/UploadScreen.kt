@@ -298,17 +298,18 @@ private fun Amplitude(
                         .height(dimensionResource(id = R.dimen.NusicDimenX4)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    currentLoc?.let {
+                        Text(
+                            text = calculateMinuteFormat(it),
+                        )
+                    }
                     Text(
                         modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX2)),
-                        text = "clip: " + calculateMinuteFormat(start) + " - " + calculateMinuteFormat(
+                        text = calculateMinuteFormat(start) + " - " + calculateMinuteFormat(
                             end
                         )
                     )
-                    currentLoc?.let {
-                        Text(
-                            text = "playing: " + calculateMinuteFormat(it),
-                        )
-                    }
+
 
                 }
             }
