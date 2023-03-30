@@ -76,6 +76,7 @@ private fun ProfileScrenNavigation(
         ) {
             composable(ProfileScreens.Profile.route) {
                 mainViewModel.pauseAndReset()
+                uploadScreenViewModel.pauseWhenReady()
                 ProfileScreenContent(mainViewModel = mainViewModel,
                     currentlySelected = currentlySelected,
                     onFilter = { newFilter -> currentlySelected = newFilter },
@@ -89,6 +90,7 @@ private fun ProfileScrenNavigation(
                 )
             }
             composable(ProfileScreens.LCSongs.route) {
+                uploadScreenViewModel.pauseWhenReady()
                 ProfileScrollingSongs(
                     mainViewModel = mainViewModel,
                     navController = profileNavController,

@@ -128,6 +128,7 @@ private fun UploadSong(
     val localContext = LocalContext.current
     val songStart by uploadScreenViewModel.uploadSongStartTime.collectAsState()
     val songEnd by uploadScreenViewModel.uploadSongEndTime.collectAsState()
+    val curPos by uploadScreenViewModel.uploadSongCurPos.collectAsState()
     val selectSongLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
@@ -190,6 +191,7 @@ private fun UploadSong(
                         scrollEnabled = true,
                         start = songStart,
                         end = songEnd,
+                        currentLoc = curPos,
                         setStart = { start -> uploadScreenViewModel.setStartTime(start) })
                 }
             }
@@ -276,7 +278,7 @@ private fun Amplitude(
     BoxWithConstraints(modifier = modifier) {
         val remainingFill =
             maxWidth - (30 * dimensionResource(id = R.dimen.NusicDimenXHalf).value).dp
-        val lazyListState = rememberLazyListState()
+        val lazyListState = rememberLazyListState(initialFirstVisibleItemIndex = start)
         if (scrollEnabled) {
             LaunchedEffect(Unit) {
                 snapshotFlow { lazyListState.firstVisibleItemIndex }.collect { firstItemIndex ->

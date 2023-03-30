@@ -2,10 +2,16 @@ package com.njbrady.nusic.upload
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.njbrady.nusic.R
 import com.njbrady.nusic.utils.LocalStorage
+import com.njbrady.nusic.utils.ExoPlayerPositionTracker
 import com.njbrady.nusic.utils.calculateAmplitudes
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,13 +20,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.Thread.State
 import javax.inject.Inject
 
 @HiltViewModel
 class UploadScreenViewModel @Inject constructor(
     private val _localStorage: LocalStorage,
     @DefaultDispatcher private val _defaultDispatcher: CoroutineDispatcher,
+    context: Context
 ) : ViewModel() {
 
     private val _songTitle = MutableStateFlow("")
@@ -28,11 +34,10 @@ class UploadScreenViewModel @Inject constructor(
     private val _songPhotoUrl = MutableStateFlow<Uri?>(null)
     private val _songUrl = MutableStateFlow<Uri?>(null)
     private val _songAmplitude = MutableStateFlow(emptyList<Float>())
-    private val _uploadScreenState = MutableStateFlow(UploadScreenState.UploadPhoto)
-    private val _uploadScreenAuxState = MutableStateFlow(UploadScreenAuxState.Passive)
     private val _uploadSongLoading = MutableStateFlow(false)
     private val _uploadSongStartTime = MutableStateFlow(0)
     private val _uploadSongEndTime = MutableStateFlow(30)
+    private val _uploadSongCurPos = MutableStateFlow<Int?>(null)
     private val _uploadSongPlayerState = MutableStateFlow(PlayerState.Playing)
 
     val username = _localStorage.retrieveUsername()
@@ -41,18 +46,51 @@ class UploadScreenViewModel @Inject constructor(
     val songPhotoUrl: StateFlow<Uri?> = _songPhotoUrl
     val songUrl: StateFlow<Uri?> = _songUrl
     val songAmplitude: StateFlow<List<Float>> = _songAmplitude
-    val uploadScreenState: StateFlow<UploadScreenState> = _uploadScreenState
-    val uploadScreenAuxState: StateFlow<UploadScreenAuxState> = _uploadScreenAuxState
     val uploadSongLoading: StateFlow<Boolean> = _uploadSongLoading
     val uploadSongStartTime: StateFlow<Int> = _uploadSongStartTime
     val uploadSongEndTime: StateFlow<Int> = _uploadSongEndTime
     val uploadSongPlayerState: StateFlow<PlayerState> = _uploadSongPlayerState
+    val uploadSongCurPos: StateFlow<Int?> = _uploadSongCurPos
+    var currentSong: ExoPlayer = ExoPlayer.Builder(context).build()
+    var mediaPlayerTracker: ExoPlayerPositionTracker =
+        ExoPlayerPositionTracker(currentSong, { position ->
+            _uploadSongCurPos.value = position
+        })
+
+    init {
+        currentSong.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                when (playbackState) {
+                    Player.STATE_READY ->
+                        if (_uploadSongPlayerState.value == PlayerState.Loading) _uploadSongPlayerState.value =
+                            PlayerState.Paused else _uploadSongPlayerState.value =
+                            PlayerState.Playing
+                    Player.STATE_BUFFERING -> _uploadSongPlayerState.value = PlayerState.Loading
+                    else -> {}
+                }
+            }
+        })
+    }
 
     fun togglePlayState() {
         when (uploadSongPlayerState.value) {
-            PlayerState.Playing -> _uploadSongPlayerState.value = PlayerState.Paused
-            PlayerState.Paused -> _uploadSongPlayerState.value = PlayerState.Playing
+            PlayerState.Playing -> {
+                currentSong.pause()
+                _uploadSongPlayerState.value = PlayerState.Paused
+            }
+            PlayerState.Paused -> {
+                currentSong.seekTo((uploadSongStartTime.value * 1000).toLong())
+                currentSong.play()
+                _uploadSongPlayerState.value = PlayerState.Playing
+            }
             else -> {}
+        }
+    }
+
+    fun pauseWhenReady() {
+        if (currentSong.isPlaying) {
+            currentSong.pause()
+            _uploadSongPlayerState.value = PlayerState.Paused
         }
     }
 
@@ -75,11 +113,25 @@ class UploadScreenViewModel @Inject constructor(
                 _songUrl.value = uri
                 _uploadSongLoading.value = true
                 calculateAmplitudes(context = context, uri = uri) { amplitudes ->
-                    _uploadSongLoading.value = false
-                    _songAmplitude.value = amplitudes
+                    Handler(Looper.getMainLooper()).post {
+                        _uploadSongLoading.value = false
+                        _uploadSongPlayerState.value = PlayerState.Loading
+                        _songAmplitude.value = amplitudes
+                        mediaPlayerTracker.stopTracking()
+                        currentSong.removeMediaItem(0)
+                        currentSong.setMediaItem(MediaItem.fromUri(uri))
+                        currentSong.prepare()
+                        mediaPlayerTracker.startTracking()
+                    }
                 }
             }
         }
+    }
+
+    fun clearPlayerState() {
+        mediaPlayerTracker.stopTracking()
+        currentSong.pause()
+        currentSong.removeMediaItem(0)
     }
 
     fun clearState() {
@@ -87,13 +139,40 @@ class UploadScreenViewModel @Inject constructor(
         _songTitleErrorMessages.value = emptyList()
         _songPhotoUrl.value = null
         _songUrl.value = null
-        _uploadScreenState.value = UploadScreenState.UploadPhoto
-        _uploadScreenAuxState.value = UploadScreenAuxState.Passive
         setStartTime(0)
+        _uploadSongCurPos.value = null
+        clearPlayerState()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        currentSong.release()
     }
 
     companion object {
-        val DEFAULT_SONG = listOf<Float>(0.1F, 0.9F, 0.9F, 0.3F, 0.5F, 0.8F, 0.1F,0.1F, 0.9F, 0.9F, 0.3F, 0.5F, 0.8F, 0.1F,0.1F, 0.9F, 0.9F, 0.3F, 0.5F, 0.8F, 0.1F)
+        val DEFAULT_SONG = listOf<Float>(
+            0.1F,
+            0.9F,
+            0.9F,
+            0.3F,
+            0.5F,
+            0.8F,
+            0.1F,
+            0.1F,
+            0.9F,
+            0.9F,
+            0.3F,
+            0.5F,
+            0.8F,
+            0.1F,
+            0.1F,
+            0.9F,
+            0.9F,
+            0.3F,
+            0.5F,
+            0.8F,
+            0.1F
+        )
     }
 }
 
