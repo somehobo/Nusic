@@ -4,7 +4,7 @@ import com.njbrady.nusic.home.model.SongModel
 import org.json.JSONObject
 
 data class PagedResponse(
-    var songObjects: List<SongModel>,
+    var songModels: List<SongModel>,
     var page: Int,
     var per_page: Int,
     var total: Int,
@@ -21,7 +21,7 @@ data class PagedResponse(
                     }
                 }
                 PagedResponse(
-                    songObjects = songList,
+                    songModels = songList,
                     page = jsonObject.getInt(ProfileKeys.pageKey),
                     per_page = jsonObject.getInt(ProfileKeys.perPageKey),
                     total = total

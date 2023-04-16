@@ -1,6 +1,5 @@
 package com.njbrady.nusic.home
 
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import androidx.lifecycle.ViewModel
@@ -40,7 +39,6 @@ class HomeScreenViewModel @Inject constructor(
             _errorToast.value = error
         }, mainSocketHandler = mainSocketHandler
         )
-    private var _tempPaused = false
 
     private val _isLoading = MutableStateFlow(false)
     private val _nonBlockingError = MutableStateFlow<String?>(null)
@@ -48,6 +46,7 @@ class HomeScreenViewModel @Inject constructor(
     private val _errorToast = MutableStateFlow<String?>(null)
     private val _realSongQueue = MutableStateFlow(listOf<SongPlayerWrapper>())
 
+    var tempPaused = false
     val isLoading: StateFlow<Boolean> = _isLoading
     val nonBlockingError: StateFlow<String?> = _nonBlockingError
     val blockingError: StateFlow<String?> = _blockingError
@@ -113,12 +112,14 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun tempPauseCurrent() {
-        _exoMiddleMan.pauseCurrent()
-        _tempPaused = true
+        if (topSongState.value != PlayerState.Paused) {
+            _exoMiddleMan.pauseCurrent()
+            tempPaused = true
+        }
     }
 
     fun ifTempPauseThenResume() {
-        if (_tempPaused) {
+        if (tempPaused) {
             _realSongQueue.value.firstOrNull()?.play?.let { it() }
         }
     }

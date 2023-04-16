@@ -2,9 +2,9 @@ package com.njbrady.nusic.profile.utils
 
 import com.njbrady.nusic.MainSocketHandler
 import com.njbrady.nusic.home.model.SongModel
-import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.home.utils.SongKeys.LikeKey
 import com.njbrady.nusic.profile.requests.SongListType
+import com.njbrady.nusic.utils.ExoMiddleMan
 import com.njbrady.nusic.utils.GeneralKeys.ERROR_KEY
 import com.njbrady.nusic.utils.GeneralKeys.MESSAGE_TYPE
 import com.njbrady.nusic.utils.GeneralKeys.SONG_CATEGORY
@@ -14,12 +14,14 @@ import com.njbrady.nusic.utils.GeneralTypes.ERROR_TYPE
 import com.njbrady.nusic.utils.GeneralTypes.UPDATE_TYPE
 import com.njbrady.nusic.utils.MessageHandler
 import com.njbrady.nusic.utils.OnSocketRoute
+import com.njbrady.nusic.utils.SongPlayerWrapper
 import org.json.JSONObject
 
 class ProfileMessageHandler(
-    private val onSongReceived: (SongCardState, SongListType, Boolean) -> Unit,
+    private val onSongReceived: (SongPlayerWrapper, SongListType, Boolean) -> Unit,
     private val onBlockingError: (String) -> Unit,
     private val onError: (String) -> Unit,
+    private val exoMiddleMan: ExoMiddleMan,
     mainSocketHandler: MainSocketHandler
 ): MessageHandler(OnSocketRoute.PROFILEROUTE, mainSocketHandler) {
 
@@ -39,9 +41,9 @@ class ProfileMessageHandler(
             } else {
                 SongListType.Liked
             }
-        val songCardState = SongCardState(SongModel.fromJson(jsonObject))
+        val songPlayerWrapper = exoMiddleMan.addMedia(SongModel.fromJson(jsonObject))
         val liked = jsonObject.getBoolean(LikeKey)
-        onSongReceived(songCardState, songListType, liked)
+        onSongReceived(songPlayerWrapper, songListType, liked)
     }
 
     private fun onErrorTypeReceived(jsonObject: JSONObject) {

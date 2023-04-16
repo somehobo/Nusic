@@ -1,6 +1,7 @@
 package com.njbrady.nusic.profile
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
@@ -23,10 +25,12 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.njbrady.nusic.MainViewModel
 import com.njbrady.nusic.R
-import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.profile.requests.SongListType
+import com.njbrady.nusic.upload.PlayerState
+import com.njbrady.nusic.utils.SongPlayerWrapper
 import com.njbrady.nusic.utils.composables.ItemImpression
 import com.njbrady.nusic.utils.composables.NavigationTopAppBar
+import com.njbrady.nusic.utils.composables.SongCard
 
 
 @Composable
@@ -63,12 +67,15 @@ fun ProfileScrollingSongs(
 @Composable
 private fun ScrollingSongList(
     paddingValues: PaddingValues,
-    displayedSongs: LazyPagingItems<SongCardState>,
-    prependedDisplayedSongs: List<Pair<SongCardState, Boolean>>,
+    displayedSongs: LazyPagingItems<SongPlayerWrapper>,
+    prependedDisplayedSongs: List<Pair<SongPlayerWrapper, Boolean>>,
     selectedSongIndex: Int,
     mainViewModel: MainViewModel
 ) {
     val lazyListState = rememberLazyListState()
+
+    val topSongState by mainViewModel.topSongState.collectAsState()
+    val topSongErrorMessage by mainViewModel.topSongErrorMessage.collectAsState()
 
     LaunchedEffect(Unit) {
         lazyListState.scrollToItem(selectedSongIndex)
@@ -87,13 +94,16 @@ private fun ScrollingSongList(
             if (liked) {
                 Box(modifier = Modifier.fillParentMaxSize()) {
                     songItem(
-                        songCardState = songCardState,
+                        songPlayerWrapper = songCardState,
                         currentlyPlayingSong = mainViewModel.currentlyPlayingSong,
                         lazyListState = lazyListState,
                         setCurrentlyPlayingSong = { songCardState, index ->
                             mainViewModel.setCurrentPlayingScrollingSong(songCardState, index)
                         },
-                        index = index
+                        index = index,
+                        currentCardErrorMessage = topSongErrorMessage,
+                        currentCardState = topSongState,
+                        pauseCurrentSong = { mainViewModel.pauseCurrent() }
                     )
                 }
             }
@@ -102,13 +112,17 @@ private fun ScrollingSongList(
         itemsIndexed(items = displayedSongs) { index, songCardState ->
             songCardState?.let {
                 Box(modifier = Modifier.fillParentMaxSize()) {
-                    songItem(songCardState = songCardState,
+                    songItem(songPlayerWrapper = songCardState,
                         currentlyPlayingSong = mainViewModel.currentlyPlayingSong,
                         index = index + prependedDisplayedSongs.size,
                         lazyListState = lazyListState,
-                        setCurrentlyPlayingSong = { songCardState, index ->
-                            mainViewModel.setCurrentPlayingScrollingSong(songCardState, index)
-                        })
+                        setCurrentlyPlayingSong = { songPlayerWrapper, index ->
+                            mainViewModel.setCurrentPlayingScrollingSong(songPlayerWrapper, index)
+                        },
+                        currentCardErrorMessage = topSongErrorMessage,
+                        currentCardState = topSongState,
+                        pauseCurrentSong = { mainViewModel.pauseCurrent() }
+                    )
                 }
             }
         }
@@ -117,34 +131,48 @@ private fun ScrollingSongList(
 
 @Composable
 private fun songItem(
-    songCardState: SongCardState,
-    currentlyPlayingSong: SongCardState?,
+    songPlayerWrapper: SongPlayerWrapper,
+    currentlyPlayingSong: SongPlayerWrapper?,
+    pauseCurrentSong: () -> Unit,
     lazyListState: LazyListState,
-    setCurrentlyPlayingSong: (SongCardState, Int) -> Unit,
+    setCurrentlyPlayingSong: (SongPlayerWrapper, Int) -> Unit,
+    currentCardState: PlayerState,
+    currentCardErrorMessage: String?,
     index: Int
 ) {
+    val songCardModifier = Modifier
+        .fillMaxSize()
+        .padding(dimensionResource(id = R.dimen.NusicDimenX1))
+        .clickable { pauseCurrentSong() }
+
     ItemImpression(index = index, lazyListState = lazyListState, onItemViewed = {
-        if (songCardState != currentlyPlayingSong) {
-            currentlyPlayingSong?.pauseWhenReady()
-            songCardState.replayFromScroll()
-            setCurrentlyPlayingSong(songCardState, index)
+        if (songPlayerWrapper != currentlyPlayingSong) {
+            pauseCurrentSong()
+            songPlayerWrapper.play()
+            setCurrentlyPlayingSong(songPlayerWrapper, index)
         }
     })
-//    with(songCardState) {
-//        val songCardStateState by songCardStateState.collectAsState()
-//        val songCardStateError by errorMessage.collectAsState()
-//        SongCard(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(dimensionResource(id = R.dimen.NusicDimenX1))
-//                .clickable { pause() },
-//            songCardStateState = songCardStateState,
-//            errorMessage = songCardStateError,
-//            songModel = songObject,
-//            onRestart = { restart() },
-//            onResume = { resume() },
-//            onRetry = { retry() },
-//            cancelAvailable = false
-//        )
-//    }
+    with(songPlayerWrapper) {
+        if (currentlyPlayingSong == songPlayerWrapper) {
+            SongCard(
+                modifier = songCardModifier,
+                errorMessage = currentCardErrorMessage,
+                playerState = currentCardState,
+                songModel = songModel,
+                onRestart = { restart() },
+                onResume = { play() },
+                onRetry = { reset() },
+                cancelAvailable = false
+            )
+        } else {
+            SongCard(
+                modifier = songCardModifier,
+                errorMessage = null,
+                playerState = PlayerState.Playing,
+                songModel = songModel,
+                cancelAvailable = false
+            )
+        }
+    }
+
 }

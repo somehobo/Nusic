@@ -194,7 +194,7 @@ private fun ProfileScreenContent(
 
                 itemsIndexed(items = displayedPrependedSongs) { index, item ->
                     if (item.second) {
-                        item.first.songObject?.let {
+                        item.first.songModel.let {
                             MusicElement(songObject = it, onSelected = onSelected, index = index)
                             Divider()
                         }
@@ -203,10 +203,10 @@ private fun ProfileScreenContent(
 
                 itemsIndexed(items = displayedSongs) { index, item ->
                     val canShow = displayedPrependedSongs.find {
-                        it.second && it.first.songObject?.songId == item?.songObject?.songId
+                        it.second && it.first.songModel.songId == item?.songModel?.songId
                     }
                     if (canShow == null) {
-                        item?.songObject?.let {
+                        item?.songModel?.let {
                             MusicElement(songObject = it, onSelected = onSelected, index = index)
                             Divider()
                         }
