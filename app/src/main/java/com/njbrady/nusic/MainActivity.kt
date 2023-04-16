@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -77,7 +76,7 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         mainViewModel.pauseCurrent()
-        homeScreenViewModel.forcePauseCurrent()
+        homeScreenViewModel.tempPauseCurrent()
         uploadScreenViewModel.pauseWhenReady()
     }
 

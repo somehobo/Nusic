@@ -11,5 +11,6 @@ class UrlProvider {
         const val pagedSongsUrl = baseUrl + "pagedSongs/"
         const val uploadProfilePhotoUrl = baseUrl + "postProfilePhoto/"
         const val getProfilePhotoUrl = baseUrl + "getProfilePhoto/"
+        const val uploadSong = baseUrl + "songUpload/"
     }
 }

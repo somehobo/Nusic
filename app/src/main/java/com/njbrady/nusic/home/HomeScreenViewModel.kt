@@ -1,59 +1,82 @@
 package com.njbrady.nusic.home
 
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.njbrady.nusic.MainSocketHandler
 import com.njbrady.nusic.home.model.SongModel
-import com.njbrady.nusic.home.utils.*
+import com.njbrady.nusic.home.utils.GetSongMessage
+import com.njbrady.nusic.home.utils.HomeMessageHandler
+import com.njbrady.nusic.home.utils.LikeSongMessage
+import com.njbrady.nusic.home.utils.MusicMessage
+import com.njbrady.nusic.upload.PlayerState
+import com.njbrady.nusic.utils.ExoMiddleMan
+import com.njbrady.nusic.utils.SongPlayerWrapper
+import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    mainSocketHandler: MainSocketHandler
+    mainSocketHandler: MainSocketHandler,
+    context: Context,
+    @DefaultDispatcher private val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
-    private val _messageHandler = HomeMessageHandler(
-        onSong = { songModel -> pushSongQueue(songModel) },
-        onError = { error ->
+    private val _messageHandler =
+        HomeMessageHandler(onSong = { songModel -> pushSongQueue(songModel) }, onError = { error ->
             _nonBlockingError.value = error
             _errorToast.value = error
-        },
-        onBlockingError = { error ->
+        }, onBlockingError = { error ->
             _blockingError.value = error
             _errorToast.value = error
-        },
-        mainSocketHandler = mainSocketHandler
-    )
-
+        }, mainSocketHandler = mainSocketHandler
+        )
+    private val _exoMiddleMan = ExoMiddleMan(context = context)
+    private var _tempPaused = false
 
     private val _isLoading = MutableStateFlow(false)
     private val _nonBlockingError = MutableStateFlow<String?>(null)
     private val _blockingError = MutableStateFlow<String?>(null)
     private val _errorToast = MutableStateFlow<String?>(null)
-    private val _realSongQueue = MutableStateFlow(listOf<SongCardState>())
+    private val _realSongQueue = MutableStateFlow(listOf<SongPlayerWrapper>())
 
     val isLoading: StateFlow<Boolean> = _isLoading
     val nonBlockingError: StateFlow<String?> = _nonBlockingError
     val blockingError: StateFlow<String?> = _blockingError
     val blockingErrorToast: StateFlow<String?> = _errorToast
-    val realSongQueue: StateFlow<List<SongCardState>> = _realSongQueue
+    val realSongQueue: StateFlow<List<SongPlayerWrapper>> = _realSongQueue
+    val topSongState: StateFlow<PlayerState> = _exoMiddleMan.currentSongPlayerState
+    val topSongErrorMessage: StateFlow<String?> = _exoMiddleMan.currentSongErrorMessage
 
     init {
         retry()
     }
 
     private fun popSongQueue() {
-        _realSongQueue.value.first().release()
+        _realSongQueue.value.first().remove()
         _realSongQueue.value = _realSongQueue.value.drop(1)
-        _realSongQueue.value.firstOrNull()?.playIfFirst()
+        _realSongQueue.value.firstOrNull()?.play?.let { it() }
     }
 
     private fun pushSongQueue(songModel: SongModel) {
-        _realSongQueue.value = _realSongQueue.value.plusElement(SongCardState(songModel))
-        _realSongQueue.value.firstOrNull()?.playIfFirst()
+        viewModelScope.launch {
+            withContext(dispatcher) {
+                Handler(Looper.getMainLooper()).post {
+                    _realSongQueue.value =
+                        _realSongQueue.value.plusElement(_exoMiddleMan.addMedia(songModel))
+                    _realSongQueue.value.firstOrNull()?.play?.let { it() }
+                }
+            }
+        }
     }
 
     //add logic for empty state case
@@ -70,18 +93,10 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun likeTop(like: Boolean) {
-        with(realSongQueue.value.firstOrNull()) {
-            if (this?.songCardStateState?.value != SongCardStateStates.Empty) this?.songObject?.let { songObject ->
-                likeSong(
-                    songObject, like
-                )
-            }
-        }
-    }
-
-    fun restartTop() {
-        with(realSongQueue.value.firstOrNull()) {
-            if (this?.songCardStateState?.value != SongCardStateStates.Empty) this?.restart()
+        realSongQueue.value.firstOrNull()?.let {
+            likeSong(
+                it.songModel, like
+            )
         }
     }
 
@@ -98,33 +113,28 @@ class HomeScreenViewModel @Inject constructor(
         _errorToast.value = null
     }
 
-    fun resetState() {
-        _realSongQueue.value.forEach {
-            it.release()
+    fun tempPauseCurrent() {
+        _exoMiddleMan.pauseCurrent()
+        _tempPaused = true
+    }
+
+    fun ifTempPauseThenResume() {
+        if (_tempPaused) {
+            _realSongQueue.value.firstOrNull()?.play?.let { it() }
         }
     }
 
-    fun forcePauseCurrent() {
-        with(realSongQueue.value.firstOrNull()) {
-            this?.pauseWhenReady()
-        }
+    fun pauseCurrent() {
+        _exoMiddleMan.pauseCurrent()
     }
 
-    fun resumeCurrentPreviousPlayState() {
-        with(realSongQueue.value.firstOrNull()) {
-            this?.resumePreviousPlayState()
-        }
-    }
-
-    private fun runJob(musicMessage: MusicMessage){
+    private fun runJob(musicMessage: MusicMessage) {
         _messageHandler.sendMessage(musicMessage.getMessage())
     }
 
     override fun onCleared() {
         super.onCleared()
-        _realSongQueue.value.forEach {
-            it.release()
-        }
+        _exoMiddleMan.release()
         _messageHandler.onClear()
     }
 

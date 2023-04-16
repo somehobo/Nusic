@@ -3,10 +3,16 @@ package com.njbrady.nusic.home
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -16,10 +22,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.Screen
-import com.njbrady.nusic.home.utils.SongCardState
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.upload.PlayerState
+import com.njbrady.nusic.utils.SongPlayerWrapper
 import com.njbrady.nusic.utils.composables.SongCard
 import com.njbrady.nusic.utils.composables.SwipeableCardWrapper
 
@@ -31,10 +38,10 @@ fun HomeScreen(
     navController.addOnDestinationChangedListener { _, destination, _ ->
         when (destination.route) {
             Screen.Home.route -> {
-                homeScreenViewModel.resumeCurrentPreviousPlayState()
+                homeScreenViewModel.ifTempPauseThenResume()
             }
             else -> {
-                homeScreenViewModel.forcePauseCurrent()
+                homeScreenViewModel.tempPauseCurrent()
             }
         }
     }
@@ -79,9 +86,11 @@ private fun SongStack(
     homeScreenViewModel: HomeScreenViewModel,
     modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(),
-    songQueue: List<SongCardState>
+    songQueue: List<SongPlayerWrapper>
 ) {
 
+    val topCardState by homeScreenViewModel.topSongState.collectAsState()
+    val topCardErrorMessage by homeScreenViewModel.topSongErrorMessage.collectAsState()
     val nonBlockingError by homeScreenViewModel.nonBlockingError.collectAsState()
     val loading by homeScreenViewModel.isLoading.collectAsState()
     val blockingError by homeScreenViewModel.blockingError.collectAsState()
@@ -109,27 +118,25 @@ private fun SongStack(
             homeScreenViewModel.resetToastErrors()
         }
 
-        songQueue.asReversed().forEachIndexed { index, songCardState ->
-            key(songCardState.songObject?.songId) {
-                val songCardStateState by songCardState.songCardStateState.collectAsState()
-                val songCardStateError by songCardState.errorMessage.collectAsState()
+        songQueue.asReversed().forEachIndexed { index, songPlayerWrapper ->
+            key(songPlayerWrapper.uuid) {
                 if (index == songQueue.lastIndex) {
                     SwipeableCardWrapper(modifier = Modifier.fillMaxSize(),
-                        songCardStateState = songCardStateState,
-                        errorMessage = songCardStateError,
-                        songObject = songCardState.songObject,
-                        onRetry = { songCardState.retry() },
+                        playerState = topCardState,
+                        errorMessage = topCardErrorMessage,
+                        songObject = songPlayerWrapper.songModel,
+                        onRetry = { songPlayerWrapper.reset() },
                         onCancel = { homeScreenViewModel.cancelTop() },
-                        onRestart = { songCardState.restart() },
-                        onResume = { songCardState.resume() },
-                        onPause = { songCardState.pause() },
+                        onRestart = { songPlayerWrapper.restart() },
+                        onResume = { songPlayerWrapper.play() },
+                        onPause = { homeScreenViewModel.pauseCurrent() },
                         onLiked = { like -> homeScreenViewModel.likeTop(like) })
                 } else {
                     SongCard(
                         modifier = Modifier.fillMaxSize(),
-                        songCardStateState = songCardStateState,
-                        errorMessage = songCardStateError,
-                        songObject = songCardState.songObject
+                        playerState = PlayerState.Playing,
+                        errorMessage = "",
+                        songModel = songPlayerWrapper.songModel
                     )
                 }
             }

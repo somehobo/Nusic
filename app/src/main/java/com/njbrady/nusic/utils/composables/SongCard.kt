@@ -25,9 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -38,23 +36,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.core.view.WindowCompat
 import coil.compose.SubcomposeAsyncImage
 import com.njbrady.nusic.R
 import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.Direction
-import com.njbrady.nusic.home.utils.SongCardStateStates
 import com.njbrady.nusic.home.utils.rememberSwipeableCardState
 import com.njbrady.nusic.home.utils.swipeableCard
 import com.njbrady.nusic.login.composables.ErrorWithField
+import com.njbrady.nusic.upload.PlayerState
 import com.njbrady.nusic.upload.UploadScreenViewModel
 import com.njbrady.nusic.utils.shimmerBackground
 
 @Composable
 fun SwipeableCardWrapper(
     modifier: Modifier = Modifier,
-    songCardStateState: SongCardStateStates,
-    errorMessage: String,
+    playerState: PlayerState,
+    errorMessage: String?,
     songObject: SongModel?,
     onRetry: () -> Unit,
     onRestart: () -> Unit,
@@ -79,13 +76,13 @@ fun SwipeableCardWrapper(
             .fillMaxSize()
             .clip(RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)))
             .clickable {
-                if (songCardStateState == SongCardStateStates.Playing) {
+                if (playerState == PlayerState.Playing) {
                     onPause()
                 }
             },
-        songCardStateState = songCardStateState,
+        playerState = playerState,
         errorMessage = errorMessage,
-        songObject = songObject,
+        songModel = songObject,
         onRetry = onRetry,
         onRestart = onRestart,
         onResume = onResume,
@@ -192,9 +189,9 @@ fun EditableSongCard(
 @Composable
 fun SongCard(
     modifier: Modifier = Modifier,
-    songCardStateState: SongCardStateStates,
-    errorMessage: String,
-    songObject: SongModel?,
+    errorMessage: String?,
+    playerState: PlayerState,
+    songModel: SongModel?,
     onRetry: () -> Unit = {},
     onRestart: () -> Unit = {},
     onResume: () -> Unit = {},
@@ -202,63 +199,61 @@ fun SongCard(
     cancelAvailable: Boolean = true
 ) {
 
-    if (songCardStateState != SongCardStateStates.Empty) {
-        BaseSongCard(modifier = modifier) {
-            songObject?.imageUrl?.let {
-                SubcomposeAsyncImage(
-                    modifier = Modifier.fillMaxSize(),
-                    model = it,
-                    loading = {
-                        Box(
-                            modifier = Modifier
-                                .background(colorResource(id = R.color.card_overlay))
-                                .fillMaxSize()
-                                .shimmerBackground(),
-                        )
-                    },
-                    contentScale = ContentScale.Crop,
-                    contentDescription = stringResource(R.string.current_songs_image)
+    BaseSongCard(modifier = modifier) {
+        songModel?.imageUrl?.let {
+            SubcomposeAsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model = it,
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .background(colorResource(id = R.color.card_overlay))
+                            .fillMaxSize()
+                            .shimmerBackground(),
+                    )
+                },
+                contentScale = ContentScale.Crop,
+                contentDescription = stringResource(R.string.current_songs_image)
+            )
+        }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+
+            when (playerState) {
+                PlayerState.Error -> SongCardErrorOverlay(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .zIndex(1f),
+                    onRetry = { onRetry() },
+                    onCancel = { onCancel() },
+                    errorMessage = errorMessage,
+                    cancelAvailable = cancelAvailable
                 )
+
+                PlayerState.Completed -> SongCardCompletedOverlay(modifier = Modifier.zIndex(
+                    1f
+                ), onReplay = { onRestart() })
+
+                PlayerState.Paused -> SongCardPausedOverlay(modifier = Modifier.zIndex(
+                    1f
+                ), onPlay = { onResume() }, onRestart = { onRestart() })
+
+                else -> {}
             }
 
-            Box(modifier = Modifier.fillMaxSize()) {
-
-                when (songCardStateState) {
-                    SongCardStateStates.Error -> SongCardErrorOverlay(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .zIndex(1f),
-                        onRetry = { onRetry() },
-                        onCancel = { onCancel() },
-                        errorMessage = errorMessage,
-                        cancelAvailable = cancelAvailable
-                    )
-
-                    SongCardStateStates.Completed -> SongCardCompletedOverlay(modifier = Modifier.zIndex(
-                        1f
-                    ), onReplay = { onRestart() })
-
-                    SongCardStateStates.Paused -> SongCardPausedOverlay(modifier = Modifier.zIndex(
-                        1f
-                    ), onPlay = { onResume() }, onRestart = { onRestart() })
-
-                    else -> {}
-                }
-
-                SongCardBottomContent(
+            SongCardBottomContent(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .zIndex(0f)
+                    .align(Alignment.BottomCenter), songObject = songModel
+            )
+            if (playerState == PlayerState.Loading) {
+                CircularProgressIndicator(
                     modifier = Modifier
-                        .wrapContentHeight()
-                        .fillMaxWidth()
-                        .zIndex(0f)
-                        .align(Alignment.BottomCenter), songObject = songObject
+                        .align(Alignment.Center)
+                        .size(dimensionResource(id = R.dimen.NusicDimenX7))
                 )
-                if (songCardStateState == SongCardStateStates.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(dimensionResource(id = R.dimen.NusicDimenX7))
-                    )
-                }
             }
         }
     }
@@ -399,7 +394,7 @@ private fun SongCardErrorOverlay(
     modifier: Modifier = Modifier,
     onRetry: () -> Unit,
     onCancel: () -> Unit,
-    errorMessage: String,
+    errorMessage: String?,
     cancelAvailable: Boolean
 ) {
     SongCardOverlay(modifier = modifier) {
@@ -413,11 +408,13 @@ private fun SongCardErrorOverlay(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ErrorWithField(
-                modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.NusicDimenX1)),
-                message = errorMessage,
-                textColor = colorResource(id = R.color.white)
-            )
+            if (errorMessage != null) {
+                ErrorWithField(
+                    modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.NusicDimenX1)),
+                    message = errorMessage,
+                    textColor = colorResource(id = R.color.white)
+                )
+            }
             Row(horizontalArrangement = Arrangement.Center) {
 
                 SongCardOverlayStandardButton(

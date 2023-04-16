@@ -10,8 +10,9 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.njbrady.nusic.R
-import com.njbrady.nusic.utils.LocalStorage
+import com.njbrady.nusic.upload.requests.uploadSong
 import com.njbrady.nusic.utils.ExoPlayerPositionTracker
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.calculateAmplitudes
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -88,114 +89,134 @@ class UploadScreenViewModel @Inject constructor(
         }
     }
 
-    fun pauseWhenReady() {
-        if (currentSong.isPlaying) {
-            currentSong.pause()
-            _uploadSongPlayerState.value = PlayerState.Paused
-        }
-    }
-
-    fun setSongTitle(title: String) {
-        _songTitle.value = title
-    }
-
-    fun setPhotoUrl(uri: Uri) {
-        _songPhotoUrl.value = uri
-    }
-
-    fun setStartTime(int: Int) {
-        _uploadSongStartTime.value = int
-        _uploadSongEndTime.value = int + 30
-    }
-
-    fun setSongUrl(uri: Uri, context: Context) {
+    fun attemptUpload(context: Context) {
         viewModelScope.launch {
             withContext(_defaultDispatcher) {
-                _songUrl.value = uri
-                _uploadSongLoading.value = true
-                calculateAmplitudes(context = context, uri = uri) { amplitudes ->
-                    Handler(Looper.getMainLooper()).post {
-                        _uploadSongLoading.value = false
-                        _uploadSongPlayerState.value = PlayerState.Loading
-                        setStartTime(0)
-                        _uploadSongCurPos.value = null
-                        _songAmplitude.value = amplitudes
-                        mediaPlayerTracker.stopTracking()
-                        currentSong.removeMediaItem(0)
-                        currentSong.setMediaItem(MediaItem.fromUri(uri))
-                        currentSong.prepare()
-                        mediaPlayerTracker.startTracking()
-                    }
+                val curSongUrl = songUrl.value
+                val curPhotoUrl = songPhotoUrl.value
+                if (curSongUrl != null && curPhotoUrl != null) {
+                    uploadSong(
+                        songTitle = songTitle.value,
+                        songAudio = curSongUrl,
+                        songPhoto = curPhotoUrl,
+                        context = context,
+                        start = uploadSongStartTime.value,
+                        end = uploadSongEndTime.value,
+                        localStorage = _localStorage
+                    )
                 }
             }
         }
     }
 
-    fun clearPlayerState() {
-        mediaPlayerTracker.stopTracking()
-        currentSong.pause()
-        currentSong.removeMediaItem(0)
+        fun pauseWhenReady() {
+            if (currentSong.isPlaying) {
+                currentSong.pause()
+                _uploadSongPlayerState.value = PlayerState.Paused
+            }
+        }
+
+        fun setSongTitle(title: String) {
+            _songTitle.value = title
+        }
+
+        fun setPhotoUrl(uri: Uri) {
+            _songPhotoUrl.value = uri
+        }
+
+        fun setStartTime(int: Int) {
+            _uploadSongStartTime.value = int
+            _uploadSongEndTime.value = int + 30
+        }
+
+        fun setSongUrl(uri: Uri, context: Context) {
+            viewModelScope.launch {
+                withContext(_defaultDispatcher) {
+                    _songUrl.value = uri
+                    _uploadSongLoading.value = true
+                    calculateAmplitudes(context = context, uri = uri) { amplitudes ->
+                        Handler(Looper.getMainLooper()).post {
+                            _uploadSongLoading.value = false
+                            _uploadSongPlayerState.value = PlayerState.Loading
+                            setStartTime(0)
+                            _uploadSongCurPos.value = null
+                            _songAmplitude.value = amplitudes
+                            mediaPlayerTracker.stopTracking()
+                            currentSong.removeMediaItem(0)
+                            currentSong.setMediaItem(MediaItem.fromUri(uri))
+                            currentSong.prepare()
+                            mediaPlayerTracker.startTracking()
+                        }
+                    }
+                }
+            }
+        }
+
+        fun clearPlayerState() {
+            mediaPlayerTracker.stopTracking()
+            currentSong.pause()
+            currentSong.removeMediaItem(0)
+        }
+
+        fun clearState() {
+            _songTitle.value = ""
+            _songTitleErrorMessages.value = emptyList()
+            _songPhotoUrl.value = null
+            _songUrl.value = null
+            setStartTime(0)
+            _uploadSongCurPos.value = null
+            clearPlayerState()
+        }
+
+        override fun onCleared() {
+            super.onCleared()
+            currentSong.release()
+        }
+
+        companion object {
+            val DEFAULT_SONG = listOf<Float>(
+                0.1F,
+                0.9F,
+                0.9F,
+                0.3F,
+                0.5F,
+                0.8F,
+                0.1F,
+                0.1F,
+                0.9F,
+                0.9F,
+                0.3F,
+                0.5F,
+                0.8F,
+                0.1F,
+                0.1F,
+                0.9F,
+                0.9F,
+                0.3F,
+                0.5F,
+                0.8F,
+                0.1F
+            )
+        }
     }
 
-    fun clearState() {
-        _songTitle.value = ""
-        _songTitleErrorMessages.value = emptyList()
-        _songPhotoUrl.value = null
-        _songUrl.value = null
-        setStartTime(0)
-        _uploadSongCurPos.value = null
-        clearPlayerState()
+    enum class UploadScreenState {
+        UploadSong, UploadPhoto, SongTitle, Preview
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        currentSong.release()
+    enum class UploadScreenAuxState {
+        Passive, Loading
     }
 
-    companion object {
-        val DEFAULT_SONG = listOf<Float>(
-            0.1F,
-            0.9F,
-            0.9F,
-            0.3F,
-            0.5F,
-            0.8F,
-            0.1F,
-            0.1F,
-            0.9F,
-            0.9F,
-            0.3F,
-            0.5F,
-            0.8F,
-            0.1F,
-            0.1F,
-            0.9F,
-            0.9F,
-            0.3F,
-            0.5F,
-            0.8F,
-            0.1F
-        )
+    enum class PlayerState {
+        Playing, Paused, Loading, Error, Completed
     }
-}
 
-enum class UploadScreenState {
-    UploadSong, UploadPhoto, SongTitle, Preview
-}
-
-enum class UploadScreenAuxState {
-    Passive, Loading
-}
-
-enum class PlayerState {
-    Playing, Paused, Loading
-}
-
-fun UploadScreenState.stringResource(): Int {
-    return when (this) {
-        UploadScreenState.UploadPhoto -> R.string.upload_photo
-        UploadScreenState.UploadSong -> R.string.upload_song
-        UploadScreenState.SongTitle -> R.string.song_title
-        UploadScreenState.Preview -> R.string.song_card_preview
+    fun UploadScreenState.stringResource(): Int {
+        return when (this) {
+            UploadScreenState.UploadPhoto -> R.string.upload_photo
+            UploadScreenState.UploadSong -> R.string.upload_song
+            UploadScreenState.SongTitle -> R.string.song_title
+            UploadScreenState.Preview -> R.string.song_card_preview
+        }
     }
-}

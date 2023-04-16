@@ -66,25 +66,11 @@ class SongCardState private constructor(
         if (songCardStateState.value != SongCardStateStates.Empty) {
             if (_songCardStateState.value != SongCardStateStates.Paused && _songCardStateState.value != SongCardStateStates.Loading) {
                 pause()
-                _pauseWhenReady = true
+//                _pauseWhenReady = true
             } else if (_songCardStateState.value == SongCardStateStates.Loading) {
                 _pauseWhenReady = true
             } else if (_songCardStateState.value == SongCardStateStates.Paused) {
                 pause()
-            }
-        }
-    }
-
-    //used only for the purpose of avoiding a recomposition
-    fun quietPauseWhenReady() {
-        if (songCardStateState.value != SongCardStateStates.Empty) {
-            if (_songCardStateState.value != SongCardStateStates.Paused && _songCardStateState.value != SongCardStateStates.Loading) {
-                _mediaPlayer.pause()
-                _pauseWhenReady = true
-            } else if (_songCardStateState.value == SongCardStateStates.Loading) {
-                _pauseWhenReady = true
-            } else if (_songCardStateState.value == SongCardStateStates.Paused) {
-                _mediaPlayer.pause()
             }
         }
     }
