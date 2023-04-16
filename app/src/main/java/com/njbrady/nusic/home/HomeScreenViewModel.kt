@@ -27,8 +27,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     mainSocketHandler: MainSocketHandler,
-    context: Context,
-    @DefaultDispatcher private val dispatcher: CoroutineDispatcher
+    @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
+    private val _exoMiddleMan: ExoMiddleMan
 ) : ViewModel() {
 
     private val _messageHandler =
@@ -40,7 +40,6 @@ class HomeScreenViewModel @Inject constructor(
             _errorToast.value = error
         }, mainSocketHandler = mainSocketHandler
         )
-    private val _exoMiddleMan = ExoMiddleMan(context = context)
     private var _tempPaused = false
 
     private val _isLoading = MutableStateFlow(false)
