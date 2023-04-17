@@ -2,6 +2,7 @@ package com.njbrady.nusic.upload.requests
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toFile
 import com.njbrady.nusic.upload.utils.UploadKeys
 import com.njbrady.nusic.utils.HttpOptions
 import com.njbrady.nusic.utils.LocalStorage
@@ -57,7 +58,6 @@ suspend fun uploadSong(
             // Add SongPhoto field
             outputStream.writeBytes("--$boundary\r\n")
             outputStream.writeBytes("Content-Disposition: form-data; name=\"${UploadKeys.imageUrl}\"; filename=\"${songPhotoFile.name}\"\r\n")
-//            outputStream.writeBytes("Content-Type: image/jpeg\r\n\r\n")
             outputStream.writeBytes("\r\n")
             val songPhotoBytes = songPhotoFile.readBytes()
             outputStream.write(songPhotoBytes)
@@ -65,8 +65,7 @@ suspend fun uploadSong(
 
             // Add SongAudio field
             outputStream.writeBytes("--$boundary\r\n")
-            outputStream.writeBytes("Content-Disposition: form-data; name=\"${UploadKeys.song}\"; filename=\"${songTitle}\"\r\n")
-//            outputStream.writeBytes("Content-Type: audio/mpeg\r\n\r\n")
+            outputStream.writeBytes("Content-Disposition: form-data; name=\"${UploadKeys.song}\"; filename=\"${songAudioFile.name}\"\r\n")
             val songAudioBytes = songAudioFile.readBytes()
             outputStream.writeBytes("\r\n")
             outputStream.write(songAudioBytes)

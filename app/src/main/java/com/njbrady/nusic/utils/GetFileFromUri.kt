@@ -2,6 +2,7 @@ package com.njbrady.nusic.utils
 
 import android.content.Context
 import android.net.Uri
+import android.webkit.MimeTypeMap
 import java.io.File
 import java.io.FileOutputStream
 
@@ -10,8 +11,14 @@ fun getFileFromUri(uri: Uri, context: Context): File? {
     val inputStream =
         contentResolver.openInputStream(uri) ?: // Failed to open input stream, return null
         return null
+    val mimeType = contentResolver.getType(uri)
 
-    val file = File(context.cacheDir, "temp_file")
+    val file = uri.lastPathSegment?.let {
+        File(
+            context.cacheDir,
+            it + "." + MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+        )
+    }
     val outputStream = FileOutputStream(file)
 
     inputStream.use { input ->
