@@ -6,4 +6,5 @@ object UploadKeys {
     const val song = "song"
     const val start = "start"
     const val end = "end"
+    const val generalError = "__all__"
 }

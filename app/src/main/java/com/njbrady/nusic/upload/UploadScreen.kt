@@ -1,6 +1,7 @@
 package com.njbrady.nusic.upload
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -26,11 +27,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
+import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.ui.theme.NusicBlue
 import com.njbrady.nusic.ui.theme.NusicSeeThroughBlack
 import com.njbrady.nusic.ui.theme.NusicTheme
@@ -41,74 +45,126 @@ import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 fun UploadScreen(
     uploadScreenViewModel: UploadScreenViewModel, navController: NavController
 ) {
+    val generalLoading by uploadScreenViewModel.generalLoading.collectAsState()
     Scaffold(topBar = {
         val localContext = LocalContext.current
         NavigationTopAppBar(navController = navController, title = "Upload", actions = {
-            IconButton(
-                onClick = { uploadScreenViewModel.clearState() },
-                modifier = Modifier
-                    .size(dimensionResource(id = R.dimen.NusicDimenX5))
-                    .padding(
+            if (generalLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(
                         end = dimensionResource(id = R.dimen.NusicDimenX1)
                     )
-            ) {
-                Icon(
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
-                    imageVector = Icons.Outlined.Close,
-                    contentDescription = "Cancel Button"
                 )
+            } else {
+                IconButton(
+                    onClick = { uploadScreenViewModel.clearState() },
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.NusicDimenX5))
+                        .padding(
+                            end = dimensionResource(id = R.dimen.NusicDimenX1)
+                        )
+                ) {
+                    Icon(
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = "Cancel Button"
+                    )
 
-            }
-            IconButton(
-                onClick = { uploadScreenViewModel.attemptUpload(localContext) },
-                modifier = Modifier
-                    .size(dimensionResource(id = R.dimen.NusicDimenX5))
-                    .padding(
-                        end = dimensionResource(id = R.dimen.NusicDimenX1)
+                }
+                IconButton(
+                    onClick = { uploadScreenViewModel.attemptUpload(localContext) },
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.NusicDimenX5))
+                        .padding(
+                            end = dimensionResource(id = R.dimen.NusicDimenX1)
+                        )
+                ) {
+                    Icon(
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
+                        imageVector = Icons.Outlined.Done,
+                        tint = NusicBlue,
+                        contentDescription = "Upload Button"
                     )
-            ) {
-                Icon(
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
-                    imageVector = Icons.Outlined.Done,
-                    tint = NusicBlue,
-                    contentDescription = "Upload Button"
-                )
+                }
             }
         })
     }) { paddingValues ->
         UploadScreenContent(
-            uploadScreenViewModel = uploadScreenViewModel,
-            onUpload = { navController.navigateUp() },
-            paddingValues = paddingValues
+            uploadScreenViewModel = uploadScreenViewModel, onUpload = {
+                navController.navigateUp()
+                uploadScreenViewModel.clearState()
+            }, paddingValues = paddingValues, generalLoading = generalLoading
         )
     }
 }
 
 @Composable
 private fun UploadScreenContent(
-    uploadScreenViewModel: UploadScreenViewModel, onUpload: () -> Unit, paddingValues: PaddingValues
+    uploadScreenViewModel: UploadScreenViewModel,
+    generalLoading: Boolean,
+    onUpload: () -> Unit,
+    paddingValues: PaddingValues
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues = paddingValues)
-    ) {
-        EditableSongCard(
-            viewModel = uploadScreenViewModel,
+    val songErrors by uploadScreenViewModel.songErrors.collectAsState()
+    val photoErrors by uploadScreenViewModel.photoErrors.collectAsState()
+    val generalErrors by uploadScreenViewModel.generalErrors.collectAsState()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(dimensionResource(id = R.dimen.NusicDimenX1))
-                .weight(1f)
-        )
-        //FFT Upload thing
-        UploadSong(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(dimensionResource(id = R.dimen.NusicDimenX15)),
-            uploadScreenViewModel = uploadScreenViewModel,
-            onUpload = onUpload
-        )
+                .padding(paddingValues = paddingValues)
+        ) {
+            EditableSongCard(
+                viewModel = uploadScreenViewModel,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(dimensionResource(id = R.dimen.NusicDimenX1))
+                    .weight(1f)
+            )
+
+            photoErrors?.forEach {
+                ErrorWithField(
+                    message = it,
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.NusicDimenX1))
+                )
+            }
+
+            UploadSong(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(dimensionResource(id = R.dimen.NusicDimenX15)),
+                uploadScreenViewModel = uploadScreenViewModel,
+                onUpload = onUpload
+            )
+
+            songErrors?.forEach {
+                ErrorWithField(
+                    message = it,
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.NusicDimenX1))
+                )
+            }
+        }
+        if (generalLoading) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(R.color.card_overlay))
+            )
+            {
+                Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent){}
+            }
+        }
     }
+
+
+
+    generalErrors?.forEach {
+        Toast.makeText(
+            LocalContext.current, it, Toast.LENGTH_LONG
+        ).show()
+    }
+    uploadScreenViewModel.clearToastErrors()
 }
 
 @Composable
@@ -125,6 +181,13 @@ private fun UploadSong(
     val songStart by uploadScreenViewModel.uploadSongStartTime.collectAsState()
     val songEnd by uploadScreenViewModel.uploadSongEndTime.collectAsState()
     val curPos by uploadScreenViewModel.uploadSongCurPos.collectAsState()
+    val uploadSuccess by uploadScreenViewModel.successfulUpload.collectAsState()
+    if (uploadSuccess) {
+        Toast.makeText(
+            LocalContext.current, "Upload Complete", Toast.LENGTH_LONG
+        ).show()
+        onUpload()
+    }
     val selectSongLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
@@ -139,60 +202,66 @@ private fun UploadSong(
         if (uploadSongLoading) {
             CenteredProgressIndicator()
         } else {
-            if (songUrl == null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            start = dimensionResource(
-                                id = R.dimen.NusicDimenX1
-                            ), end = dimensionResource(
-                                id = R.dimen.NusicDimenX1
-                            ), bottom = dimensionResource(
-                                id = R.dimen.NusicDimenX1
-                            )
-                        )
-                        .clip(RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)))
-                        .background(MaterialTheme.colors.primary)
-                        .clickable {
-                            selectSongLauncher.launch(
-                                "audio/*"
-                            )
-                        }, contentAlignment = Alignment.Center
-                ) {
-                    Amplitude(
-                        modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.NusicDimenX1)),
-                        barColor = MaterialTheme.colors.primaryVariant
-                    )
-                    Icon(
-                        modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX7)),
-                        imageVector = Icons.Filled.AddCircle,
-                        contentDescription = "Add Image"
-                    )
-                }
-            } else {
-                Row(Modifier.fillMaxSize()) {
-                    UploadSongOptions(
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            ) {
+                if (songUrl == null) {
+                    Box(
                         modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(dimensionResource(id = R.dimen.NusicDimenX1))
-                            .width(dimensionResource(id = R.dimen.NusicDimenX5)),
-                        onTogglePlay = { uploadScreenViewModel.togglePlayState() },
-                        onChangeSong = {
-                            selectSongLauncher.launch(
-                                "audio/*"
+                            .fillMaxSize()
+                            .padding(
+                                start = dimensionResource(
+                                    id = R.dimen.NusicDimenX1
+                                ), end = dimensionResource(
+                                    id = R.dimen.NusicDimenX1
+                                ), bottom = dimensionResource(
+                                    id = R.dimen.NusicDimenX1
+                                )
                             )
-                        },
-                        playState = playerState
-                    )
-                    Amplitude(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.NusicDimenX1)),
-                        data = songAmplitude,
-                        barColor = MaterialTheme.colors.primary,
-                        scrollEnabled = true,
-                        start = songStart,
-                        end = songEnd,
-                        currentLoc = curPos,
-                        setStart = { start -> uploadScreenViewModel.setStartTime(start) })
+                            .clip(RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1)))
+                            .background(MaterialTheme.colors.primary)
+                            .clickable {
+                                selectSongLauncher.launch(
+                                    "audio/*"
+                                )
+                            }, contentAlignment = Alignment.Center
+                    ) {
+                        Amplitude(
+                            modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.NusicDimenX1)),
+                            barColor = MaterialTheme.colors.primaryVariant
+                        )
+                        Icon(
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX7)),
+                            imageVector = Icons.Filled.AddCircle,
+                            contentDescription = "Add Image"
+                        )
+                    }
+                } else {
+                    Row(Modifier.fillMaxSize()) {
+                        UploadSongOptions(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .padding(dimensionResource(id = R.dimen.NusicDimenX1))
+                                .width(dimensionResource(id = R.dimen.NusicDimenX5)),
+                            onTogglePlay = { uploadScreenViewModel.togglePlayState() },
+                            onChangeSong = {
+                                selectSongLauncher.launch(
+                                    "audio/*"
+                                )
+                            },
+                            playState = playerState
+                        )
+                        Amplitude(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.NusicDimenX1)),
+                            data = songAmplitude,
+                            barColor = MaterialTheme.colors.primary,
+                            scrollEnabled = true,
+                            start = songStart,
+                            end = songEnd,
+                            currentLoc = curPos,
+                            setStart = { start -> uploadScreenViewModel.setStartTime(start) })
+                    }
                 }
             }
         }
@@ -316,7 +385,8 @@ private fun Amplitude(
                 verticalAlignment = Alignment.CenterVertically,
                 state = lazyListState,
                 flingBehavior = rememberSnapFlingBehavior(
-                    snapLayoutInfoProvider = SnapLayoutInfoProvider(lazyListState = lazyListState,
+                    snapLayoutInfoProvider = SnapLayoutInfoProvider(
+                        lazyListState = lazyListState,
                         positionInLayout = { _, _ -> 0f })
                 )
             ) {
@@ -362,7 +432,8 @@ fun calculateMinuteFormat(totalSeconds: Int): String {
 @Preview(showBackground = true)
 private fun defaultPreview() {
     NusicTheme {
-        UploadSongOptions(modifier = Modifier.size(120.dp),
+        UploadSongOptions(
+            modifier = Modifier.size(120.dp),
             onChangeSong = {},
             onTogglePlay = {},
             playState = PlayerState.Playing

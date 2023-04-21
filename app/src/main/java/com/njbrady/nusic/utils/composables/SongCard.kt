@@ -109,7 +109,6 @@ private fun BaseSongCard(modifier: Modifier, content: @Composable () -> Unit) {
 private fun EditableImageBackground(
     modifier: Modifier = Modifier, viewModel: UploadScreenViewModel
 ) {
-    val localFocusManager = LocalFocusManager.current
     val photoUrl by viewModel.songPhotoUrl.collectAsState()
     val selectImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -285,6 +284,7 @@ private fun EditableSongCardBottomContent(
 ) {
     val localFocusManager = LocalFocusManager.current
     val songTitle by viewModel.songTitle.collectAsState()
+    val songTitleErrors by viewModel.titleErrors.collectAsState()
     val adaptiveTextName = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
@@ -310,6 +310,9 @@ private fun EditableSongCardBottomContent(
         color = MaterialTheme.colors.background
     )
 
+    val adaptiveErrorStyle = LocalTextStyle.current.copy(background = MaterialTheme.colors.onBackground,
+        color = MaterialTheme.colors.background)
+
     BaseSongCardBottomContent(modifier = modifier) {
 
         TextField(
@@ -321,7 +324,12 @@ private fun EditableSongCardBottomContent(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { localFocusManager.clearFocus() }),
         )
-
+        songTitleErrors?.forEach {
+            ErrorWithField(
+                message = it,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.NusicDimenX1)), textStyle = adaptiveErrorStyle, textColor = MaterialTheme.colors.background
+            )
+        }
         viewModel.username?.let {
             Text(
                 text = stringResource(id = R.string.author_creditor) + " $it",

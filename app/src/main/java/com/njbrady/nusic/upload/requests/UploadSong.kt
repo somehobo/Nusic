@@ -3,13 +3,14 @@ package com.njbrady.nusic.upload.requests
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toFile
+import com.njbrady.nusic.login.requests.LoginJsonKeys
+import com.njbrady.nusic.upload.model.UploadSongRepository
 import com.njbrady.nusic.upload.utils.UploadKeys
-import com.njbrady.nusic.utils.HttpOptions
-import com.njbrady.nusic.utils.LocalStorage
-import com.njbrady.nusic.utils.UrlProvider
-import com.njbrady.nusic.utils.getFileFromUri
+import com.njbrady.nusic.upload.utils.UploadKeys.generalError
+import com.njbrady.nusic.utils.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.io.DataOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -24,8 +25,8 @@ suspend fun uploadSong(
     end: Int,
     context: Context,
     localStorage: LocalStorage
-) {
-    try {
+): UploadSongRepository {
+    return try {
         withContext(Dispatchers.IO) {
             //create temp files
             val songPhotoFile = getFileFromUri(songPhoto, context)
@@ -40,8 +41,12 @@ suspend fun uploadSong(
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = HttpOptions.POST
             connection.doInput = true
+            connection.doOutput
             connection.useCaches = false
-            connection.addRequestProperty(HttpOptions.Authorization, localStorage.prefacedRetrieveToken())
+            connection.addRequestProperty(
+                HttpOptions.Authorization,
+                localStorage.prefacedRetrieveToken()
+            )
             connection.addRequestProperty(
                 HttpOptions.ContentType, HttpOptions.FormContentType + ";boundary=$boundary"
             )
@@ -87,28 +92,67 @@ suspend fun uploadSong(
             // Finish form-data payload
             outputStream.writeBytes("--$boundary--\r\n")
 
-            // Close the outputStream
-            outputStream.flush()
-            outputStream.close()
+
 
             // Read the response
             val responseCode = connection.responseCode
-            val responseBody = connection.inputStream.bufferedReader().readText()
 
             songAudioFile.delete()
             songPhotoFile.delete()
-
             // Handle the response accordingly
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == 201) {
                 // Success - process the response
+                // Close the outputStream
+                outputStream.flush()
+                outputStream.close()
+                connection.disconnect()
+                UploadSongRepository()
             } else {
                 // Error - handle the error
+                val error = connection.errorStream.bufferedReader().use { it.readText() }
+                val jsonError = JSONObject(error)
+                // Close the outputStream
+                outputStream.flush()
+                outputStream.close()
+                connection.disconnect()
+
+                val titleErrors: List<String>? = jsonError.optJSONArray(
+                    UploadKeys.songName
+                )?.toList() as List<String>?
+                val songErrors: List<String>? = jsonError.optJSONArray(
+                    UploadKeys.song
+                )?.toList() as List<String>?
+                val photoErrors: List<String>? = jsonError.optJSONArray(
+                    UploadKeys.imageUrl
+                )?.toList() as List<String>?
+                val startErrors: List<String>? = jsonError.optJSONArray(
+                    UploadKeys.start
+                )?.toList() as List<String>?
+                val endErrors: List<String>? = jsonError.optJSONArray(
+                    UploadKeys.end
+                )?.toList() as List<String>?
+                val generalErrors: List<String>? =
+                    jsonError.optJSONArray(LoginJsonKeys.ErrorKey)?.toList() as List<String>?
+                val allErrors: List<String>? =
+                    jsonError.optJSONArray(generalError)?.toList() as List<String>?
+
+
+                UploadSongRepository(
+                    containsError = true,
+                    generalErrors = generalErrors.orEmpty().plus(allErrors.orEmpty()).ifEmpty { null },
+                    songErrors = songErrors,
+                    titleErrors = titleErrors,
+                    timeErrors = startErrors.orEmpty().plus(endErrors.orEmpty()).ifEmpty { null },
+                    songPhotoErrors = photoErrors
+                )
             }
-            connection.disconnect()
         }
     } catch (e: IOException) {
         // Handle the exception
         e.printStackTrace()
+        UploadSongRepository(
+            containsError = true,
+            generalErrors = listOf(e.localizedMessage ?: "Something went wrong")
+        )
     }
-
 }

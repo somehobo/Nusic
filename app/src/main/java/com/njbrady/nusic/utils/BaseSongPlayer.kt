@@ -35,6 +35,13 @@ class BaseSongPlayer(context: Context) {
                 }
             }
 
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                super.onPlayWhenReadyChanged(playWhenReady, reason)
+                if(reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM ) {
+                    _exoPlayerState.value = PlayerState.Completed
+                }
+            }
+
             override fun onTracksChanged(tracks: Tracks) {
                 super.onTracksChanged(tracks)
                 tracksChanging = !tracksChanging
