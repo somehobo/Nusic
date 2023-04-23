@@ -15,6 +15,7 @@ class ExoMiddleMan(context: Context) {
 
     val currentSongPlayerState = _baseSongPlayer.exoPlayerState
     val currentSongErrorMessage = _baseSongPlayer.exoPlayerErrorMessage
+    val psd = _baseSongPlayer.psd
 
     fun addMedia(songModel: SongModel): SongPlayerWrapper {
         /*

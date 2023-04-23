@@ -54,6 +54,7 @@ class HomeScreenViewModel @Inject constructor(
     val realSongQueue: StateFlow<List<SongPlayerWrapper>> = _realSongQueue
     val topSongState: StateFlow<PlayerState> = _exoMiddleMan.currentSongPlayerState
     val topSongErrorMessage: StateFlow<String?> = _exoMiddleMan.currentSongErrorMessage
+    val psd = _exoMiddleMan.psd
 
     init {
         retry()

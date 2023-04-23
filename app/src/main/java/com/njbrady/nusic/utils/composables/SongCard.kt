@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -53,6 +54,7 @@ fun SwipeableCardWrapper(
     playerState: PlayerState,
     errorMessage: String?,
     songObject: SongModel?,
+    psd: FloatArray,
     onRetry: () -> Unit,
     onRestart: () -> Unit,
     onResume: () -> Unit,
@@ -87,6 +89,7 @@ fun SwipeableCardWrapper(
         onRestart = onRestart,
         onResume = onResume,
         onCancel = onCancel,
+        psd = psd
     )
 }
 
@@ -195,7 +198,8 @@ fun SongCard(
     onRestart: () -> Unit = {},
     onResume: () -> Unit = {},
     onCancel: () -> Unit = {},
-    cancelAvailable: Boolean = true
+    cancelAvailable: Boolean = true,
+    psd: FloatArray = floatArrayOf()
 ) {
 
     BaseSongCard(modifier = modifier) {
@@ -245,7 +249,7 @@ fun SongCard(
                     .wrapContentHeight()
                     .fillMaxWidth()
                     .zIndex(0f)
-                    .align(Alignment.BottomCenter), songObject = songModel
+                    .align(Alignment.BottomCenter), songObject = songModel, psd = psd
             )
             if (playerState == PlayerState.Loading) {
                 CircularProgressIndicator(
@@ -310,8 +314,10 @@ private fun EditableSongCardBottomContent(
         color = MaterialTheme.colors.background
     )
 
-    val adaptiveErrorStyle = LocalTextStyle.current.copy(background = MaterialTheme.colors.onBackground,
-        color = MaterialTheme.colors.background)
+    val adaptiveErrorStyle = LocalTextStyle.current.copy(
+        background = MaterialTheme.colors.onBackground,
+        color = MaterialTheme.colors.background
+    )
 
     BaseSongCardBottomContent(modifier = modifier) {
 
@@ -327,7 +333,9 @@ private fun EditableSongCardBottomContent(
         songTitleErrors?.forEach {
             ErrorWithField(
                 message = it,
-                modifier = Modifier.padding(dimensionResource(id = R.dimen.NusicDimenX1)), textStyle = adaptiveErrorStyle, textColor = MaterialTheme.colors.background
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.NusicDimenX1)),
+                textStyle = adaptiveErrorStyle,
+                textColor = MaterialTheme.colors.background
             )
         }
         viewModel.username?.let {
@@ -341,7 +349,11 @@ private fun EditableSongCardBottomContent(
 }
 
 @Composable
-private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: SongModel?) {
+private fun SongCardBottomContent(
+    modifier: Modifier = Modifier,
+    songObject: SongModel?,
+    psd: FloatArray
+) {
     val adaptiveTextName = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
@@ -359,6 +371,28 @@ private fun SongCardBottomContent(modifier: Modifier = Modifier, songObject: Son
     )
 
     BaseSongCardBottomContent(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .height(dimensionResource(id = R.dimen.NusicDimenX6))
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            for (col in psd) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(col)
+                        .background(MaterialTheme.colors.onBackground)
+                        .weight(1f)
+                        .border(
+                            border = BorderStroke(
+                                width = dimensionResource(id = R.dimen.BorderStrokeSizeXHalf),
+                                color = MaterialTheme.colors.background
+                            )
+                        )
+                )
+            }
+        }
 
         songObject?.name?.let {
             Text(

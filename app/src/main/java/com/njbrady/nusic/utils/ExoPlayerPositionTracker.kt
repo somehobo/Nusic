@@ -1,9 +1,7 @@
 package com.njbrady.nusic.utils
 
-import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import com.google.android.exoplayer2.ExoPlayer
 
 class ExoPlayerPositionTracker(
@@ -16,7 +14,6 @@ class ExoPlayerPositionTracker(
         override fun run() {
             if (mediaPlayer.isPlaying) {
                 val currentPosition: Long = mediaPlayer.currentPosition / 1000
-//                Log.e("media player tracker", currentPosition.toString())
                 onPositionChanged(currentPosition.toInt())
             }
             handler.postDelayed(this, updateIntervalMillis)

@@ -95,6 +95,7 @@ private fun SongStack(
     val loading by homeScreenViewModel.isLoading.collectAsState()
     val blockingError by homeScreenViewModel.blockingError.collectAsState()
     val blockingErrorToast by homeScreenViewModel.blockingErrorToast.collectAsState()
+    val psd by homeScreenViewModel.psd.collectAsState()
 
 
     Box(
@@ -125,6 +126,7 @@ private fun SongStack(
                         playerState = topCardState,
                         errorMessage = topCardErrorMessage,
                         songObject = songPlayerWrapper.songModel,
+                        psd = psd,
                         onRetry = { songPlayerWrapper.reset() },
                         onCancel = { homeScreenViewModel.cancelTop() },
                         onRestart = { songPlayerWrapper.restart() },

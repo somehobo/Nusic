@@ -7,13 +7,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class BaseSongPlayer(context: Context) {
-    private val _exoPlayer = ExoPlayer.Builder(context).setPauseAtEndOfMediaItems(true).build()
+    private val audioRenderer = AudioRendererFactory(context)
+    private val _exoPlayer = ExoPlayer.Builder(context).setRenderersFactory(audioRenderer).setPauseAtEndOfMediaItems(true).build()
     private val _exoPlayerState = MutableStateFlow(PlayerState.Loading)
     private val _exoPlayerErrorMessage = MutableStateFlow<String?>(null)
 
     val exoPlayerState: StateFlow<PlayerState> = _exoPlayerState
     val exoPlayerErrorMessage: StateFlow<String?> = _exoPlayerErrorMessage
-
+    val psd = audioRenderer.psd
     init {
         _exoPlayer.addListener(object : Player.Listener {
             var tracksChanging = false
@@ -82,6 +83,7 @@ class BaseSongPlayer(context: Context) {
     }
 
     fun playFromBeginning(index: Int) {
+
         _exoPlayerState.value = PlayerState.Playing
         _exoPlayer.seekTo(index, 0)
         _exoPlayer.play()
