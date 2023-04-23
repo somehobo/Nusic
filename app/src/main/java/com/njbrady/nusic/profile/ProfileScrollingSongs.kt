@@ -76,6 +76,7 @@ private fun ScrollingSongList(
 
     val topSongState by mainViewModel.topSongState.collectAsState()
     val topSongErrorMessage by mainViewModel.topSongErrorMessage.collectAsState()
+    val psd by mainViewModel.psd.collectAsState()
 
     LaunchedEffect(Unit) {
         lazyListState.scrollToItem(selectedSongIndex)
@@ -103,7 +104,8 @@ private fun ScrollingSongList(
                         index = index,
                         currentCardErrorMessage = topSongErrorMessage,
                         currentCardState = topSongState,
-                        pauseCurrentSong = { mainViewModel.pauseCurrent() }
+                        pauseCurrentSong = { mainViewModel.pauseCurrent() },
+                        psd = psd
                     )
                 }
             }
@@ -121,7 +123,8 @@ private fun ScrollingSongList(
                         },
                         currentCardErrorMessage = topSongErrorMessage,
                         currentCardState = topSongState,
-                        pauseCurrentSong = { mainViewModel.pauseCurrent() }
+                        pauseCurrentSong = { mainViewModel.pauseCurrent() },
+                        psd = psd
                     )
                 }
             }
@@ -138,6 +141,7 @@ private fun songItem(
     setCurrentlyPlayingSong: (SongPlayerWrapper, Int) -> Unit,
     currentCardState: PlayerState,
     currentCardErrorMessage: String?,
+    psd: FloatArray,
     index: Int
 ) {
     val songCardModifier = Modifier
@@ -162,7 +166,8 @@ private fun songItem(
                 onRestart = { restart() },
                 onResume = { play() },
                 onRetry = { reset() },
-                cancelAvailable = false
+                cancelAvailable = false,
+                psd = psd
             )
         } else {
             SongCard(

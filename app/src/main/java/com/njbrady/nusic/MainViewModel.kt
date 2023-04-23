@@ -41,6 +41,7 @@ class MainViewModel @Inject constructor(
         _prependedLikedSongs
     val prependedCreatedSongs: StateFlow<List<Pair<SongPlayerWrapper, Boolean>>> =
         _prependedCreatedSongs
+    val psd = _exoPlayerMiddleMan.psd
     val topSongState: StateFlow<PlayerState> = _exoPlayerMiddleMan.currentSongPlayerState
     val topSongErrorMessage: StateFlow<String?> = _exoPlayerMiddleMan.currentSongErrorMessage
     val username = localStorage.retrieveUsername()
