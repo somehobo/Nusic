@@ -389,7 +389,7 @@ private fun Amplitude(
                 )
             ) {
                 itemsIndexed(items = data) { index, item ->
-                    val boxColor = if (index == currentLoc) currentLocColor
+                    val boxColor =if (!scrollEnabled) barColor else if (index == currentLoc) currentLocColor
                     else if (index in start..end) barColor
                     else colorResource(id = R.color.nusic_card_grey)
                     Box(
