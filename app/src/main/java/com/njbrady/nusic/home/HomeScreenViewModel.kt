@@ -122,6 +122,7 @@ class HomeScreenViewModel @Inject constructor(
     fun ifTempPauseThenResume() {
         if (tempPaused) {
             _realSongQueue.value.firstOrNull()?.play?.let { it() }
+            tempPaused = false
         }
     }
 
