@@ -153,7 +153,7 @@ private fun songItem(
     ItemImpression(index = index, lazyListState = lazyListState, onItemViewed = {
         if (songPlayerWrapper != currentlyPlayingSong) {
             pauseCurrentSong()
-            songPlayerWrapper.play()
+            songPlayerWrapper.restart()
             setCurrentlyPlayingSong(songPlayerWrapper, index)
         }
     })
