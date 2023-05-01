@@ -1,7 +1,6 @@
 package com.njbrady.nusic
 
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,14 +21,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
-import com.njbrady.nusic.profile.ProfileScrollingSongs
 import com.njbrady.nusic.profile.composables.MusicElement
 import com.njbrady.nusic.profile.composables.MusicSelectionTab
 import com.njbrady.nusic.profile.composables.ProfilePhotoComposable
@@ -38,10 +31,6 @@ import com.njbrady.nusic.profile.requests.SongListType
 import com.njbrady.nusic.profile.utils.SongListFurtherCommunicatedState
 import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
-import com.njbrady.nusic.upload.UploadScreen
-import com.njbrady.nusic.upload.UploadScreenViewModel
-
-
 
 
 @OptIn(
@@ -49,30 +38,30 @@ import com.njbrady.nusic.upload.UploadScreenViewModel
 )
 @Composable
 fun ProfileScreenContent(
-    mainViewModel: MainViewModel,
+    profileViewModel: ProfileViewModel,
     currentlySelected: SongListType,
     onFilter: (SongListType) -> Unit,
     onSelected: (Int) -> Unit,
     onUploadHit: () -> Unit
 ) {
 
-    val likedSongs = mainViewModel.likedSongs.collectAsLazyPagingItems()
-    val createdSongs = mainViewModel.createdSongs.collectAsLazyPagingItems()
-    val prependedLikedSongs by mainViewModel.prependedLikedSongs.collectAsState()
-    val prependedCreatedSongs by mainViewModel.prependedCreatedSongs.collectAsState()
+    val likedSongs = profileViewModel.likedSongs.collectAsLazyPagingItems()
+    val createdSongs = profileViewModel.createdSongs.collectAsLazyPagingItems()
+    val prependedLikedSongs by profileViewModel.prependedLikedSongs.collectAsState()
+    val prependedCreatedSongs by profileViewModel.prependedCreatedSongs.collectAsState()
     val displayedPrependedSongs =
         if (currentlySelected == SongListType.Liked) prependedLikedSongs else prependedCreatedSongs
     val displayedSongs = if (currentlySelected == SongListType.Liked) likedSongs else createdSongs
-    val refreshing by mainViewModel.refreshingProfile.collectAsState()
+    val refreshing by profileViewModel.refreshingProfile.collectAsState()
 
     val pullRefreshState = rememberPullRefreshState(refreshing = refreshing, onRefresh = {
         likedSongs.refresh()
         createdSongs.refresh()
-        mainViewModel.refreshProfile()
-        mainViewModel.setRefresh(false)
+        profileViewModel.refreshProfile()
+        profileViewModel.setRefresh(false)
     })
 
-    Scaffold(topBar = { ProfileScreenHeader(mainViewModel, onUploadHit) }) { paddingValues ->
+    Scaffold(topBar = { ProfileScreenHeader(profileViewModel, onUploadHit) }) { paddingValues ->
         Box(
             modifier = Modifier
                 .pullRefresh(pullRefreshState, enabled = true)
@@ -89,7 +78,7 @@ fun ProfileScreenContent(
                             .padding(vertical = dimensionResource(id = R.dimen.NusicDimenX4)),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        ProfilePhotoComposable(mainViewModel.profilePhoto)
+                        ProfilePhotoComposable(profileViewModel.profilePhoto)
                     }
                 }
 
@@ -101,7 +90,7 @@ fun ProfileScreenContent(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         ProfileUsername(
-                            username = mainViewModel.username ?: ""
+                            username = profileViewModel.userName
                         )
                     }
                 }
@@ -156,7 +145,7 @@ fun ProfileScreenContent(
 
 
 @Composable
-private fun ProfileScreenHeader(mainViewModel: MainViewModel, onUploadHit: () -> Unit) {
+private fun ProfileScreenHeader(profileViewModel: ProfileViewModel, onUploadHit: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     TopAppBar(
@@ -196,7 +185,7 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel, onUploadHit: () ->
                     )
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(onClick = { mainViewModel.logout() }) {
+                    DropdownMenuItem(onClick = { profileViewModel.logout() }) {
                         Text(stringResource(R.string.logout), color = MaterialTheme.colors.error)
                         Icon(
                             modifier = Modifier

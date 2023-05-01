@@ -1,5 +1,6 @@
 package com.njbrady.nusic.utils
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.security.keystore.KeyGenParameterSpec
@@ -27,15 +28,23 @@ class LocalStorage(private val context: Context) {
     }
 
 
-    fun storeUsername(username: String) {
+    @SuppressLint("ApplySharedPref")
+    fun storeUserModel(userModel: UserModel) {
         val editor = prefs.edit()
-        editor.putString(PREF_USERNAME, username)
+        editor.putString(PREF_USERNAME, userModel.userName)
+        editor.putInt(PREF_ID, userModel.id)
         editor.commit()
     }
 
-    fun retrieveUsername(): String? {
-        return prefs.getString(PREF_USERNAME, null)
+    fun retrieveUserModel(): UserModel {
+        val username = prefs.getString(PREF_USERNAME, null)
+        val id = prefs.getInt(PREF_ID, -1)
+        if (username == null || id == -1) {
+            throw Exception("No stored User Model")
+        }
+        return UserModel(userName = username, id = id)
     }
+
 
     fun storeToken(token: String) {
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
@@ -94,9 +103,10 @@ class LocalStorage(private val context: Context) {
         _containsToken.value = false
     }
 
-    fun deleteUsername() {
+    fun deleteUserModel() {
         val editor = prefs.edit()
         editor.remove(PREF_USERNAME)
+        editor.remove(PREF_ID)
         editor.apply()
     }
 
@@ -112,6 +122,7 @@ class LocalStorage(private val context: Context) {
         private const val PREFS_FILENAME = "token_prefs"
         private const val PREF_TOKEN = "token"
         private const val PREF_USERNAME = "username"
+        private const val PREF_ID = "id"
         private const val PREF_IV = "iv"
         private const val TOKEN_PREFACE = "TOKEN "
     }

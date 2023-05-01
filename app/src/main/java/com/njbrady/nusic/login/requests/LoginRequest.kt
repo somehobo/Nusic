@@ -1,10 +1,8 @@
 package com.njbrady.nusic.login.requests
 
 import com.njbrady.nusic.login.model.LoginRepository
-import com.njbrady.nusic.utils.HttpOptions
-import com.njbrady.nusic.utils.LocalStorage
-import com.njbrady.nusic.utils.UrlProvider
-import com.njbrady.nusic.utils.toList
+import com.njbrady.nusic.utils.*
+import com.njbrady.nusic.utils.GeneralKeys.USERKEY
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.json.JSONObject
@@ -38,8 +36,9 @@ suspend fun loginRequest(
             val response = connection.inputStream.bufferedReader().use { it.readText() }
             val jsonResponse = JSONObject(response)
             val token = jsonResponse.getString(LoginJsonKeys.TokenKey)
+            val userModel = UserModel.fromJson(jsonResponse.getJSONObject(USERKEY))
             localStorage.storeToken(token)
-            localStorage.storeUsername(username)
+            localStorage.storeUserModel(userModel)
             LoginRepository()
         } else {
             val error = connection.errorStream.bufferedReader().use { it.readText() }

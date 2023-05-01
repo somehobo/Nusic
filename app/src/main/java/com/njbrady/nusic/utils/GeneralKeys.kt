@@ -7,4 +7,7 @@ object GeneralKeys {
     const val MESSAGE_TYPE = "type"
     const val SONG_ID = "song_id"
     const val SONG_CATEGORY = "song_category"
+    const val USERNAME = "username"
+    const val USERKEY = "user"
+    const val ID = "id"
 }

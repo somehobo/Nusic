@@ -19,12 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.njbrady.nusic.LocalNavController
-import com.njbrady.nusic.MainViewModel
+import com.njbrady.nusic.ProfileViewModel
 import com.njbrady.nusic.R
 import com.njbrady.nusic.profile.requests.SongListType
 import com.njbrady.nusic.upload.PlayerState
@@ -36,15 +35,15 @@ import com.njbrady.nusic.utils.composables.SongCard
 
 @Composable
 fun ProfileScrollingSongs(
-    mainViewModel: MainViewModel, songListType: SongListType
+    profileViewModel: ProfileViewModel, songListType: SongListType
 ) {
     val displayedSongs =
-        if (songListType == SongListType.Liked) mainViewModel.likedSongs.collectAsLazyPagingItems()
-        else mainViewModel.createdSongs.collectAsLazyPagingItems()
+        if (songListType == SongListType.Liked) profileViewModel.likedSongs.collectAsLazyPagingItems()
+        else profileViewModel.createdSongs.collectAsLazyPagingItems()
 
-    val prependedDisplayedSongs by if (songListType == SongListType.Liked) mainViewModel.prependedLikedSongs.collectAsState()
-    else mainViewModel.prependedCreatedSongs.collectAsState()
-    val selectedSongIndex = mainViewModel.selectedSongIndex
+    val prependedDisplayedSongs by if (songListType == SongListType.Liked) profileViewModel.prependedLikedSongs.collectAsState()
+    else profileViewModel.prependedCreatedSongs.collectAsState()
+    val selectedSongIndex = profileViewModel.selectedSongIndex
 
     Scaffold(topBar = {
         NavigationTopAppBar(
@@ -59,7 +58,7 @@ fun ProfileScrollingSongs(
             displayedSongs = displayedSongs,
             prependedDisplayedSongs = prependedDisplayedSongs,
             selectedSongIndex = selectedSongIndex,
-            mainViewModel = mainViewModel
+            profileViewModel = profileViewModel
         )
     }
 }
@@ -71,13 +70,13 @@ private fun ScrollingSongList(
     displayedSongs: LazyPagingItems<SongPlayerWrapper>,
     prependedDisplayedSongs: List<Pair<SongPlayerWrapper, Boolean>>,
     selectedSongIndex: Int,
-    mainViewModel: MainViewModel
+    profileViewModel: ProfileViewModel
 ) {
     val lazyListState = rememberLazyListState()
 
-    val topSongState by mainViewModel.topSongState.collectAsState()
-    val topSongErrorMessage by mainViewModel.topSongErrorMessage.collectAsState()
-    val psd by mainViewModel.psd.collectAsState()
+    val topSongState by profileViewModel.topSongState.collectAsState()
+    val topSongErrorMessage by profileViewModel.topSongErrorMessage.collectAsState()
+    val psd by profileViewModel.psd.collectAsState()
 
     LaunchedEffect(Unit) {
         lazyListState.scrollToItem(selectedSongIndex)
@@ -97,15 +96,15 @@ private fun ScrollingSongList(
                 Box(modifier = Modifier.fillParentMaxSize()) {
                     songItem(
                         songPlayerWrapper = songCardState,
-                        currentlyPlayingSong = mainViewModel.currentlyPlayingSong,
+                        currentlyPlayingSong = profileViewModel.currentlyPlayingSong,
                         lazyListState = lazyListState,
                         setCurrentlyPlayingSong = { songCardState, index ->
-                            mainViewModel.setCurrentPlayingScrollingSong(songCardState, index)
+                            profileViewModel.setCurrentPlayingScrollingSong(songCardState, index)
                         },
                         index = index,
                         currentCardErrorMessage = topSongErrorMessage,
                         currentCardState = topSongState,
-                        pauseCurrentSong = { mainViewModel.pauseCurrent() },
+                        pauseCurrentSong = { profileViewModel.pauseCurrent() },
                         psd = psd
                     )
                 }
@@ -116,15 +115,15 @@ private fun ScrollingSongList(
             songCardState?.let {
                 Box(modifier = Modifier.fillParentMaxSize()) {
                     songItem(songPlayerWrapper = songCardState,
-                        currentlyPlayingSong = mainViewModel.currentlyPlayingSong,
+                        currentlyPlayingSong = profileViewModel.currentlyPlayingSong,
                         index = index + prependedDisplayedSongs.size,
                         lazyListState = lazyListState,
                         setCurrentlyPlayingSong = { songPlayerWrapper, index ->
-                            mainViewModel.setCurrentPlayingScrollingSong(songPlayerWrapper, index)
+                            profileViewModel.setCurrentPlayingScrollingSong(songPlayerWrapper, index)
                         },
                         currentCardErrorMessage = topSongErrorMessage,
                         currentCardState = topSongState,
-                        pauseCurrentSong = { mainViewModel.pauseCurrent() },
+                        pauseCurrentSong = { profileViewModel.pauseCurrent() },
                         psd = psd
                     )
                 }

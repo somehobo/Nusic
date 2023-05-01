@@ -46,7 +46,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     private val homeScreenViewModel: HomeScreenViewModel by viewModels()
-    private val mainViewModel: MainViewModel by viewModels()
+    private val profileViewModel: ProfileViewModel by viewModels()
     private val uploadScreenViewModel: UploadScreenViewModel by viewModels()
 
     @Inject
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mainViewModel.setOnLogoutHit {
+        profileViewModel.setOnLogoutHit {
             val intent = Intent(this, LoginActivity::class.java)
             finish()
             startActivity(intent)
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     MainContent(
                         homeScreenViewModel,
-                        mainViewModel,
+                        profileViewModel,
                         uploadScreenViewModel,
                         mainSocketHandler
                     )
@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        mainViewModel.pauseCurrent()
+        profileViewModel.pauseCurrent()
         homeScreenViewModel.tempPauseCurrent()
         uploadScreenViewModel.pauseWhenReady()
     }
@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainContent(
     homeScreenViewModel: HomeScreenViewModel,
-    mainViewModel: MainViewModel,
+    profileViewModel: ProfileViewModel,
     uploadScreenViewModel: UploadScreenViewModel,
     mainSocketHandler: MainSocketHandler
 ) {
@@ -191,20 +191,20 @@ private fun MainContent(
             ) {
 
                 composable(Screen.Home.route) {
-                    mainViewModel.pauseCurrent()
+                    profileViewModel.pauseCurrent()
                     uploadScreenViewModel.pauseWhenReady()
                     HomeScreen(homeScreenViewModel, navController)
                 }
 
                 navigation(startDestination = Screen.ProfileHome.route, route = Screen.Profile.route) {
                     composable(Screen.ProfileHome.route) {
-                        mainViewModel.pauseAndReset()
+                        profileViewModel.pauseAndReset()
                         uploadScreenViewModel.pauseWhenReady()
-                        ProfileScreenContent(mainViewModel = mainViewModel,
+                        ProfileScreenContent(profileViewModel = profileViewModel,
                             currentlySelected = uploadScreenViewModel.currentlySelected.collectAsState().value,
                             onFilter = { newFilter -> uploadScreenViewModel.setCurrentlySelected(newFilter) },
                             onSelected = { index ->
-                                mainViewModel.selectedSongIndex = index
+                                profileViewModel.selectedSongIndex = index
                                 navController.navigate(Screen.LCSongs.route)
                             },
                             onUploadHit = {
@@ -215,7 +215,7 @@ private fun MainContent(
                     composable(Screen.LCSongs.route) {
                         uploadScreenViewModel.pauseWhenReady()
                         ProfileScrollingSongs(
-                            mainViewModel = mainViewModel,
+                            profileViewModel = profileViewModel,
                             songListType = uploadScreenViewModel.currentlySelected.collectAsState().value
                         )
                     }

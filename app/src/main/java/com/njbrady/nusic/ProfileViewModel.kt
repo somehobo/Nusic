@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class ProfileViewModel @Inject constructor(
     private val localStorage: LocalStorage,
     @DefaultDispatcher private val _defaultDispatcher: CoroutineDispatcher,
     private val _mainSocketHandler: MainSocketHandler,
@@ -35,6 +35,7 @@ class MainViewModel @Inject constructor(
     private val _prependedLikedSongs = MutableStateFlow(listOf<Pair<SongPlayerWrapper, Boolean>>())
     private val _prependedCreatedSongs =
         MutableStateFlow(listOf<Pair<SongPlayerWrapper, Boolean>>())
+    private val userModel = localStorage.retrieveUserModel()
 
     val refreshingProfile: StateFlow<Boolean> = _refreshingProfile
     val prependedLikedSongs: StateFlow<List<Pair<SongPlayerWrapper, Boolean>>> =
@@ -44,7 +45,7 @@ class MainViewModel @Inject constructor(
     val psd = _exoPlayerMiddleMan.psd
     val topSongState: StateFlow<PlayerState> = _exoPlayerMiddleMan.currentSongPlayerState
     val topSongErrorMessage: StateFlow<String?> = _exoPlayerMiddleMan.currentSongErrorMessage
-    val username = localStorage.retrieveUsername()
+    val userName = userModel.userName
     var currentlyPlayingSong: SongPlayerWrapper? = null
     var selectedSongIndex = 0
 
@@ -93,7 +94,7 @@ class MainViewModel @Inject constructor(
     fun logout() {
         _onLogoutHit()
         _mainSocketHandler.disconnect()
-        localStorage.deleteUsername()
+        localStorage.deleteUserModel()
         localStorage.deleteToken()
     }
 
