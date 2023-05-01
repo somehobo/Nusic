@@ -72,7 +72,9 @@ class HomeScreenViewModel @Inject constructor(
                 Handler(Looper.getMainLooper()).post {
                     _realSongQueue.value =
                         _realSongQueue.value.plusElement(_exoMiddleMan.addMedia(songModel))
-                    _realSongQueue.value.firstOrNull()?.play?.let { it() }
+                    if(_realSongQueue.value.size == 1) {
+                        _realSongQueue.value.firstOrNull()?.play?.let { it() }
+                    }
                 }
             }
         }
