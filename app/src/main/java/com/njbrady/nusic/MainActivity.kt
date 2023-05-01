@@ -27,6 +27,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import com.njbrady.nusic.home.HomeScreen
 import com.njbrady.nusic.home.HomeScreenViewModel
 import com.njbrady.nusic.login.LoginActivity
@@ -190,36 +191,41 @@ private fun MainContent(
             ) {
 
                 composable(Screen.Home.route) {
+                    mainViewModel.pauseCurrent()
+                    uploadScreenViewModel.pauseWhenReady()
                     HomeScreen(homeScreenViewModel, navController)
                 }
 
-                composable(Screen.Profile.route) {
-                    mainViewModel.pauseAndReset()
-                    uploadScreenViewModel.pauseWhenReady()
-                    ProfileScreenContent(mainViewModel = mainViewModel,
-                        currentlySelected = uploadScreenViewModel.currentlySelected.collectAsState().value,
-                        onFilter = { newFilter -> uploadScreenViewModel.setCurrentlySelected(newFilter) },
-                        onSelected = { index ->
-                            mainViewModel.selectedSongIndex = index
-                            navController.navigate(Screen.LCSongs.route)
-                        },
-                        onUploadHit = {
-                            navController.navigate(Screen.Upload.route)
-                        }
-                    )
+                navigation(startDestination = Screen.ProfileHome.route, route = Screen.Profile.route) {
+                    composable(Screen.ProfileHome.route) {
+                        mainViewModel.pauseAndReset()
+                        uploadScreenViewModel.pauseWhenReady()
+                        ProfileScreenContent(mainViewModel = mainViewModel,
+                            currentlySelected = uploadScreenViewModel.currentlySelected.collectAsState().value,
+                            onFilter = { newFilter -> uploadScreenViewModel.setCurrentlySelected(newFilter) },
+                            onSelected = { index ->
+                                mainViewModel.selectedSongIndex = index
+                                navController.navigate(Screen.LCSongs.route)
+                            },
+                            onUploadHit = {
+                                navController.navigate(Screen.Upload.route)
+                            }
+                        )
+                    }
+                    composable(Screen.LCSongs.route) {
+                        uploadScreenViewModel.pauseWhenReady()
+                        ProfileScrollingSongs(
+                            mainViewModel = mainViewModel,
+                            songListType = uploadScreenViewModel.currentlySelected.collectAsState().value
+                        )
+                    }
+                    composable(Screen.Upload.route) {
+                        UploadScreen(
+                            uploadScreenViewModel = uploadScreenViewModel,
+                        )
+                    }
                 }
-                composable(Screen.LCSongs.route) {
-                    uploadScreenViewModel.pauseWhenReady()
-                    ProfileScrollingSongs(
-                        mainViewModel = mainViewModel,
-                        songListType = uploadScreenViewModel.currentlySelected.collectAsState().value
-                    )
-                }
-                composable(Screen.Upload.route) {
-                    UploadScreen(
-                        uploadScreenViewModel = uploadScreenViewModel,
-                    )
-                }
+
             }
         }
     }
@@ -230,8 +236,9 @@ val LocalNavController = compositionLocalOf<NavController> {
 }
 
 sealed class Screen(val route: String, @StringRes val resourceId: Int) {
-    object Home : Screen("home", R.string.home_screen)
-    object Profile : Screen("profile", R.string.profile_screen)
+    object Home : Screen("HomePage", R.string.home_screen)
+    object Profile : Screen("ProfilePage", R.string.profile_screen)
+    object ProfileHome : Screen("ProfileHome", R.string.profile_home)
     object LCSongs : Screen("LCSongs", R.string.scrolling_songs_screen)
     object Upload : Screen("Upload", R.string.upload_song)
 }

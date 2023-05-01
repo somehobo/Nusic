@@ -37,4 +37,5 @@
     <string name="upload_song">Upload Song</string>
     <string name="song_title">Song Title</string>
     <string name="song_card_preview">Song Card Preview</string>
+    <string name="profile_home">ProfileHome</string>
 </resources>
