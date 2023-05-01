@@ -42,85 +42,13 @@ import com.njbrady.nusic.upload.UploadScreen
 import com.njbrady.nusic.upload.UploadScreenViewModel
 
 
-@Composable
-fun ProfileScreen(
-    mainViewModel: MainViewModel,
-    uploadScreenViewModel: UploadScreenViewModel,
-    navController: NavController
-) {
-    val profileNavController = rememberNavController()
-    ProfileScrenNavigation(
-        mainViewModel = mainViewModel,
-        profileNavController = profileNavController,
-        uploadScreenViewModel = uploadScreenViewModel,
-        mainNavController = navController
-    )
-}
 
-@Composable
-private fun ProfileScrenNavigation(
-    mainViewModel: MainViewModel,
-    uploadScreenViewModel: UploadScreenViewModel,
-    profileNavController: NavHostController,
-    mainNavController: NavController
-) {
-    var currentlySelected by remember {
-        mutableStateOf(SongListType.Liked)
-    }
-
-    Scaffold { paddingValues ->
-        NavHost(
-            navController = profileNavController,
-            startDestination = ProfileScreens.Profile.route,
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable(ProfileScreens.Profile.route) {
-                mainViewModel.pauseAndReset()
-                uploadScreenViewModel.pauseWhenReady()
-                ProfileScreenContent(mainViewModel = mainViewModel,
-                    currentlySelected = currentlySelected,
-                    onFilter = { newFilter -> currentlySelected = newFilter },
-                    onSelected = { index ->
-                        mainViewModel.selectedSongIndex = index
-                        profileNavController.navigate(ProfileScreens.LCSongs.route)
-                    },
-                    onUploadHit = {
-                        profileNavController.navigate(ProfileScreens.Upload.route)
-                    }
-                )
-            }
-            composable(ProfileScreens.LCSongs.route) {
-                uploadScreenViewModel.pauseWhenReady()
-                ProfileScrollingSongs(
-                    mainViewModel = mainViewModel,
-                    navController = profileNavController,
-                    songListType = currentlySelected
-                )
-            }
-            composable(ProfileScreens.Upload.route) {
-                UploadScreen(
-                    uploadScreenViewModel = uploadScreenViewModel,
-                    navController = profileNavController
-                )
-            }
-        }
-    }
-
-    mainNavController.addOnDestinationChangedListener { _, destination, _ ->
-        if (destination.route != Screen.Profile.route) {
-            if (profileNavController.currentDestination?.route != ProfileScreens.Profile.route) profileNavController.navigate(
-                route = ProfileScreens.Profile.route
-            )
-        }
-
-    }
-}
 
 @OptIn(
     ExperimentalFoundationApi::class, ExperimentalMaterialApi::class
 )
 @Composable
-private fun ProfileScreenContent(
+fun ProfileScreenContent(
     mainViewModel: MainViewModel,
     currentlySelected: SongListType,
     onFilter: (SongListType) -> Unit,
@@ -294,10 +222,4 @@ private fun ProfileScreenHeader(mainViewModel: MainViewModel, onUploadHit: () ->
 private fun viewer() {
     NusicTheme {
     }
-}
-
-sealed class ProfileScreens(val route: String, @StringRes val resourceId: Int) {
-    object Profile : ProfileScreens("ProfileScreen", R.string.profile_screen)
-    object LCSongs : ProfileScreens("LCSongs", R.string.scrolling_songs_screen)
-    object Upload : ProfileScreens("Upload", R.string.upload_song)
 }

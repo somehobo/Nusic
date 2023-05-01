@@ -30,6 +30,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.njbrady.nusic.LocalNavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.login.composables.ErrorWithField
@@ -41,12 +42,13 @@ import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 
 @Composable
 fun UploadScreen(
-    uploadScreenViewModel: UploadScreenViewModel, navController: NavController
+    uploadScreenViewModel: UploadScreenViewModel
 ) {
+    val localNavController = LocalNavController.current
     val generalLoading by uploadScreenViewModel.generalLoading.collectAsState()
     Scaffold(topBar = {
         val localContext = LocalContext.current
-        NavigationTopAppBar(navController = navController, title = "Upload", actions = {
+        NavigationTopAppBar(navController = localNavController, title = "Upload", actions = {
             if (generalLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.padding(
@@ -89,7 +91,7 @@ fun UploadScreen(
     }) { paddingValues ->
         UploadScreenContent(
             uploadScreenViewModel = uploadScreenViewModel, onUpload = {
-                navController.navigateUp()
+                localNavController.navigateUp()
                 uploadScreenViewModel.clearState()
             }, paddingValues = paddingValues, generalLoading = generalLoading
         )

@@ -10,6 +10,7 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.njbrady.nusic.R
+import com.njbrady.nusic.profile.requests.SongListType
 import com.njbrady.nusic.upload.model.UploadSongRepository
 import com.njbrady.nusic.upload.requests.uploadSong
 import com.njbrady.nusic.utils.ExoPlayerPositionTracker
@@ -47,7 +48,9 @@ class UploadScreenViewModel @Inject constructor(
     private val _generalErrors = MutableStateFlow<List<String>?>(null)
     private val _successfulUpload = MutableStateFlow(false)
     private val _generalLoading = MutableStateFlow(false)
+    val _currentlySelected = MutableStateFlow(SongListType.Liked)
 
+    val currentlySelected: StateFlow<SongListType> = _currentlySelected
     val username = _localStorage.retrieveUsername()
     val songTitle: StateFlow<String> = _songTitle
     val songPhotoUrl: StateFlow<Uri?> = _songPhotoUrl
@@ -101,6 +104,9 @@ class UploadScreenViewModel @Inject constructor(
         }
     }
 
+    fun setCurrentlySelected(songListType: SongListType) {
+        _currentlySelected.value = songListType
+    }
     fun resetErrors() {
         _generalErrors.value = null
         _timeErrors.value = null

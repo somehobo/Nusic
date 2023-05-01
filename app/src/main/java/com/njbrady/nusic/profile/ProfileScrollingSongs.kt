@@ -23,6 +23,7 @@ import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
+import com.njbrady.nusic.LocalNavController
 import com.njbrady.nusic.MainViewModel
 import com.njbrady.nusic.R
 import com.njbrady.nusic.profile.requests.SongListType
@@ -35,7 +36,7 @@ import com.njbrady.nusic.utils.composables.SongCard
 
 @Composable
 fun ProfileScrollingSongs(
-    mainViewModel: MainViewModel, navController: NavController, songListType: SongListType
+    mainViewModel: MainViewModel, songListType: SongListType
 ) {
     val displayedSongs =
         if (songListType == SongListType.Liked) mainViewModel.likedSongs.collectAsLazyPagingItems()
@@ -47,7 +48,7 @@ fun ProfileScrollingSongs(
 
     Scaffold(topBar = {
         NavigationTopAppBar(
-            navController = navController,
+            navController = LocalNavController.current,
             title = if (songListType == SongListType.Liked) stringResource(R.string.liked_songs_header) else stringResource(
                 R.string.created_songs_header
             ),
