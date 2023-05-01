@@ -9,5 +9,6 @@ object GeneralKeys {
     const val SONG_CATEGORY = "song_category"
     const val USERNAME = "username"
     const val USERKEY = "user"
+    const val USERIDKEY = "user_id"
     const val ID = "id"
 }
