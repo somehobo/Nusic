@@ -393,7 +393,7 @@ private fun SongCardBottomContent(
 
         Text(
             modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
-            text = songModel.userModel.userName,
+            text = songModel.name,
             style = adaptiveTextName,
             color = MaterialTheme.colors.background
         )
