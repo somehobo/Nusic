@@ -112,7 +112,7 @@ fun ProfileScreenContent(
                 itemsIndexed(items = displayedPrependedSongs) { index, item ->
                     if (item.second) {
                         item.first.songModel.let {
-                            MusicElement(songObject = it, onSelected = onSelected, index = index)
+                            MusicElement(songModel = it, onSelected = onSelected, index = index)
                             Divider()
                         }
                     }
@@ -124,7 +124,7 @@ fun ProfileScreenContent(
                     }
                     if (canShow == null) {
                         item?.songModel?.let {
-                            MusicElement(songObject = it, onSelected = onSelected, index = index)
+                            MusicElement(songModel = it, onSelected = onSelected, index = index)
                             Divider()
                         }
                     }

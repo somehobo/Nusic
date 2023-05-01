@@ -53,7 +53,7 @@ fun SwipeableCardWrapper(
     modifier: Modifier = Modifier,
     playerState: PlayerState,
     errorMessage: String?,
-    songObject: SongModel?,
+    songModel: SongModel,
     psd: FloatArray,
     onRetry: () -> Unit,
     onRestart: () -> Unit,
@@ -84,7 +84,7 @@ fun SwipeableCardWrapper(
             },
         playerState = playerState,
         errorMessage = errorMessage,
-        songModel = songObject,
+        songModel = songModel,
         onRetry = onRetry,
         onRestart = onRestart,
         onResume = onResume,
@@ -193,7 +193,7 @@ fun SongCard(
     modifier: Modifier = Modifier,
     errorMessage: String?,
     playerState: PlayerState,
-    songModel: SongModel?,
+    songModel: SongModel,
     onRetry: () -> Unit = {},
     onRestart: () -> Unit = {},
     onResume: () -> Unit = {},
@@ -203,22 +203,21 @@ fun SongCard(
 ) {
 
     BaseSongCard(modifier = modifier) {
-        songModel?.imageUrl?.let {
-            SubcomposeAsyncImage(
-                modifier = Modifier.fillMaxSize(),
-                model = it,
-                loading = {
-                    Box(
-                        modifier = Modifier
-                            .background(colorResource(id = R.color.card_overlay))
-                            .fillMaxSize()
-                            .shimmerBackground(),
-                    )
-                },
-                contentScale = ContentScale.Crop,
-                contentDescription = stringResource(R.string.current_songs_image)
-            )
-        }
+        SubcomposeAsyncImage(
+            modifier = Modifier.fillMaxSize(),
+            model = songModel.imageUrl,
+            loading = {
+                Box(
+                    modifier = Modifier
+                        .background(colorResource(id = R.color.card_overlay))
+                        .fillMaxSize()
+                        .shimmerBackground(),
+                )
+            },
+            contentScale = ContentScale.Crop,
+            contentDescription = stringResource(R.string.current_songs_image)
+        )
+
 
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -249,7 +248,7 @@ fun SongCard(
                     .wrapContentHeight()
                     .fillMaxWidth()
                     .zIndex(0f)
-                    .align(Alignment.BottomCenter), songObject = songModel, psd = psd
+                    .align(Alignment.BottomCenter), songModel = songModel, psd = psd
             )
             if (playerState == PlayerState.Loading) {
                 CircularProgressIndicator(
@@ -338,20 +337,18 @@ private fun EditableSongCardBottomContent(
                 textColor = MaterialTheme.colors.background
             )
         }
-        viewModel.username?.let {
             Text(
-                text = stringResource(id = R.string.author_creditor) + " $it",
+                text = stringResource(id = R.string.author_creditor) + " ${viewModel.username}",
                 style = adaptiveTextCreator,
                 color = MaterialTheme.colors.background
             )
-        }
     }
 }
 
 @Composable
 private fun SongCardBottomContent(
     modifier: Modifier = Modifier,
-    songObject: SongModel?,
+    songModel: SongModel,
     psd: FloatArray
 ) {
     val adaptiveTextName = TextStyle(
@@ -394,21 +391,18 @@ private fun SongCardBottomContent(
             }
         }
 
-        songObject?.name?.let {
-            Text(
-                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
-                text = it,
-                style = adaptiveTextName,
-                color = MaterialTheme.colors.background
-            )
-        }
-        songObject?.artist?.let {
-            Text(
-                text = stringResource(id = R.string.author_creditor) + " $it",
-                style = adaptiveTextCreator,
-                color = MaterialTheme.colors.background
-            )
-        }
+        Text(
+            modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.NusicDimenX1)),
+            text = songModel.userModel.userName,
+            style = adaptiveTextName,
+            color = MaterialTheme.colors.background
+        )
+
+        Text(
+            text = stringResource(id = R.string.author_creditor) + " ${songModel.userModel.userName}",
+            style = adaptiveTextCreator,
+            color = MaterialTheme.colors.background
+        )
     }
 
 }

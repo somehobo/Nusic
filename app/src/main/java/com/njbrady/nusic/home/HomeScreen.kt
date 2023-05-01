@@ -125,7 +125,7 @@ private fun SongStack(
                     SwipeableCardWrapper(modifier = Modifier.fillMaxSize(),
                         playerState = topCardState,
                         errorMessage = topCardErrorMessage,
-                        songObject = songPlayerWrapper.songModel,
+                        songModel = songPlayerWrapper.songModel,
                         psd = psd,
                         onRetry = { songPlayerWrapper.reset() },
                         onCancel = { homeScreenViewModel.cancelTop() },

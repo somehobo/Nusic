@@ -20,9 +20,8 @@ import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.utils.shimmerBackground
 
 
-
 @Composable
-fun MusicElement(songObject: SongModel, onSelected: (Int) -> Unit, index: Int) {
+fun MusicElement(songModel: SongModel, onSelected: (Int) -> Unit, index: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -35,11 +34,11 @@ fun MusicElement(songObject: SongModel, onSelected: (Int) -> Unit, index: Int) {
                 .size(dimensionResource(id = R.dimen.NusicDimenX5))
                 .clip(
                     RoundedCornerShape(dimensionResource(id = R.dimen.NusicDimenX1))
-                ), songObject = songObject
+                ), songObject = songModel
         )
 
         SongNameWithArtist(
-            name = songObject.name, artist = songObject.artist
+            name = songModel.name, artist = songModel.userModel.userName
         )
     }
 }
@@ -49,44 +48,40 @@ private fun SongPreviewPicture(modifier: Modifier = Modifier, songObject: SongMo
     Box(
         modifier = modifier
     ) {
-        if (songObject.imageUrl != null) {
-            SubcomposeAsyncImage(
-                modifier = Modifier.fillMaxSize(),
-                model = songObject.imageUrl,
-                loading = {
-                    Box(
-                        modifier = Modifier
-                            .background(colorResource(id = R.color.card_overlay))
-                            .fillMaxSize()
-                            .shimmerBackground(),
-                    )
-                },
-                contentScale = ContentScale.Crop,
-                contentDescription = stringResource(R.string.profile_image),
-            )
-        }
+        SubcomposeAsyncImage(
+            modifier = Modifier.fillMaxSize(),
+            model = songObject.imageUrl,
+            loading = {
+                Box(
+                    modifier = Modifier
+                        .background(colorResource(id = R.color.card_overlay))
+                        .fillMaxSize()
+                        .shimmerBackground(),
+                )
+            },
+            contentScale = ContentScale.Crop,
+            contentDescription = stringResource(R.string.profile_image),
+        )
     }
 }
 
 @Composable
-private fun SongNameWithArtist(name: String?, artist: String?) {
+private fun SongNameWithArtist(name: String, artist: String) {
     Column {
-        name?.let {
             Text(
                 modifier = Modifier.padding(
                     start = dimensionResource(id = R.dimen.NusicDimenX1),
                     top = dimensionResource(id = R.dimen.NusicDimenX1)
-                ), text = it
+                ), text = name
             )
-        }
 
-        artist?.let {
+
             Text(
                 modifier = Modifier.padding(
                     start = dimensionResource(id = R.dimen.NusicDimenX1),
                     bottom = dimensionResource(id = R.dimen.NusicDimenX1)
-                ), text = "- $it", style = MaterialTheme.typography.caption
+                ), text = "- $artist", style = MaterialTheme.typography.caption
             )
-        }
+
     }
 }
