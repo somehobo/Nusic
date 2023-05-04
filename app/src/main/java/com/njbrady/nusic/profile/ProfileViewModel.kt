@@ -71,8 +71,7 @@ class ProfileViewModel @AssistedInject constructor(
     var selectedSongIndex = 0
     var uploadedBio: String? = null
 
-
-    private val messageHandler =
+    private val messageHandler = if (userModel == ogUserModel)
         ProfileMessageHandler(onSongReceived = { songPlayerWrapper, type, liked ->
             when (type) {
                 SongListType.Liked -> {
@@ -92,7 +91,8 @@ class ProfileViewModel @AssistedInject constructor(
             }
         }, onError = {}, onBlockingError = {}, mainSocketHandler = _mainSocketHandler,
             exoMiddleMan = _exoPlayerMiddleMan
-        )
+        ) else null
+
 
     val likedSongs: Flow<PagingData<SongPlayerWrapper>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = {
@@ -101,7 +101,12 @@ class ProfileViewModel @AssistedInject constructor(
 
     val createdSongs: Flow<PagingData<SongPlayerWrapper>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = {
-            ProfilePagedDataSource(localStorage, SongListType.Created, _exoPlayerMiddleMan, userModel)
+            ProfilePagedDataSource(
+                localStorage,
+                SongListType.Created,
+                _exoPlayerMiddleMan,
+                userModel
+            )
         }).flow.cachedIn(viewModelScope)
 
     val profilePhoto = ProfilePhoto(
@@ -156,7 +161,7 @@ class ProfileViewModel @AssistedInject constructor(
                 _bio.value?.let {
                     _bioState.value = GeneralStates.Loading
                     val errorModel = uploadBio(localStorage, it)
-                    if(errorModel == null) {
+                    if (errorModel == null) {
                         _bioState.value = GeneralStates.Success
                         _bioErrors.value = null
                     } else {
@@ -194,7 +199,7 @@ class ProfileViewModel @AssistedInject constructor(
             withContext(_defaultDispatcher) {
                 _bioState.value = GeneralStates.Loading
                 try {
-                    val attributes = getUserAttributes(localStorage,userModel)
+                    val attributes = getUserAttributes(localStorage, userModel)
                     _bio.value = attributes.bio
                     profilePhoto.setInitialImage(attributes.profilePhotoUrl)
                     uploadedBio = attributes.bio
@@ -211,7 +216,10 @@ class ProfileViewModel @AssistedInject constructor(
         // This must match the backend constant as well
         const val PAGE_SIZE = 6
 
-        fun provideProfileViewModelFactory(factory: Factory, userModel: UserModel?): ViewModelProvider.Factory {
+        fun provideProfileViewModelFactory(
+            factory: Factory,
+            userModel: UserModel?
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     return factory.create(userModel) as T

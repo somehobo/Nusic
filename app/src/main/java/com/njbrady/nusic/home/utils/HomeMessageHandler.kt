@@ -20,8 +20,8 @@ class HomeMessageHandler(
 
     override fun onMessageRecieved(jsonObject: JSONObject) {
         when (jsonObject.getString(MESSAGE_TYPE)) {
-            SONG_TYPE -> onSongTypeReceived(jsonObject = jsonObject)//handle song
-            ERROR_TYPE -> onErrorTypeReceived(jsonObject = jsonObject)//handle error
+            SONG_TYPE -> onSongTypeReceived(jsonObject = jsonObject)
+            ERROR_TYPE -> onErrorTypeReceived(jsonObject = jsonObject)
             BLOCKING_ERROR_TYPE -> onBlockingErrorTypeReceived(jsonObject = jsonObject)
         }
     }

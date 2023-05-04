@@ -88,7 +88,7 @@ private fun ProfileScrenNavigation(
             }
             composable(ProfileScreens.Upload.route) {
                 UploadScreen(
-                    uploadScreenViewModel = uploadScreenViewModel,
+                    uploadScreenViewModel = uploadScreenViewModel, navController = profileNavController
                 )
             }
         }

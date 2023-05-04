@@ -42,13 +42,13 @@ import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 
 @Composable
 fun UploadScreen(
-    uploadScreenViewModel: UploadScreenViewModel
+    uploadScreenViewModel: UploadScreenViewModel, navController: NavController
 ) {
     val localNavController = LocalNavController.current
     val generalLoading by uploadScreenViewModel.generalLoading.collectAsState()
     Scaffold(topBar = {
         val localContext = LocalContext.current
-        NavigationTopAppBar(navController = localNavController, title = "Upload", actions = {
+        NavigationTopAppBar(navController = navController, title = "Upload", actions = {
             if (generalLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.padding(
@@ -91,7 +91,7 @@ fun UploadScreen(
     }) { paddingValues ->
         UploadScreenContent(
             uploadScreenViewModel = uploadScreenViewModel, onUpload = {
-                localNavController.navigateUp()
+                navController.navigateUp()
                 uploadScreenViewModel.clearState()
             }, paddingValues = paddingValues, generalLoading = generalLoading
         )

@@ -141,7 +141,9 @@ private fun SongStack(
                                     Screen.OtherProfile.createRoute(
                                         userName = userModel.userName, userId = userModel.id
                                     )
-                                ) else {
+                                ) {
+                                    restoreState = true
+                                } else {
                                 localNavController.navigate(Screen.Profile.route) {
                                     popUpTo(localNavController.graph.findStartDestination().id) {
                                         saveState = true
