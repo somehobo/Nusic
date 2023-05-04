@@ -84,7 +84,7 @@ fun ProfileBio(
                                 onFocusing()
                             }
 
-                            if (!focusState.isFocused && bio != uploadedBio && !saving && state != GeneralStates.Success) {
+                            if (!focusState.isFocused && bio != uploadedBio && !saving && state != GeneralStates.Success && state != GeneralStates.Error) {
                                 onFocusChanged()
                                 Toast.makeText(
                                     localContext,

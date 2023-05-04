@@ -13,7 +13,7 @@ data class UploadBioErrorModel(
         fun fromJson(jsonObject: JSONObject): UploadBioErrorModel {
             return UploadBioErrorModel(
                 bioErrors = jsonObject.getJSONArray(BIO).toList() as List<String>,
-                generalError = jsonObject.getString(LoginJsonKeys.ErrorKey)
+                generalError = null
             )
         }
     }

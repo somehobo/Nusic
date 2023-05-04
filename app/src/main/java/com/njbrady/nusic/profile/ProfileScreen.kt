@@ -119,6 +119,7 @@ fun ProfileScreenContent(
     val refreshing by profileViewModel.refreshingProfile.collectAsState()
     val bioState by profileViewModel.bioState.collectAsState()
     val bio by profileViewModel.bio.collectAsState()
+    val bioErrorModel by profileViewModel.bioErrors.collectAsState()
 
     val pullRefreshState = rememberPullRefreshState(refreshing = refreshing, onRefresh = {
         likedSongs.refresh()
@@ -181,7 +182,8 @@ fun ProfileScreenContent(
                             onDone = { profileViewModel.uploadCurrentBio() },
                             onFocusChanged = { profileViewModel.resetBio() },
                             onFocusing = { profileViewModel.onFocusing() },
-                            visiting = visiting
+                            visiting = visiting,
+                            errorMessages = bioErrorModel
                         )
                     }
                 }
