@@ -50,8 +50,11 @@ class ProfileViewModel @AssistedInject constructor(
     private val _bioState = MutableStateFlow(GeneralStates.Loading)
     private val _bio = MutableStateFlow<String?>(null)
     private val _bioErrors = MutableStateFlow<List<String>?>(null)
-    private val userModel = _otherUserModel ?: localStorage.retrieveUserModel()
+    private val _currentlySelected = MutableStateFlow(SongListType.Liked)
 
+    val ogUserModel = localStorage.retrieveUserModel()
+    val userModel = _otherUserModel ?: ogUserModel
+    val currentlySelected: StateFlow<SongListType> = _currentlySelected
     val refreshingProfile: StateFlow<Boolean> = _refreshingProfile
     val prependedLikedSongs: StateFlow<List<Pair<SongPlayerWrapper, Boolean>>> =
         _prependedLikedSongs
@@ -93,12 +96,12 @@ class ProfileViewModel @AssistedInject constructor(
 
     val likedSongs: Flow<PagingData<SongPlayerWrapper>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = {
-            ProfilePagedDataSource(localStorage, SongListType.Liked, _exoPlayerMiddleMan)
+            ProfilePagedDataSource(localStorage, SongListType.Liked, _exoPlayerMiddleMan, userModel)
         }).flow.cachedIn(viewModelScope)
 
     val createdSongs: Flow<PagingData<SongPlayerWrapper>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE), pagingSourceFactory = {
-            ProfilePagedDataSource(localStorage, SongListType.Created, _exoPlayerMiddleMan)
+            ProfilePagedDataSource(localStorage, SongListType.Created, _exoPlayerMiddleMan, userModel)
         }).flow.cachedIn(viewModelScope)
 
     val profilePhoto = ProfilePhoto(
@@ -112,6 +115,10 @@ class ProfileViewModel @AssistedInject constructor(
     fun setCurrentPlayingScrollingSong(songPlayerWrapper: SongPlayerWrapper, index: Int) {
         currentlyPlayingSong = songPlayerWrapper
         selectedSongIndex = index
+    }
+
+    fun setCurrentlySelected(songListType: SongListType) {
+        _currentlySelected.value = songListType
     }
 
     fun logout() {

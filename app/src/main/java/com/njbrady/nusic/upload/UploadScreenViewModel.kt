@@ -50,9 +50,6 @@ class UploadScreenViewModel @Inject constructor(
     private val _generalLoading = MutableStateFlow(false)
     private val _userModel = _localStorage.retrieveUserModel()
 
-    val _currentlySelected = MutableStateFlow(SongListType.Liked)
-
-    val currentlySelected: StateFlow<SongListType> = _currentlySelected
     val username = _userModel.userName
     val songTitle: StateFlow<String> = _songTitle
     val songPhotoUrl: StateFlow<Uri?> = _songPhotoUrl
@@ -106,9 +103,6 @@ class UploadScreenViewModel @Inject constructor(
         }
     }
 
-    fun setCurrentlySelected(songListType: SongListType) {
-        _currentlySelected.value = songListType
-    }
     fun resetErrors() {
         _generalErrors.value = null
         _timeErrors.value = null

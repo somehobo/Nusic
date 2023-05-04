@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,6 +37,7 @@ import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
 import com.njbrady.nusic.upload.UploadScreen
 import com.njbrady.nusic.upload.UploadScreenViewModel
+import com.njbrady.nusic.utils.composables.NavigationTopAppBar
 
 @Composable
 fun ProfileScreen(
@@ -56,9 +58,7 @@ private fun ProfileScrenNavigation(
     uploadScreenViewModel: UploadScreenViewModel,
     profileNavController: NavHostController,
 ) {
-    var currentlySelected by remember {
-        mutableStateOf(SongListType.Liked)
-    }
+    val currentlySelected by profileViewModel.currentlySelected.collectAsState()
 
     Scaffold { paddingValues ->
         NavHost(
@@ -71,7 +71,7 @@ private fun ProfileScrenNavigation(
                 uploadScreenViewModel.pauseWhenReady()
                 ProfileScreenContent(profileViewModel = profileViewModel,
                     currentlySelected = currentlySelected,
-                    onFilter = { newFilter -> currentlySelected = newFilter },
+                    onFilter = { newFilter -> profileViewModel.setCurrentlySelected(newFilter) },
                     onSelected = { index ->
                         profileViewModel.selectedSongIndex = index
                         profileNavController.navigate(ProfileScreens.LCSongs.route)
@@ -83,7 +83,7 @@ private fun ProfileScrenNavigation(
             composable(ProfileScreens.LCSongs.route) {
                 uploadScreenViewModel.pauseWhenReady()
                 ProfileScrollingSongs(
-                    profileViewModel = profileViewModel, songListType = currentlySelected
+                    profileViewModel = profileViewModel, songListType = currentlySelected, navController = profileNavController
                 )
             }
             composable(ProfileScreens.Upload.route) {
@@ -92,17 +92,6 @@ private fun ProfileScrenNavigation(
                 )
             }
         }
-    }
-
-    LocalNavController.current.addOnDestinationChangedListener { _, destination, _ ->
-        if (destination.route != Screen.Profile.route) {
-            if (profileNavController.currentDestination?.route != ProfileScreens.ProfileHome.route) {
-                profileNavController.navigate(
-                    route = ProfileScreens.ProfileHome.route
-                )
-            }
-        }
-
     }
 }
 
@@ -115,7 +104,9 @@ fun ProfileScreenContent(
     currentlySelected: SongListType,
     onFilter: (SongListType) -> Unit,
     onSelected: (Int) -> Unit,
-    onUploadHit: () -> Unit
+    onUploadHit: () -> Unit,
+    visiting: Boolean = false,
+    navController: NavController = LocalNavController.current
 ) {
 
     val likedSongs = profileViewModel.likedSongs.collectAsLazyPagingItems()
@@ -136,7 +127,10 @@ fun ProfileScreenContent(
         profileViewModel.setRefresh(false)
     })
 
-    Scaffold(topBar = { ProfileScreenHeader(profileViewModel, onUploadHit) }) { paddingValues ->
+    Scaffold(topBar = { if(!visiting) ProfileScreenHeader(profileViewModel, onUploadHit) else NavigationTopAppBar(
+        navController = navController,
+        title = ""
+    )} ) { paddingValues ->
         Box(
             modifier = Modifier
                 .pullRefresh(pullRefreshState, enabled = true)
@@ -153,7 +147,7 @@ fun ProfileScreenContent(
                             .padding(vertical = dimensionResource(id = R.dimen.NusicDimenX4)),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        ProfilePhotoComposable(profileViewModel.profilePhoto)
+                        ProfilePhotoComposable(profileViewModel.profilePhoto, visiting)
                     }
                 }
 
@@ -186,7 +180,8 @@ fun ProfileScreenContent(
                             onValueChanged = { new ->  profileViewModel.updateTempBio(new) },
                             onDone = { profileViewModel.uploadCurrentBio() },
                             onFocusChanged = { profileViewModel.resetBio() },
-                            onFocusing = { profileViewModel.onFocusing() }
+                            onFocusing = { profileViewModel.onFocusing() },
+                            visiting = visiting
                         )
                     }
                 }

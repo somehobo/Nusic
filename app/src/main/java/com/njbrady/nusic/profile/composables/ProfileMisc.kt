@@ -62,7 +62,8 @@ fun ProfileBio(
     onValueChanged: (String) -> Unit,
     onFocusChanged: () -> Unit,
     onDone: () -> Unit,
-    onFocusing: () -> Unit
+    onFocusing: () -> Unit,
+    visiting: Boolean
 ) {
     val keyBoard by keyboardAsState()
     val focusManager = LocalFocusManager.current
@@ -76,42 +77,48 @@ fun ProfileBio(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (state != GeneralStates.Loading) {
-                OutlinedTextField(
-                    modifier = Modifier.onFocusChanged { focusState ->
-                        if(focusState.isFocused) {
+                if (!visiting) {
+                    OutlinedTextField(
+                        modifier = Modifier.onFocusChanged { focusState ->
+                            if (focusState.isFocused) {
                                 onFocusing()
-                        }
+                            }
 
-                        if (!focusState.isFocused && bio != uploadedBio && !saving && state != GeneralStates.Success) {
-                            onFocusChanged()
-                            Toast.makeText(
-                                localContext,
-                                R.string.bio_not_saved,
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    },
-                    value = bio ?: "",
-                    onValueChange = { new -> onValueChanged(new) },
-                    placeholder = {
-                        Text(
-                            textAlign = TextAlign.Center,
-                            text = stringResource(R.string.add_bio),
-                            style = MaterialTheme.typography.body1,
-                            color = NusicSeeThroughBlack
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = {
-                        saving = true
-                        focusManager.clearFocus()
-                        onDone()
-                    })
-                )
+                            if (!focusState.isFocused && bio != uploadedBio && !saving && state != GeneralStates.Success) {
+                                onFocusChanged()
+                                Toast.makeText(
+                                    localContext,
+                                    R.string.bio_not_saved,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        },
+                        value = bio ?: "",
+                        onValueChange = { new -> onValueChanged(new) },
+                        placeholder = {
+                            Text(
+                                textAlign = TextAlign.Center,
+                                text = stringResource(R.string.add_bio),
+                                style = MaterialTheme.typography.body1,
+                                color = NusicSeeThroughBlack
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            saving = true
+                            focusManager.clearFocus()
+                            onDone()
+                        })
+                    )
 
-                if (state == GeneralStates.Error) {
-                    errorMessages?.forEach {
-                        ErrorWithField(message = it)
+                    if (state == GeneralStates.Error) {
+                        errorMessages?.forEach {
+                            ErrorWithField(message = it)
+                        }
+                    }
+                } else {
+                    bio?.let {
+                        Text(textAlign = TextAlign.Center, text = bio)
                     }
                 }
             } else {

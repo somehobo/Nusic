@@ -48,6 +48,7 @@ import com.njbrady.nusic.home.utils.swipeableCard
 import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.upload.PlayerState
 import com.njbrady.nusic.upload.UploadScreenViewModel
+import com.njbrady.nusic.utils.UserModel
 import com.njbrady.nusic.utils.shimmerBackground
 
 @Composable
@@ -62,7 +63,8 @@ fun SwipeableCardWrapper(
     onResume: () -> Unit,
     onCancel: () -> Unit,
     onPause: () -> Unit,
-    onLiked: (Boolean) -> Unit
+    onLiked: (Boolean) -> Unit,
+    onUserNameTap: (UserModel) -> Unit
 ) {
     val swipeableCardState = rememberSwipeableCardState()
 
@@ -91,7 +93,8 @@ fun SwipeableCardWrapper(
         onRestart = onRestart,
         onResume = onResume,
         onCancel = onCancel,
-        psd = psd
+        psd = psd,
+        onUserNameTap = onUserNameTap
     )
 }
 
@@ -201,7 +204,8 @@ fun SongCard(
     onResume: () -> Unit = {},
     onCancel: () -> Unit = {},
     cancelAvailable: Boolean = true,
-    psd: FloatArray = floatArrayOf()
+    psd: FloatArray = floatArrayOf(),
+    onUserNameTap: (UserModel) -> Unit = {}
 ) {
 
     BaseSongCard(modifier = modifier) {
@@ -250,7 +254,10 @@ fun SongCard(
                     .wrapContentHeight()
                     .fillMaxWidth()
                     .zIndex(0f)
-                    .align(Alignment.BottomCenter), songModel = songModel, psd = psd
+                    .align(Alignment.BottomCenter),
+                songModel = songModel,
+                psd = psd,
+                onUserNameTap = onUserNameTap
             )
             if (playerState == PlayerState.Loading) {
                 CircularProgressIndicator(
@@ -339,11 +346,11 @@ private fun EditableSongCardBottomContent(
                 textColor = MaterialTheme.colors.background
             )
         }
-            Text(
-                text = stringResource(id = R.string.author_creditor) + " ${viewModel.username}",
-                style = adaptiveTextCreator,
-                color = MaterialTheme.colors.background
-            )
+        Text(
+            text = stringResource(id = R.string.author_creditor) + " ${viewModel.username}",
+            style = adaptiveTextCreator,
+            color = MaterialTheme.colors.background
+        )
     }
 }
 
@@ -351,9 +358,9 @@ private fun EditableSongCardBottomContent(
 private fun SongCardBottomContent(
     modifier: Modifier = Modifier,
     songModel: SongModel,
-    psd: FloatArray
+    psd: FloatArray,
+    onUserNameTap: (UserModel) -> Unit
 ) {
-    val localNavController = LocalNavController.current
     val adaptiveTextName = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
@@ -403,7 +410,8 @@ private fun SongCardBottomContent(
 
         Text(
             modifier = Modifier.clickable {
-              localNavController.navigate(Screen.OtherProfile.createRoute(userName = songModel.userModel.userName, userId = songModel.userModel.id))
+                onUserNameTap(songModel.userModel)
+
             },
             text = stringResource(id = R.string.author_creditor) + " ${songModel.userModel.userName}",
             style = adaptiveTextCreator,

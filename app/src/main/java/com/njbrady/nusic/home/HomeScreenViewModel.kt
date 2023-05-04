@@ -12,6 +12,7 @@ import com.njbrady.nusic.home.utils.LikeSongMessage
 import com.njbrady.nusic.home.utils.MusicMessage
 import com.njbrady.nusic.upload.PlayerState
 import com.njbrady.nusic.utils.ExoMiddleMan
+import com.njbrady.nusic.utils.LocalStorage
 import com.njbrady.nusic.utils.SongPlayerWrapper
 import com.njbrady.nusic.utils.di.DefaultDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,7 +28,8 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     mainSocketHandler: MainSocketHandler,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
-    private val _exoMiddleMan: ExoMiddleMan
+    private val _exoMiddleMan: ExoMiddleMan,
+    private val _localStorage: LocalStorage
 ) : ViewModel() {
 
     private val _messageHandler =
@@ -46,6 +48,7 @@ class HomeScreenViewModel @Inject constructor(
     private val _errorToast = MutableStateFlow<String?>(null)
     private val _realSongQueue = MutableStateFlow(listOf<SongPlayerWrapper>())
 
+    val userModel = _localStorage.retrieveUserModel()
     var tempPaused = false
     val isLoading: StateFlow<Boolean> = _isLoading
     val nonBlockingError: StateFlow<String?> = _nonBlockingError

@@ -24,10 +24,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.njbrady.nusic.home.HomeScreen
 import com.njbrady.nusic.home.HomeScreenViewModel
 import com.njbrady.nusic.login.LoginActivity
@@ -206,22 +208,25 @@ private fun MainContent(
                     HomeScreen(homeScreenViewModel, navController)
                 }
 
-                composable(Screen.OtherProfile.route) { backStackEntry ->
+                composable(
+                    Screen.OtherProfile.route,
+                    arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                ) { backStackEntry ->
                     backStackEntry.arguments?.let {
                         val userId = it.getInt("userId")
                         val userName = it.getString("userName", "No Username Provided")
                         val userModel = UserModel(userName, userId)
-                        val profileViewModel = viewModel<ProfileViewModel>(
+                        val otherProfileViewModel = viewModel<ProfileViewModel>(
                             factory = ProfileViewModel.provideProfileViewModelFactory(
                                 otherProfileViewModelFactory,
                                 userModel
                             )
                         )
-                        OtherProfileScreen(profileViewModel = profileViewModel)
+
+                        OtherProfileScreen(profileViewModel = otherProfileViewModel)
 
                     }
                 }
-
 
                 composable(Screen.Profile.route) {
                     ProfileScreen(

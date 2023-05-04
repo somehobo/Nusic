@@ -20,6 +20,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.njbrady.nusic.LocalNavController
 import com.njbrady.nusic.R
 import com.njbrady.nusic.Screen
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
@@ -88,7 +90,7 @@ private fun SongStack(
     paddingValues: PaddingValues = PaddingValues(),
     songQueue: List<SongPlayerWrapper>
 ) {
-
+    val localNavController = LocalNavController.current
     val topCardState by homeScreenViewModel.topSongState.collectAsState()
     val topCardErrorMessage by homeScreenViewModel.topSongErrorMessage.collectAsState()
     val nonBlockingError by homeScreenViewModel.nonBlockingError.collectAsState()
@@ -132,7 +134,24 @@ private fun SongStack(
                         onRestart = { songPlayerWrapper.restart() },
                         onResume = { songPlayerWrapper.play() },
                         onPause = { homeScreenViewModel.pauseCurrent() },
-                        onLiked = { like -> homeScreenViewModel.likeTop(like) })
+                        onLiked = { like -> homeScreenViewModel.likeTop(like) },
+                        onUserNameTap = { userModel ->
+                            if (userModel.id != homeScreenViewModel.userModel.id)
+                                localNavController.navigate(
+                                    Screen.OtherProfile.createRoute(
+                                        userName = userModel.userName, userId = userModel.id
+                                    )
+                                ) else {
+                                localNavController.navigate(Screen.Profile.route) {
+                                    popUpTo(localNavController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = false
+                                }
+                            }
+
+                        })
                 } else {
                     SongCard(
                         modifier = Modifier.fillMaxSize(),

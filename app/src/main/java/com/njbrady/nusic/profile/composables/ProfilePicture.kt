@@ -24,11 +24,10 @@ import com.njbrady.nusic.profile.utils.ProfilePhotoState
 import com.njbrady.nusic.utils.glowLoad
 
 @Composable
-fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
+fun ProfilePhotoComposable(profilePhoto: ProfilePhoto, visiting: Boolean) {
     val profilePhotoState by profilePhoto.profilePhotoState.collectAsState()
     val photoUrl by profilePhoto.photoUrl.collectAsState()
     val localContext = LocalContext.current
-
     val selectImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
@@ -37,6 +36,18 @@ fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
         }
     }
 
+    val photoModifier = if (visiting) Modifier
+        .clip(shape = CircleShape)
+        .size(dimensionResource(id = R.dimen.ProfileImageDimen)) else Modifier
+        .clip(shape = CircleShape)
+        .clickable {
+            if (profilePhotoState != ProfilePhotoState.SuccessPending) selectImageLauncher.launch(
+                "image/*"
+            )
+        }
+        .size(dimensionResource(id = R.dimen.ProfileImageDimen))
+
+
     val loadState: @Composable () -> Unit = {
         Box(
             modifier = Modifier
@@ -44,14 +55,7 @@ fun ProfilePhotoComposable(profilePhoto: ProfilePhoto) {
                 .glowLoad()
         )
     }
-    Box(modifier = Modifier
-        .clip(shape = CircleShape)
-        .clickable {
-            if (profilePhotoState != ProfilePhotoState.SuccessPending) selectImageLauncher.launch(
-                "image/*"
-            )
-        }
-        .size(dimensionResource(id = R.dimen.ProfileImageDimen))) {
+    Box(modifier = photoModifier) {
         photoUrl?.let {
             SubcomposeAsyncImage(
                 modifier = Modifier.fillMaxSize(),
