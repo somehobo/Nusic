@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -27,15 +28,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navigation
 import com.njbrady.nusic.home.HomeScreen
 import com.njbrady.nusic.home.HomeScreenViewModel
 import com.njbrady.nusic.login.LoginActivity
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
-import com.njbrady.nusic.profile.ProfileScrollingSongs
+import com.njbrady.nusic.profile.OtherProfileScreen
+import com.njbrady.nusic.profile.ProfileViewModel
 import com.njbrady.nusic.ui.theme.NusicTheme
-import com.njbrady.nusic.upload.UploadScreen
 import com.njbrady.nusic.upload.UploadScreenViewModel
+import com.njbrady.nusic.utils.UserModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -46,11 +47,18 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     private val homeScreenViewModel: HomeScreenViewModel by viewModels()
-    private val profileViewModel: ProfileViewModel by viewModels()
     private val uploadScreenViewModel: UploadScreenViewModel by viewModels()
 
     @Inject
+    lateinit var otherProfileFactory: ProfileViewModel.Factory
+
+    private val profileViewModel by viewModels<ProfileViewModel> {
+        ProfileViewModel.provideProfileViewModelFactory(otherProfileFactory, null)
+    }
+
+    @Inject
     lateinit var mainSocketHandler: MainSocketHandler
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,7 +76,8 @@ class MainActivity : ComponentActivity() {
                         homeScreenViewModel,
                         profileViewModel,
                         uploadScreenViewModel,
-                        mainSocketHandler
+                        mainSocketHandler,
+                        otherProfileFactory
                     )
                 }
             }
@@ -90,7 +99,8 @@ private fun MainContent(
     homeScreenViewModel: HomeScreenViewModel,
     profileViewModel: ProfileViewModel,
     uploadScreenViewModel: UploadScreenViewModel,
-    mainSocketHandler: MainSocketHandler
+    mainSocketHandler: MainSocketHandler,
+    otherProfileViewModelFactory: ProfileViewModel.Factory
 ) {
     val navController = rememberNavController()
     val socketState by mainSocketHandler.connected.collectAsState()
@@ -137,7 +147,7 @@ private fun MainContent(
                                 saveState = true
                             }
                             launchSingleTop = true
-                            restoreState = true
+                            restoreState = false
                         }
                     })
             }
@@ -196,36 +206,29 @@ private fun MainContent(
                     HomeScreen(homeScreenViewModel, navController)
                 }
 
-                navigation(startDestination = Screen.ProfileHome.route, route = Screen.Profile.route) {
-                    composable(Screen.ProfileHome.route) {
-                        profileViewModel.pauseAndReset()
-                        uploadScreenViewModel.pauseWhenReady()
-                        ProfileScreenContent(profileViewModel = profileViewModel,
-                            currentlySelected = uploadScreenViewModel.currentlySelected.collectAsState().value,
-                            onFilter = { newFilter -> uploadScreenViewModel.setCurrentlySelected(newFilter) },
-                            onSelected = { index ->
-                                profileViewModel.selectedSongIndex = index
-                                navController.navigate(Screen.LCSongs.route)
-                            },
-                            onUploadHit = {
-                                navController.navigate(Screen.Upload.route)
-                            }
+                composable(Screen.OtherProfile.route) { backStackEntry ->
+                    backStackEntry.arguments?.let {
+                        val userId = it.getInt("userId")
+                        val userName = it.getString("userName", "No Username Provided")
+                        val userModel = UserModel(userName, userId)
+                        val profileViewModel = viewModel<ProfileViewModel>(
+                            factory = ProfileViewModel.provideProfileViewModelFactory(
+                                otherProfileViewModelFactory,
+                                userModel
+                            )
                         )
-                    }
-                    composable(Screen.LCSongs.route) {
-                        uploadScreenViewModel.pauseWhenReady()
-                        ProfileScrollingSongs(
-                            profileViewModel = profileViewModel,
-                            songListType = uploadScreenViewModel.currentlySelected.collectAsState().value
-                        )
-                    }
-                    composable(Screen.Upload.route) {
-                        UploadScreen(
-                            uploadScreenViewModel = uploadScreenViewModel,
-                        )
+                        OtherProfileScreen(profileViewModel = profileViewModel)
+
                     }
                 }
 
+
+                composable(Screen.Profile.route) {
+                    ProfileScreen(
+                        mainViewModel = profileViewModel,
+                        uploadScreenViewModel = uploadScreenViewModel
+                    )
+                }
             }
         }
     }
@@ -238,7 +241,22 @@ val LocalNavController = compositionLocalOf<NavController> {
 sealed class Screen(val route: String, @StringRes val resourceId: Int) {
     object Home : Screen("HomePage", R.string.home_screen)
     object Profile : Screen("ProfilePage", R.string.profile_screen)
-    object ProfileHome : Screen("ProfileHome", R.string.profile_home)
-    object LCSongs : Screen("LCSongs", R.string.scrolling_songs_screen)
-    object Upload : Screen("Upload", R.string.upload_song)
+
+    object OtherProfile :
+        Screen("OtherProfilePage/{userId}/{userName}", R.string.other_profile_page) {
+        fun createRoute(userId: Int, userName: String) = "OtherProfilePage/$userId/$userName"
+    }
+
+}
+
+//sealed class OtherProfileScreens(val route: String, @StringRes val resourceId: Int) {
+//    object OtherProfileHome : ProfileScreens("OtherProfileHome", R.string.other_profile_home)
+//    object OtherLCSongs : ProfileScreens("OtherLCSongs", R.string.other_scrolling_songs_screen)
+//
+//}
+
+sealed class ProfileScreens(val route: String, @StringRes val resourceId: Int) {
+    object ProfileHome : ProfileScreens("ProfileHome", R.string.profile_home)
+    object LCSongs : ProfileScreens("LCSongs", R.string.scrolling_songs_screen)
+    object Upload : ProfileScreens("Upload", R.string.upload_song)
 }

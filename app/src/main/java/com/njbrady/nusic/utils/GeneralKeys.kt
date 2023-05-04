@@ -11,4 +11,6 @@ object GeneralKeys {
     const val USERKEY = "user"
     const val USERIDKEY = "user_id"
     const val ID = "id"
+    const val BIO = "bio"
+    const val PROFILEPHOTO = "profilePhoto"
 }

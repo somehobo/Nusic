@@ -1,20 +1,38 @@
 package com.njbrady.nusic.profile.composables
 
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.njbrady.nusic.R
+import com.njbrady.nusic.login.composables.ErrorWithField
+import com.njbrady.nusic.login.model.GeneralStates
 import com.njbrady.nusic.profile.requests.SongListType
+import com.njbrady.nusic.ui.theme.NusicSeeThroughBlack
+import com.njbrady.nusic.utils.composables.Keyboard
+import com.njbrady.nusic.utils.composables.keyboardAsState
 
 
 @Composable
@@ -34,10 +52,88 @@ fun ProfileUsername(modifier: Modifier = Modifier, username: String) {
     )
 }
 
+@Composable
+fun ProfileBio(
+    modifier: Modifier = Modifier,
+    bio: String?,
+    state: GeneralStates,
+    uploadedBio: String?,
+    errorMessages: List<String>? = null,
+    onValueChanged: (String) -> Unit,
+    onFocusChanged: () -> Unit,
+    onDone: () -> Unit,
+    onFocusing: () -> Unit
+) {
+    val keyBoard by keyboardAsState()
+    val focusManager = LocalFocusManager.current
+    val localContext = LocalContext.current
+    var saving = false
+    Box(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(dimensionResource(id = R.dimen.NusicDimenX1)),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (state != GeneralStates.Loading) {
+                OutlinedTextField(
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        if(focusState.isFocused) {
+                                onFocusing()
+                        }
+
+                        if (!focusState.isFocused && bio != uploadedBio && !saving && state != GeneralStates.Success) {
+                            onFocusChanged()
+                            Toast.makeText(
+                                localContext,
+                                R.string.bio_not_saved,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    },
+                    value = bio ?: "",
+                    onValueChange = { new -> onValueChanged(new) },
+                    placeholder = {
+                        Text(
+                            textAlign = TextAlign.Center,
+                            text = stringResource(R.string.add_bio),
+                            style = MaterialTheme.typography.body1,
+                            color = NusicSeeThroughBlack
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        saving = true
+                        focusManager.clearFocus()
+                        onDone()
+                    })
+                )
+
+                if (state == GeneralStates.Error) {
+                    errorMessages?.forEach {
+                        ErrorWithField(message = it)
+                    }
+                }
+            } else {
+                CircularProgressIndicator()
+            }
+
+            LaunchedEffect(keyBoard) {
+                if (keyBoard == Keyboard.Opened) {
+                    Toast.makeText(localContext, R.string.bio_warning, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+}
+
 
 @Composable
 fun MusicSelectionTab(
-    modifier: Modifier = Modifier, currentlySelected: SongListType, onFilter: (SongListType) -> Unit
+    modifier: Modifier = Modifier,
+    currentlySelected: SongListType,
+    onFilter: (SongListType) -> Unit
 ) {
     TabRow(
         modifier = modifier,

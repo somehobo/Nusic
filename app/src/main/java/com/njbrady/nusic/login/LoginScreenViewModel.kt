@@ -20,8 +20,8 @@ class LoginScreenViewModel @Inject constructor(
     @DefaultDispatcher val defaultDispatcher: CoroutineDispatcher
 
 ) : ViewModel() {
-    private val _loginState = MutableStateFlow(LoginStates.FillingOut)
-    private val _registerState = MutableStateFlow(LoginStates.FillingOut)
+    private val _loginState = MutableStateFlow(GeneralStates.FillingOut)
+    private val _registerState = MutableStateFlow(GeneralStates.FillingOut)
     private val _userNameInput = MutableStateFlow("")
     private val _userNameErrorMessages = MutableStateFlow<List<String>>(emptyList())
     private val _passwordInput = MutableStateFlow("")
@@ -35,8 +35,8 @@ class LoginScreenViewModel @Inject constructor(
     private val _registerEmailErrorMessages = MutableStateFlow<List<String>>(emptyList())
     private val _errorMessages = MutableStateFlow<List<String>>(emptyList())
 
-    val loginState: StateFlow<LoginStates> = _loginState
-    val registerState: StateFlow<LoginStates> = _registerState
+    val loginState: StateFlow<GeneralStates> = _loginState
+    val registerState: StateFlow<GeneralStates> = _registerState
     val userNameInput: StateFlow<String> = _userNameInput
     val userNameErrorMessages: StateFlow<List<String>> = _userNameErrorMessages
     val passwordInput: StateFlow<String> = _passwordInput
@@ -75,11 +75,11 @@ class LoginScreenViewModel @Inject constructor(
     }
 
     fun resetLoginState() {
-        _loginState.value = LoginStates.FillingOut
+        _loginState.value = GeneralStates.FillingOut
     }
 
     fun resetRegisterState() {
-        _registerState.value = LoginStates.FillingOut
+        _registerState.value = GeneralStates.FillingOut
     }
 
     fun resetGeneralErrorState() {
@@ -105,22 +105,22 @@ class LoginScreenViewModel @Inject constructor(
         _errorMessages.value = emptyList()
         _userNameErrorMessages.value = emptyList()
         _passwordErrorMessages.value = emptyList()
-        _loginState.value = LoginStates.FillingOut
+        _loginState.value = GeneralStates.FillingOut
     }
 
     fun attemptLogin() {
         viewModelScope.launch {
             withContext(defaultDispatcher) {
-                _loginState.value = LoginStates.Loading
+                _loginState.value = GeneralStates.Loading
                 val loginRepository =
                     loginRequest(userNameInput.value, passwordInput.value, localStorage)
                 if (loginRepository.containsError) {
                     _errorMessages.value = loginRepository.errorMessages
                     _userNameErrorMessages.value = loginRepository.usernameError
                     _passwordErrorMessages.value = loginRepository.passwordError
-                    _loginState.value = LoginStates.FillingOut
+                    _loginState.value = GeneralStates.FillingOut
                 } else {
-                    _loginState.value = LoginStates.Success
+                    _loginState.value = GeneralStates.Success
                 }
             }
         }
@@ -129,9 +129,9 @@ class LoginScreenViewModel @Inject constructor(
     fun attemptRegisterUser() {
         viewModelScope.launch {
             withContext(defaultDispatcher) {
-                _registerState.value = LoginStates.Loading
+                _registerState.value = GeneralStates.Loading
                 if (registerPasswordInput.value != registerSecondaryPasswordInput.value) {
-                    _registerState.value = LoginStates.FillingOut
+                    _registerState.value = GeneralStates.FillingOut
                     _errorMessages.value = listOf("Passwords don't match")
                 } else {
                     val registerRepository = registerRequest(
@@ -145,7 +145,7 @@ class LoginScreenViewModel @Inject constructor(
                         _registerPasswordErrorMessages.value = registerRepository.passwordError
                         _registerEmailErrorMessages.value = registerRepository.emailError
                         _errorMessages.value = registerRepository.errorMessages
-                        _registerState.value = LoginStates.FillingOut
+                        _registerState.value = GeneralStates.FillingOut
                     } else {
                         val loginRepository =
                             loginRequest(
@@ -157,9 +157,9 @@ class LoginScreenViewModel @Inject constructor(
                             _errorMessages.value = loginRepository.errorMessages
                             _registerUsernameErrorMessages.value = loginRepository.usernameError
                             _registerPasswordErrorMessages.value = loginRepository.passwordError
-                            _registerState.value = LoginStates.FillingOut
+                            _registerState.value = GeneralStates.FillingOut
                         } else {
-                            _registerState.value = LoginStates.Success
+                            _registerState.value = GeneralStates.Success
                         }
                     }
                 }
@@ -169,6 +169,6 @@ class LoginScreenViewModel @Inject constructor(
 
 }
 
-enum class LoginStates {
+enum class GeneralStates {
     Success, Error, Loading, FillingOut
 }

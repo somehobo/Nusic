@@ -38,7 +38,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.SubcomposeAsyncImage
+import com.njbrady.nusic.LocalNavController
 import com.njbrady.nusic.R
+import com.njbrady.nusic.Screen
 import com.njbrady.nusic.home.model.SongModel
 import com.njbrady.nusic.home.utils.Direction
 import com.njbrady.nusic.home.utils.rememberSwipeableCardState
@@ -351,6 +353,7 @@ private fun SongCardBottomContent(
     songModel: SongModel,
     psd: FloatArray
 ) {
+    val localNavController = LocalNavController.current
     val adaptiveTextName = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
@@ -399,6 +402,9 @@ private fun SongCardBottomContent(
         )
 
         Text(
+            modifier = Modifier.clickable {
+              localNavController.navigate(Screen.OtherProfile.createRoute(userName = songModel.userModel.userName, userId = songModel.userModel.id))
+            },
             text = stringResource(id = R.string.author_creditor) + " ${songModel.userModel.userName}",
             style = adaptiveTextCreator,
             color = MaterialTheme.colors.background

@@ -50,7 +50,7 @@ private fun RegisterContent(
             title = stringResource(id = R.string.register_screen)
         )
     }) { paddingValues ->
-        if (registerState == LoginStates.Loading) {
+        if (registerState == GeneralStates.Loading) {
             CenteredProgressIndicator(paddingValues = paddingValues)
         } else {
             Column(
@@ -118,7 +118,7 @@ private fun RegisterContent(
                     }
                     loginScreenViewModel.resetLoginState()
                     loginScreenViewModel.resetGeneralErrorState()
-                } else if (registerState == LoginStates.Success) {
+                } else if (registerState == GeneralStates.Success) {
                     Toast.makeText(
                         LocalContext.current,
                         stringResource(id = R.string.register_success_toast),

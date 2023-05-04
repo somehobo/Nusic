@@ -6,6 +6,8 @@
     <string name="login_screen">Login</string>
     <string name="register_screen">Register</string>
     <string name="scrolling_songs_screen">Liked/Created Songs</string>
+    <string name="other_scrolling_songs_screen">Other Liked/Created Songs</string>
+
     <string name="refresh_button_content_description">Retry loading</string>
     <string name="cancel_button_content_description">Cancel</string>
     <string name="author_creditor">by</string>
@@ -38,4 +40,10 @@
     <string name="song_title">Song Title</string>
     <string name="song_card_preview">Song Card Preview</string>
     <string name="profile_home">ProfileHome</string>
+    <string name="other_profile_home">OtherProfileHome</string>
+
+    <string name="other_profile_page">OtherProfilePage</string>
+    <string name="add_bio">Click to add bio</string>
+    <string name="bio_warning">To save bio please hit enter on the keyboard</string>
+    <string name="bio_not_saved">bio not saved, hit enter next time if you want to save</string>
 </resources>

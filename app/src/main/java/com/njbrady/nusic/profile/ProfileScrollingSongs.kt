@@ -23,7 +23,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.njbrady.nusic.LocalNavController
-import com.njbrady.nusic.ProfileViewModel
 import com.njbrady.nusic.R
 import com.njbrady.nusic.profile.requests.SongListType
 import com.njbrady.nusic.upload.PlayerState

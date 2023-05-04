@@ -2,7 +2,6 @@ package com.njbrady.nusic.profile.utils
 
 import android.content.Context
 import android.net.Uri
-import com.njbrady.nusic.profile.requests.getProfilePhoto
 import com.njbrady.nusic.profile.requests.uploadProfilePhoto
 import com.njbrady.nusic.utils.LocalStorage
 import kotlinx.coroutines.CoroutineDispatcher
@@ -15,7 +14,7 @@ import kotlinx.coroutines.launch
 class ProfilePhoto(
     private val scope: CoroutineScope,
     private val defaultDispatcher: CoroutineDispatcher,
-    private val localStorage: LocalStorage
+    private val localStorage: LocalStorage,
 ) {
 
     private val _photoUrl = MutableStateFlow<String?>(null)
@@ -27,26 +26,9 @@ class ProfilePhoto(
     val errorMessage: StateFlow<String?> = _errorMessage
 
 
-    init {
-        //get profile photo or first initial
-        getImage()
-    }
-
-    private fun getImage() {
-        scope.launch {
-            _profilePhotoState.value = ProfilePhotoState.Loading
-            try {
-                _photoUrl.value = getProfilePhoto(localStorage = localStorage)
-                _profilePhotoState.value = ProfilePhotoState.Success
-            } catch (error: Exception) {
-                _errorMessage.value = error.message
-                _profilePhotoState.value = ProfilePhotoState.Error
-            }
-        }
-    }
-
-    fun refresh() {
-        getImage()
+    fun setInitialImage(url: String) {
+        _photoUrl.value = url
+        _profilePhotoState.value = ProfilePhotoState.Success
     }
 
     fun setImage(uri: Uri, context: Context) {

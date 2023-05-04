@@ -10,7 +10,8 @@ class UrlProvider {
         const val feedbackUrl = baseUrl + "songfeedback/"
         const val pagedSongsUrl = baseUrl + "pagedSongs/"
         const val uploadProfilePhotoUrl = baseUrl + "postProfilePhoto/"
-        const val getProfilePhotoUrl = baseUrl + "getProfilePhoto/"
+        const val getUserAttributesUrl = baseUrl + "userAttributes/"
+        const val postUserBioUrl = baseUrl + "postUserBio/"
         const val uploadSong = baseUrl + "songUpload/"
     }
 }

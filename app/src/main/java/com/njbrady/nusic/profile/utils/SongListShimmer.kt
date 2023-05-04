@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
-import com.njbrady.nusic.ProfileViewModel
+import com.njbrady.nusic.profile.ProfileViewModel
 import com.njbrady.nusic.R
 import com.njbrady.nusic.login.composables.CenteredProgressIndicator
 import com.njbrady.nusic.utils.shimmerBackground

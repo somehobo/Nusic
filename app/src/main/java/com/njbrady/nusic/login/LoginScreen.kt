@@ -28,7 +28,7 @@ import com.njbrady.nusic.login.composables.ErrorWithField
 import com.njbrady.nusic.login.composables.PasswordField
 import com.njbrady.nusic.login.composables.UsernameField
 import com.njbrady.nusic.login.model.LoginScreenViewModel
-import com.njbrady.nusic.login.model.LoginStates
+import com.njbrady.nusic.login.model.GeneralStates
 import com.njbrady.nusic.login.model.RegisterScreen
 
 @Composable
@@ -71,7 +71,7 @@ private fun LoginContent(
     val passwordErrorMessage by loginScreenViewModel.passwordErrorMessages.collectAsState()
     val errorMessage by loginScreenViewModel.errorMessage.collectAsState()
     Scaffold { paddingValues ->
-        if (loginState == LoginStates.Loading) {
+        if (loginState == GeneralStates.Loading) {
             CenteredProgressIndicator(paddingValues = paddingValues)
         } else {
             Column(
@@ -140,7 +140,7 @@ private fun LoginContent(
                 }
                 loginScreenViewModel.resetLoginState()
                 loginScreenViewModel.resetGeneralErrorState()
-            } else if (loginState == LoginStates.Success) {
+            } else if (loginState == GeneralStates.Success) {
                 Toast.makeText(
                     LocalContext.current,
                     stringResource(id = R.string.login_success_toast),

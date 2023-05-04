@@ -21,17 +21,90 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
-import com.njbrady.nusic.profile.composables.MusicElement
-import com.njbrady.nusic.profile.composables.MusicSelectionTab
-import com.njbrady.nusic.profile.composables.ProfilePhotoComposable
-import com.njbrady.nusic.profile.composables.ProfileUsername
+import com.njbrady.nusic.profile.ProfileScrollingSongs
+import com.njbrady.nusic.profile.ProfileViewModel
+import com.njbrady.nusic.profile.composables.*
 import com.njbrady.nusic.profile.requests.SongListType
 import com.njbrady.nusic.profile.utils.SongListFurtherCommunicatedState
 import com.njbrady.nusic.profile.utils.SongListInitialCommunicatedState
 import com.njbrady.nusic.ui.theme.NusicTheme
+import com.njbrady.nusic.upload.UploadScreen
+import com.njbrady.nusic.upload.UploadScreenViewModel
 
+@Composable
+fun ProfileScreen(
+    mainViewModel: ProfileViewModel,
+    uploadScreenViewModel: UploadScreenViewModel,
+) {
+    val profileNavController = rememberNavController()
+    ProfileScrenNavigation(
+        profileViewModel = mainViewModel,
+        profileNavController = profileNavController,
+        uploadScreenViewModel = uploadScreenViewModel,
+    )
+}
+
+@Composable
+private fun ProfileScrenNavigation(
+    profileViewModel: ProfileViewModel,
+    uploadScreenViewModel: UploadScreenViewModel,
+    profileNavController: NavHostController,
+) {
+    var currentlySelected by remember {
+        mutableStateOf(SongListType.Liked)
+    }
+
+    Scaffold { paddingValues ->
+        NavHost(
+            navController = profileNavController,
+            startDestination = ProfileScreens.ProfileHome.route,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable(ProfileScreens.ProfileHome.route) {
+                profileViewModel.pauseAndReset()
+                uploadScreenViewModel.pauseWhenReady()
+                ProfileScreenContent(profileViewModel = profileViewModel,
+                    currentlySelected = currentlySelected,
+                    onFilter = { newFilter -> currentlySelected = newFilter },
+                    onSelected = { index ->
+                        profileViewModel.selectedSongIndex = index
+                        profileNavController.navigate(ProfileScreens.LCSongs.route)
+                    },
+                    onUploadHit = {
+                        profileNavController.navigate(ProfileScreens.Upload.route)
+                    })
+            }
+            composable(ProfileScreens.LCSongs.route) {
+                uploadScreenViewModel.pauseWhenReady()
+                ProfileScrollingSongs(
+                    profileViewModel = profileViewModel, songListType = currentlySelected
+                )
+            }
+            composable(ProfileScreens.Upload.route) {
+                UploadScreen(
+                    uploadScreenViewModel = uploadScreenViewModel,
+                )
+            }
+        }
+    }
+
+    LocalNavController.current.addOnDestinationChangedListener { _, destination, _ ->
+        if (destination.route != Screen.Profile.route) {
+            if (profileNavController.currentDestination?.route != ProfileScreens.ProfileHome.route) {
+                profileNavController.navigate(
+                    route = ProfileScreens.ProfileHome.route
+                )
+            }
+        }
+
+    }
+}
 
 @OptIn(
     ExperimentalFoundationApi::class, ExperimentalMaterialApi::class
@@ -53,6 +126,8 @@ fun ProfileScreenContent(
         if (currentlySelected == SongListType.Liked) prependedLikedSongs else prependedCreatedSongs
     val displayedSongs = if (currentlySelected == SongListType.Liked) likedSongs else createdSongs
     val refreshing by profileViewModel.refreshingProfile.collectAsState()
+    val bioState by profileViewModel.bioState.collectAsState()
+    val bio by profileViewModel.bio.collectAsState()
 
     val pullRefreshState = rememberPullRefreshState(refreshing = refreshing, onRefresh = {
         likedSongs.refresh()
@@ -91,6 +166,27 @@ fun ProfileScreenContent(
                     ) {
                         ProfileUsername(
                             username = profileViewModel.userName
+                        )
+                    }
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = dimensionResource(id = R.dimen.NusicDimenX3)),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        ProfileBio(
+                            modifier = Modifier
+                                .padding(horizontal = dimensionResource(id = R.dimen.NusicDimenX2)),
+                            bio = bio,
+                            state = bioState,
+                            uploadedBio = profileViewModel.uploadedBio,
+                            onValueChanged = { new ->  profileViewModel.updateTempBio(new) },
+                            onDone = { profileViewModel.uploadCurrentBio() },
+                            onFocusChanged = { profileViewModel.resetBio() },
+                            onFocusing = { profileViewModel.onFocusing() }
                         )
                     }
                 }
@@ -148,13 +244,26 @@ fun ProfileScreenContent(
 private fun ProfileScreenHeader(profileViewModel: ProfileViewModel, onUploadHit: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
-    TopAppBar(
-        backgroundColor = Color.Transparent,
-        elevation = 0.dp,
-        title = {},
-        actions = {
+    TopAppBar(backgroundColor = Color.Transparent, elevation = 0.dp, title = {}, actions = {
+        IconButton(
+            onClick = { onUploadHit() },
+            modifier = Modifier
+                .size(dimensionResource(id = R.dimen.NusicDimenX5))
+                .padding(
+                    end = dimensionResource(id = R.dimen.NusicDimenX1)
+                )
+        ) {
+            Icon(
+                modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
+                imageVector = Icons.Outlined.Add,
+                contentDescription = stringResource(R.string.upload_button)
+            )
+        }
+        Box(
+            modifier = Modifier.wrapContentSize(Alignment.TopStart)
+        ) {
             IconButton(
-                onClick = { onUploadHit() },
+                onClick = { expanded = true },
                 modifier = Modifier
                     .size(dimensionResource(id = R.dimen.NusicDimenX5))
                     .padding(
@@ -163,52 +272,34 @@ private fun ProfileScreenHeader(profileViewModel: ProfileViewModel, onUploadHit:
             ) {
                 Icon(
                     modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = stringResource(R.string.upload_button)
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = stringResource(R.string.settings_button)
                 )
             }
-            Box(
-                modifier = Modifier.wrapContentSize(Alignment.TopStart)
-            ) {
-                IconButton(
-                    onClick = { expanded = true },
-                    modifier = Modifier
-                        .size(dimensionResource(id = R.dimen.NusicDimenX5))
-                        .padding(
-                            end = dimensionResource(id = R.dimen.NusicDimenX1)
-                        )
-                ) {
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                DropdownMenuItem(onClick = { profileViewModel.logout() }) {
+                    Text(stringResource(R.string.logout), color = MaterialTheme.colors.error)
                     Icon(
-                        modifier = Modifier.size(dimensionResource(id = R.dimen.NusicDimenX5)),
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = stringResource(R.string.settings_button)
+                        modifier = Modifier
+                            .size(dimensionResource(id = R.dimen.NusicDimenX6))
+                            .padding(
+                                start = dimensionResource(
+                                    id = R.dimen.NusicDimenX1
+                                )
+                            ),
+                        painter = painterResource(id = R.drawable.nusic_portal_exit),
+                        tint = MaterialTheme.colors.error,
+                        contentDescription = stringResource(R.string.logout)
                     )
                 }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(onClick = { profileViewModel.logout() }) {
-                        Text(stringResource(R.string.logout), color = MaterialTheme.colors.error)
-                        Icon(
-                            modifier = Modifier
-                                .size(dimensionResource(id = R.dimen.NusicDimenX6))
-                                .padding(
-                                    start = dimensionResource(
-                                        id = R.dimen.NusicDimenX1
-                                    )
-                                ),
-                            painter = painterResource(id = R.drawable.nusic_portal_exit),
-                            tint = MaterialTheme.colors.error,
-                            contentDescription = stringResource(R.string.logout)
-                        )
-                    }
-                }
             }
-        })
+        }
+    })
 }
 
 
 @Composable
 @Preview(showBackground = true)
 private fun viewer() {
-    NusicTheme {
-    }
+    NusicTheme {}
 }
