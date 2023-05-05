@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 enumerates possible swiping directions
  */
 enum class Direction {
-    Left, Right, Up, Down
+    Left, Right
 }
 
 
@@ -67,16 +67,16 @@ class SwipeableCardState(
      */
     suspend fun finishSwipe(
         direction: Direction,
-        animationSpec: AnimationSpec<Offset> = tween(800)
+        animationSpec: AnimationSpec<Offset> = tween(400)
     ) {
         val endX =
             maxWidth * 1.5f //I believe multiplier is due to cards rotation, this is used when auto completing the swipe
-        val endY = maxHeight
+//        val endY = maxHeight
         when (direction) {
             Direction.Left -> offset.animateTo(offset(x = -endX), animationSpec)
             Direction.Right -> offset.animateTo(offset(x = endX), animationSpec)
-            Direction.Up -> offset.animateTo(offset(y = -endY), animationSpec)
-            Direction.Down -> offset.animateTo(offset(y = endY), animationSpec)
+//            Direction.Up -> offset.animateTo(offset(y = -endY), animationSpec)
+//            Direction.Down -> offset.animateTo(offset(y = endY), animationSpec)
         }
         this.swipedDirection = direction
     }

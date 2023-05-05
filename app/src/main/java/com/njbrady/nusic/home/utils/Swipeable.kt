@@ -14,7 +14,7 @@ fun Modifier.swipeableCard(
     state: SwipeableCardState,
     onSwiped: (Direction) -> Unit,
     onSwipeCancel: () -> Unit = {},
-    blockedDirections: List<Direction> = listOf(Direction.Up, Direction.Down),
+    blockedDirections: List<Direction> = listOf(),
 ) = pointerInput(Unit) { //wrapper to detect gestures
     coroutineScope { //do this in parallel
         detectDragGestures(
@@ -39,33 +39,25 @@ fun Modifier.swipeableCard(
             onDragEnd = {
                 launch {
                     val coercedOffset = state.offset.targetValue
-                        .coerceIn(blockedDirections,
+                        .coerceIn(
+                            blockedDirections,
                             maxHeight = state.maxHeight,
-                            maxWidth = state.maxWidth)
+                            maxWidth = state.maxWidth
+                        )
 
                     if (hasNotTravelledEnough(state, coercedOffset)) {
                         state.reset()
                         onSwipeCancel()
                     } else {
-                        val horizontalTravel = abs(state.offset.targetValue.x)
-                        val verticalTravel = abs(state.offset.targetValue.y)
+//                        val horizontalTravel = abs(state.offset.targetValue.x)
+//                        val verticalTravel = abs(state.offset.targetValue.y)
 
-                        if (horizontalTravel > verticalTravel) {
-                            if (state.offset.targetValue.x > 0) {
-                                state.finishSwipe(Direction.Right)
-                                onSwiped(Direction.Right)
-                            } else {
-                                state.finishSwipe(Direction.Left)
-                                onSwiped(Direction.Left)
-                            }
+                        if (state.offset.targetValue.x > 0) {
+                            state.finishSwipe(Direction.Right)
+                            onSwiped(Direction.Right)
                         } else {
-                            if (state.offset.targetValue.y < 0) {
-                                state.finishSwipe(Direction.Up)
-                                onSwiped(Direction.Up)
-                            } else {
-                                state.finishSwipe(Direction.Down)
-                                onSwiped(Direction.Down)
-                            }
+                            state.finishSwipe(Direction.Left)
+                            onSwiped(Direction.Left)
                         }
                     }
                 }
@@ -101,16 +93,11 @@ private fun Offset.coerceIn(
                 maxWidth
             }
         ),
-        y = y.coerceIn(if (blockedDirections.contains(Direction.Up)) {
-            0f
-        } else {
-            -maxHeight
-        },
-            if (blockedDirections.contains(Direction.Down)) {
+        y = y.coerceIn(
                 0f
-            } else {
-                maxHeight
-            }
+            ,
+                0f
+
         )
     )
 }

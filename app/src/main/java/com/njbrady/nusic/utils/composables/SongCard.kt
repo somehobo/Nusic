@@ -72,7 +72,7 @@ fun SwipeableCardWrapper(
         modifier = modifier
             .swipeableCard(
                 state = swipeableCardState,
-                blockedDirections = listOf(Direction.Down, Direction.Up),
+                blockedDirections = listOf(),
                 onSwiped = { dir ->
                     val liked = dir == Direction.Right
                     onLiked(liked)
