@@ -99,8 +99,6 @@ fun ProfileBio(
                             Text(
                                 textAlign = TextAlign.Center,
                                 text = stringResource(R.string.add_bio),
-                                style = MaterialTheme.typography.body1,
-                                color = NusicSeeThroughBlack
                             )
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
